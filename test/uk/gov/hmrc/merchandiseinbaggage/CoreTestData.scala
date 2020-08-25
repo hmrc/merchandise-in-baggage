@@ -5,9 +5,12 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
+import java.time.LocalDateTime
+import java.util.UUID
+
 import uk.gov.hmrc.merchandiseinbaggage.model.{Amount, Declaration, Name, Reference}
 
 trait CoreTestData {
 
-  val aDeclaration = Declaration(Name("name"), Amount(1), Reference("ref"))
+  val aDeclaration = Declaration(UUID.randomUUID().toString, Name("name"), Amount(1), Reference("ref"), LocalDateTime.now)
 }

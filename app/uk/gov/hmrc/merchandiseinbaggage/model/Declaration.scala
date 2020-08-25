@@ -5,6 +5,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
+import java.time.LocalDateTime
+
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
@@ -27,7 +29,7 @@ object Reference {
 }
 
 
-case class Declaration(name: Name, amount: Amount, reference: Reference)
+case class Declaration(id: String, name: Name, amount: Amount, reference: Reference, lastUpdated: LocalDateTime) //TODO find out id
 object Declaration {
   implicit val format: Format[Declaration] = Json.format
 }
