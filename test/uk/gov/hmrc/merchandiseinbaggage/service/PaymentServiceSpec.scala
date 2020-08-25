@@ -9,8 +9,8 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.Declaration
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class PaymentServiceSpec extends BaseSpec with CoreTestData with ScalaFutures {
 
