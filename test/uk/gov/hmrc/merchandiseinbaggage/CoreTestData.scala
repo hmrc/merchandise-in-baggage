@@ -12,5 +12,5 @@ import uk.gov.hmrc.merchandiseinbaggage.model.{Amount, Declaration, Name, Refere
 
 trait CoreTestData {
 
-  val aDeclaration = Declaration(UUID.randomUUID().toString, Name("name"), Amount(1), Reference("ref"), LocalDateTime.now)
+  def aDeclaration = Declaration(UUID.randomUUID().toString, Name("name"), Amount(1), Reference("ref"), LocalDateTime.now)
 }
