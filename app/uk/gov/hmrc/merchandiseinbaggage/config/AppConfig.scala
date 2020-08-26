@@ -25,5 +25,5 @@ trait MongoConfiguration {
   lazy val mongoConf: MongoConf = configSource("mongodb").loadOrThrow[MongoConf]
 }
 
-final case class MongoConf(uri: String, timeToLiveInSeconds: String)
+final case class MongoConf(uri: String, timeToLiveInSeconds: String, host: String = "localhost", port: Int = 27017)
 final case class AuthConfig(protocol: String, host: String, port: Int)

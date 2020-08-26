@@ -6,16 +6,16 @@
 package uk.gov.hmrc.merchandiseinbaggage
 
 import de.bwaldvogel.mongo.MongoServer
-import de.bwaldvogel.mongo.backend.h2.H2Backend
-import org.scalatest.BeforeAndAfterEach
+import de.bwaldvogel.mongo.backend.memory.MemoryBackend
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.Injector
-import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
+import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
 
 
-trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach
+trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll
 
 trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite {
 
@@ -23,11 +23,10 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite {
   implicit val appConf: AppConfig = new AppConfig
 }
 
-trait BaseSpecWithMongoTestServer extends BaseSpec {
+trait BaseSpecWithMongoTestServer extends BaseSpec with MongoConfiguration {
+  private val server: MongoServer = new MongoServer(new MemoryBackend())
 
-  private val server: MongoServer = new MongoServer(new H2Backend("database.mv"));
+  override def beforeAll(): Unit = server.bind(mongoConf.host, mongoConf.port)
 
-  override def beforeEach(): Unit = server.bind("localhost", 27017)
-
-  override def afterEach(): Unit = server.shutdown()
+  override def afterAll(): Unit = server.shutdown()
 }
