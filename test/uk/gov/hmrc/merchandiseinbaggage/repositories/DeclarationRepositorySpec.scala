@@ -10,7 +10,7 @@ import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, BaseSpecWithMongoTestServer, CoreTestData}
 
-class DeclarationRepositorySpec extends BaseSpecWithApplication with BaseSpecWithMongoTestServer with CoreTestData with ScalaFutures {
+class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 
@@ -22,5 +22,18 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with BaseSpecWit
     whenReady(repository.insert(declaration)) { result =>
       result mustBe declaration
     }
+  }
+
+  "find a declaration by id" in {
+    val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
+    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val declaration = aDeclaration
+
+    whenReady(repository.insert(declaration)) { insertResult =>
+      insertResult mustBe declaration
+        whenReady(repository.findByDeclarationId(declaration.id)) { findResult =>
+          findResult mustBe declaration :: Nil
+        }
+      }
   }
 }
