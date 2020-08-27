@@ -5,6 +5,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
+import java.time.LocalDateTime
+
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, Writes}
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
@@ -61,8 +63,8 @@ object PaymentStatus {
 
 
 case class Declaration(declarationId: DeclarationId, name: TraderName, amount: Amount,
-                       csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference,
-                       paymentStatus: PaymentStatus
+                       csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference, paymentStatus: PaymentStatus,
+                       paid: Option[LocalDateTime], reconciled: Option[LocalDateTime]
                       )
 
 object Declaration {
