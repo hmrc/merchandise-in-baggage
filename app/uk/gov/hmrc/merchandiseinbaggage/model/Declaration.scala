@@ -5,8 +5,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
-import java.time.LocalDateTime
-
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
@@ -33,8 +31,14 @@ object ChargeReference {
   implicit val format: Format[ChargeReference] = ValueClassFormat.format(value => ChargeReference.apply(value))(_.value)
 }
 
+case class DeclarationId(value: String)
+object DeclarationId {
+  implicit val format: Format[DeclarationId] = ValueClassFormat.format(value => DeclarationId.apply(value))(_.value)
+}
 
-case class Declaration(id: String, name: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference) //TODO find out id
+
+case class Declaration(declarationId: DeclarationId, name: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference) //TODO find out id
 object Declaration {
+  val id = "declarationId"
   implicit val format: Format[Declaration] = Json.format
 }

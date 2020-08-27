@@ -12,7 +12,7 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.merchandiseinbaggage.model.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.{Declaration, DeclarationId}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,13 +24,13 @@ class DeclarationRepository @Inject()(mongo: () => DB)
 
   override def indexes: Seq[Index] = Seq(
     Index(key = Seq("createdOn" -> IndexType.Ascending), name = Some("createdOnTime"), options = BSONDocument("expireAfterSeconds" -> "60")),
-    Index(Seq(s"id" -> Ascending), Option("primaryKey"), unique = true)
+    Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
   def insert(declaration: Declaration): Future[Declaration] = super.insert(declaration).map(_ => declaration)
 
-  def findByDeclarationId(declarationId: String): Future[List[Declaration]] = {
-    val query: (String, JsValueWrapper) = s"id" -> JsString(declarationId)
+  def findByDeclarationId(declarationId: DeclarationId): Future[List[Declaration]] = {
+    val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
     find(query)
   }
 

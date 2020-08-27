@@ -12,7 +12,7 @@ class DeclarationSpec extends BaseSpec {
 
   "Serialise/Deserialise from/to json to Declaration" in {
     val declaration = Declaration(
-      "1234",
+      DeclarationId("1234"),
       TraderName("Valentino Rossi"),
       Amount(111),
       CsgTpsProviderId("123"),

@@ -11,6 +11,6 @@ import uk.gov.hmrc.merchandiseinbaggage.model._
 
 trait CoreTestData {
 
-  def aDeclaration = Declaration(UUID.randomUUID().toString,
+  def aDeclaration = Declaration(DeclarationId(UUID.randomUUID().toString),
     TraderName("name"), Amount(1), CsgTpsProviderId("123"), ChargeReference("ref"))
 }

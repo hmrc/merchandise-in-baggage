@@ -39,7 +39,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with BaseSpecWit
       insertResult mustBe declaration
     }
 
-    whenReady(repository.findByDeclarationId(declaration.id)) { findResult =>
+    whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
       findResult mustBe declaration :: Nil
     }
   }
