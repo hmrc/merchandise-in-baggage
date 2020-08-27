@@ -12,7 +12,6 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.Declaration
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -21,7 +20,7 @@ import scala.concurrent.Future
 
 @Singleton
 class DeclarationRepository @Inject()(mongo: () => DB)
-  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) with MongoConfiguration {
+  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) {
 
   override def indexes: Seq[Index] = Seq(
     Index(key = Seq("createdOn" -> IndexType.Ascending), name = Some("createdOnTime"), options = BSONDocument("expireAfterSeconds" -> "60")),
@@ -38,4 +37,7 @@ class DeclarationRepository @Inject()(mongo: () => DB)
   def findById(declarationId: String): Future[Option[Declaration]] = super.findById(declarationId)
 
   def findAll: Future[List[Declaration]] = super.findAll()
+
+  //TODO do we want to take some measure to stop getting called in prod!?
+  def deleteAll: Future[Unit] = super.removeAll().map(_ => ())
 }
