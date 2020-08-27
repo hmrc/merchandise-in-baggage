@@ -16,11 +16,13 @@ class DeclarationSpec extends BaseSpec {
       TraderName("Valentino Rossi"),
       Amount(111),
       CsgTpsProviderId("123"),
-      ChargeReference("some ref")
+      ChargeReference("some ref"),
+      Outstanding
     )
 
     val actual = Json.toJson(declaration).toString
 
+    println(s"===========> ${Json.toJson(declaration)}")
     Json.toJson(declaration) mustBe Json.parse(actual)
   }
 }

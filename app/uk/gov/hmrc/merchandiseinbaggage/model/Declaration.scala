@@ -5,7 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, Writes}
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
 
@@ -36,8 +36,35 @@ object DeclarationId {
   implicit val format: Format[DeclarationId] = ValueClassFormat.format(value => DeclarationId.apply(value))(_.value)
 }
 
+sealed trait PaymentStatus
+case object Outstanding extends PaymentStatus
+case object Paid extends PaymentStatus
+case object Reconciled extends PaymentStatus
+object PaymentStatus {
+  implicit val write = new Writes[PaymentStatus] {
+    override def writes(status: PaymentStatus): JsValue = status match {
+      case Outstanding => Json.toJson("OUTSTANDING")
+      case Paid        => Json.toJson("PAID")
+      case Reconciled  => Json.toJson("RECONCILED")
+    }
+  }
 
-case class Declaration(declarationId: DeclarationId, name: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference) //TODO find out id
+  implicit val read = new Reads[PaymentStatus] {
+    override def reads(value: JsValue): JsResult[PaymentStatus] = value match {
+      case JsString("OUTSTANDING") => JsSuccess(Outstanding)
+      case JsString("PAID")        => JsSuccess(Paid)
+      case JsString("RECONCILED")  => JsSuccess(Reconciled)
+      case _                       => JsError("invalid value")
+    }
+  }
+}
+
+
+case class Declaration(declarationId: DeclarationId, name: TraderName, amount: Amount,
+                       csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference,
+                       paymentStatus: PaymentStatus
+                      )
+
 object Declaration {
   val id = "declarationId"
   implicit val format: Format[Declaration] = Json.format
