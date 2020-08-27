@@ -12,6 +12,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.Injector
+import play.api.mvc.AnyContentAsEmpty
+import play.api.test.FakeRequest
+import play.api.test.Helpers.POST
+import play.api.test.CSRFTokenHelper._
 import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
 
 
@@ -21,6 +25,9 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite {
 
   def injector: Injector = app.injector
   implicit val appConf: AppConfig = new AppConfig
+
+  def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 }
 
 trait BaseSpecWithMongoTestServer extends BaseSpec with MongoConfiguration {

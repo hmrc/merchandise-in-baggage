@@ -1,3 +1,5 @@
 # microservice specific routes
 
 GET        /hello-world             uk.gov.hmrc.merchandiseinbaggage.controllers.MicroserviceHelloWorldController.hello
+
+POST       /payment                 uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onPayment

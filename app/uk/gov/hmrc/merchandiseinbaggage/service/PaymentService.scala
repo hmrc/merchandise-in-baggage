@@ -5,7 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import uk.gov.hmrc.merchandiseinbaggage.model.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.core.Declaration
 
 import scala.concurrent.{ExecutionContext, Future}
 

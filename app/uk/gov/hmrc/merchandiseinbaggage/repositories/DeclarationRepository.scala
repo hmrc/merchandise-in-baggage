@@ -12,7 +12,7 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.merchandiseinbaggage.model.{Declaration, DeclarationId}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global

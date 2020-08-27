@@ -3,11 +3,11 @@
  *
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model
+package uk.gov.hmrc.merchandiseinbaggage.model.core
 
 import java.time.LocalDateTime
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
 
