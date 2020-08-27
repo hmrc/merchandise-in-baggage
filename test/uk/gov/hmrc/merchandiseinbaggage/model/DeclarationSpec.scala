@@ -5,8 +5,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
-import java.time.LocalDateTime
-
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpec
 
@@ -15,10 +13,10 @@ class DeclarationSpec extends BaseSpec {
   "Serialise/Deserialise from/to json to Declaration" in {
     val declaration = Declaration(
       "1234",
-      Name("Valentino Rossi"),
+      TraderName("Valentino Rossi"),
       Amount(111),
-      Reference("some ref"),
-      LocalDateTime.now
+      CsgTpsProviderId("123"),
+      ChargeReference("some ref")
     )
 
     val actual = Json.toJson(declaration).toString

@@ -11,9 +11,9 @@ import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
 
-case class Name(value: String)
-object Name {
-  implicit val format: Format[Name] = ValueClassFormat.format(value => Name.apply(value))(_.value)
+case class TraderName(value: String)
+object TraderName {
+  implicit val format: Format[TraderName] = ValueClassFormat.format(value => TraderName.apply(value))(_.value)
 }
 
 
@@ -23,13 +23,18 @@ object Amount {
 }
 
 
-case class Reference(value: String)
-object Reference {
-  implicit val format: Format[Reference] = ValueClassFormat.format(value => Reference.apply(value))(_.value)
+case class CsgTpsProviderId(value: String)
+object CsgTpsProviderId {
+  implicit val format: Format[CsgTpsProviderId] = ValueClassFormat.format(value => CsgTpsProviderId.apply(value))(_.value)
+}
+
+case class ChargeReference(value: String)
+object ChargeReference {
+  implicit val format: Format[ChargeReference] = ValueClassFormat.format(value => ChargeReference.apply(value))(_.value)
 }
 
 
-case class Declaration(id: String, name: Name, amount: Amount, reference: Reference, lastUpdated: LocalDateTime) //TODO find out id
+case class Declaration(id: String, name: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference) //TODO find out id
 object Declaration {
   implicit val format: Format[Declaration] = Json.format
 }

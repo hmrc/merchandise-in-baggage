@@ -38,6 +38,6 @@ class DeclarationRepository @Inject()(mongo: () => DB)
 
   def findAll: Future[List[Declaration]] = super.findAll()
 
-  //TODO do we want to take some measure to stop getting called in prod!?
+  //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   def deleteAll: Future[Unit] = super.removeAll().map(_ => ())
 }
