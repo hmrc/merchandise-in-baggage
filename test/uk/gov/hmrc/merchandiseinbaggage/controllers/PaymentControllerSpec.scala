@@ -16,9 +16,8 @@ class PaymentControllerSpec extends BaseSpecWithApplication {
 
   "on submit will trigger a call to pay-api and render the response" in {
     val controller = new PaymentController(component)
-
     val postRequest = buildPost(routes.PaymentController.onPayment().url)
 
-    status(controller.onPayment()(postRequest)) mustBe 200
+    status(controller.onPayment()(postRequest)) mustBe 201
   }
 }

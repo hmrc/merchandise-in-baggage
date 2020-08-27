@@ -15,7 +15,7 @@ class PaymentController  @Inject()(mcc: MessagesControllerComponents)(implicit v
   extends BackendController(mcc) {
 
   def onPayment(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok)
+    Future.successful(Created)
   }
 
 }
