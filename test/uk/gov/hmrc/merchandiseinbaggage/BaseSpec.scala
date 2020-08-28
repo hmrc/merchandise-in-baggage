@@ -21,19 +21,15 @@ import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
 
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll
 
-trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite {
+trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with MongoConfiguration {
+  private val server: MongoServer = new MongoServer(new MemoryBackend())
+  server.bind(mongoConf.host, mongoConf.port)
+
+  override def afterAll(): Unit = server.shutdown()
 
   def injector: Injector = app.injector
   implicit val appConf: AppConfig = new AppConfig
 
   def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
-}
-
-trait BaseSpecWithMongoTestServer extends BaseSpec with MongoConfiguration {
-  private val server: MongoServer = new MongoServer(new MemoryBackend())
-
-  override def beforeAll(): Unit = server.bind(mongoConf.host, mongoConf.port)
-
-  override def afterAll(): Unit = server.shutdown()
 }

@@ -16,8 +16,9 @@ import scala.concurrent.Future
 class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
   "persist a declaration from a payment request" in new PaymentService {
-    val persist: Declaration => Future[Boolean] = _ => Future.successful(true)
     val paymentRequest: PaymentRequest = aPaymentRequest
+    val declarationInInitialState = paymentRequest.toDeclarationInInitialState
+    val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
     import paymentRequest._
 
     whenReady(persistDeclaration(persist, paymentRequest)) { result =>

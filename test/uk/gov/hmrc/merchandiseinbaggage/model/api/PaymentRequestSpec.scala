@@ -7,9 +7,9 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithMongoTestServer, CoreTestData}
+import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
-class PaymentRequestSpec extends BaseSpecWithMongoTestServer with CoreTestData {
+class PaymentRequestSpec extends BaseSpec with CoreTestData {
 
   "Serialise/Deserialise from/to json to PaymentRequest" in {
     val paymentRequest = aPaymentRequest

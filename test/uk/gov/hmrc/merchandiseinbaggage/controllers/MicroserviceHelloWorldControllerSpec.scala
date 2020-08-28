@@ -5,15 +5,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 
-class MicroserviceHelloWorldControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
+class MicroserviceHelloWorldControllerSpec extends BaseSpecWithApplication {
 
   private val fakeRequest = FakeRequest("GET", "/")
   private val appConfig     = new AppConfig()
@@ -23,7 +21,7 @@ class MicroserviceHelloWorldControllerSpec extends AnyWordSpec with Matchers wit
   "GET /" should {
     "return 200" in {
       val result = controller.hello()(fakeRequest)
-      status(result) shouldBe Status.OK
+      status(result) mustBe Status.OK
     }
   }
 }

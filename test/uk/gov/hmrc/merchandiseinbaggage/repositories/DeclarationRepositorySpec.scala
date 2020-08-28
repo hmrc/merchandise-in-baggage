@@ -9,12 +9,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.model.core.Declaration
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, BaseSpecWithMongoTestServer, CoreTestData}
+import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DeclarationRepositorySpec extends BaseSpecWithApplication with BaseSpecWithMongoTestServer with CoreTestData with ScalaFutures {
+class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 

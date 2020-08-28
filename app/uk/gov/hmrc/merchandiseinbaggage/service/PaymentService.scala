@@ -13,9 +13,10 @@ import scala.util.Try
 
 trait PaymentService {
 
-  def persistDeclaration(persist: Declaration => Future[Boolean], paymentRequest: PaymentRequest)(implicit ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
+                        (implicit ec: ExecutionContext): Future[Declaration] =
     for {
       declaration <- Future.fromTry(Try(paymentRequest.toDeclarationInInitialState))
-      _           <- persist(declaration)
-    } yield declaration
+      persisted   <- persist(declaration)
+    } yield persisted
 }
