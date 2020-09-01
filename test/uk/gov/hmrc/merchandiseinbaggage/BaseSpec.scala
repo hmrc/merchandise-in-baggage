@@ -14,7 +14,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.Injector
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import play.api.test.Helpers.POST
+import play.api.test.Helpers._
 import play.api.test.CSRFTokenHelper._
 import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
 
@@ -32,4 +32,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
 
   def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+  def buildPatch(url: String): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(PATCH, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 }

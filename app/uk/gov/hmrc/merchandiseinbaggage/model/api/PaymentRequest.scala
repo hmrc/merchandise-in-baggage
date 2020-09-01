@@ -8,7 +8,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import java.util.UUID
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, ChargeReference, CsgTpsProviderId, Declaration, DeclarationId, Outstanding, TraderName}
+import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 case class PaymentRequest(traderName: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
 object PaymentRequest {
@@ -21,4 +21,9 @@ object PaymentRequest {
         chargeReference, Outstanding, None, None)
     }
   }
+}
+
+case class PaymentStatusRequest(status: PaymentStatus)
+object PaymentStatusRequest {
+  implicit val format: Format[PaymentStatusRequest] = Json.format
 }
