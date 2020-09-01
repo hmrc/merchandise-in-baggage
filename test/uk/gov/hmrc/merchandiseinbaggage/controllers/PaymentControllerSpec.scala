@@ -33,8 +33,8 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
     }
     val paymentRequest = aPaymentRequest
     val requestBody = Json.toJson(paymentRequest)
-    val postRequest = buildPost(routes.PaymentController.onPayment().url).withJsonBody(requestBody)
-    val eventualResult = controller.onPayment()(postRequest)
+    val postRequest = buildPost(routes.PaymentController.onPayments().url).withJsonBody(requestBody)
+    val eventualResult = controller.onPayments()(postRequest)
 
     status(eventualResult) mustBe 201
     contentAsJson(eventualResult) mustBe Json.toJson(DeclarationIdResponse(declaration.declarationId))

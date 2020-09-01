@@ -20,7 +20,7 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
                                   declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with PaymentService {
 
-  def onPayment(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
+  def onPayments(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
     RequestWithPayment().map(rwp =>
       persistDeclaration(declarationRepository.insert, rwp.paymentRequest).map { dec =>
         Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
@@ -31,7 +31,7 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
 
 case class RequestWithPayment[A](request: Request[A], paymentRequest: PaymentRequest) extends WrappedRequest(request)
 object RequestWithPayment {
-  def apply[A]()(implicit request: Request[AnyContent], ec: ExecutionContext): Option[RequestWithPayment[_]] =
+  def apply[A]()(implicit request: Request[AnyContent]): Option[RequestWithPayment[_]] =
     for {
       parsed         <- request.body.asJson
       paymentRequest <- parsed.asOpt[PaymentRequest]
