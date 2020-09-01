@@ -24,4 +24,8 @@ trait CoreTestData {
       Some(LocalDateTime.now), None)
 
   def aPaymentRequest = PaymentRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
+
+  implicit class WithPaidStatus(declaration: Declaration) {
+    def withPaidStatus(): Declaration = declaration.copy(paymentStatus = Paid)
+  }
 }

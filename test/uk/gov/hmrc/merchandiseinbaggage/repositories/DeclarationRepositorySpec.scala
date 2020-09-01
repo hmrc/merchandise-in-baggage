@@ -40,7 +40,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     }
 
     whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
-      findResult mustBe declaration :: Nil
+      findResult mustBe Some(declaration)
     }
   }
 
@@ -48,19 +48,19 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
-    val updatedStatus = Paid
+    val updatedDeclaration = declaration.withPaidStatus
 
     whenReady(repository.insert(declaration)) { insertResult =>
       insertResult mustBe declaration
       declaration.paymentStatus mustBe Outstanding
     }
 
-    whenReady(repository.updateStatus(declaration, updatedStatus)) { patchResult =>
-      patchResult mustBe true
+    whenReady(repository.updateStatus(declaration, updatedDeclaration.paymentStatus)) { patchResult =>
+      patchResult mustBe updatedDeclaration
     }
 
     whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
-      findResult.head mustBe declaration.copy(paymentStatus = updatedStatus)
+      findResult mustBe Some(updatedDeclaration)
     }
   }
 
@@ -71,7 +71,6 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
 
     def insertTwo(): Future[Declaration] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
 
-    //TODO assert inserted first
     val collection = for {
       _ <- repository.deleteAll
       _ <- insertTwo()

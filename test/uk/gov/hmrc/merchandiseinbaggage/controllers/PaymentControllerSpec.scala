@@ -39,4 +39,21 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
     status(eventualResult) mustBe 201
     contentAsJson(eventualResult) mustBe Json.toJson(DeclarationIdResponse(declaration.declarationId))
   }
+
+//  "on updatePaymentStatus will invoke the service to update the payment status" in {
+//    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
+//    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+//    val declaration = aDeclaration
+//    val controller = new PaymentController(component, repository) {
+//      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
+//                                     (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(declaration)
+//    }
+//    val paymentRequest = aPaymentRequest
+//    val requestBody = Json.toJson(paymentRequest)
+//    val postRequest = buildPost(routes.PaymentController.onPayments().url).withJsonBody(requestBody)
+//    val eventualResult = controller.onPayments()(postRequest)
+//
+//    status(eventualResult) mustBe 201
+//    contentAsJson(eventualResult) mustBe Json.toJson(DeclarationIdResponse(declaration.declarationId))
+//  }
 }

@@ -30,22 +30,23 @@ class DeclarationRepository @Inject()(mongo: () => DB)
 
   def insert(declaration: Declaration): Future[Declaration] = super.insert(declaration).map(_ => declaration)
 
-  def findByDeclarationId(declarationId: DeclarationId): Future[List[Declaration]] = {
+  def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
-    find(query)
+    find(query).map(_.headOption)
   }
 
   def findAll: Future[List[Declaration]] = super.findAll()
 
-  def updateStatus(declaration: Declaration, paymentStatus: PaymentStatus): Future[Boolean] = {
+  def updateStatus(declaration: Declaration, paymentStatus: PaymentStatus): Future[Declaration] = {
     val selector = Json.obj(s"${Declaration.id}" -> JsString(s"${declaration.declarationId.value}"))
-    val modifier = Json.obj("$set" -> declaration.copy(paymentStatus = paymentStatus))
+    val updatedDeclaration = declaration.copy(paymentStatus = paymentStatus)
+    val modifier = Json.obj("$set" -> updatedDeclaration)
 
     collection.update(ordered = false)
       .one(selector, modifier, upsert = true)
       .map { lastError =>
         lastError.ok
-      }
+      }.map(_ => updatedDeclaration)
   }
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
