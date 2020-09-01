@@ -12,7 +12,8 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId}
+import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, PaymentStatus}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,9 +35,18 @@ class DeclarationRepository @Inject()(mongo: () => DB)
     find(query)
   }
 
-  def findById(declarationId: String): Future[Option[Declaration]] = super.findById(declarationId)
-
   def findAll: Future[List[Declaration]] = super.findAll()
+
+  def updateStatus(declaration: Declaration, paymentStatus: PaymentStatus): Future[Boolean] = {
+    val selector = Json.obj(s"${Declaration.id}" -> JsString(s"${declaration.declarationId.value}"))
+    val modifier = Json.obj("$set" -> declaration.copy(paymentStatus = paymentStatus))
+
+    collection.update(ordered = false)
+      .one(selector, modifier, upsert = true)
+      .map { lastError =>
+        lastError.ok
+      }
+  }
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   def deleteAll: Future[Unit] = super.removeAll().map(_ => ())
