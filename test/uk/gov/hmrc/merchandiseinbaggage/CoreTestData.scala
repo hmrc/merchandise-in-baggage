@@ -27,5 +27,6 @@ trait CoreTestData {
 
   implicit class WithPaidStatus(declaration: Declaration) {
     def withPaidStatus(): Declaration = declaration.copy(paymentStatus = Paid)
+    def withReconciledStatus(): Declaration = declaration.copy(paymentStatus = Reconciled)
   }
 }
