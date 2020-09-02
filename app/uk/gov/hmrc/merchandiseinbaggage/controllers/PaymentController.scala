@@ -10,7 +10,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, PaymentRequest, PaymentStatusRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, InvalidPaymentStatus, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.PaymentService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -36,6 +36,7 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
       updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
         DeclarationId(id), requestWithStatus.paymentStatus).fold ({
         case InvalidPaymentStatus => BadRequest
+        case DeclarationNotFound  => NotFound //TODO untested - not sure about requirement
       }, (_ => NoContent))
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
