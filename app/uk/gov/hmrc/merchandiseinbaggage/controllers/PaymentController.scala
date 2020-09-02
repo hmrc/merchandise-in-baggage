@@ -10,10 +10,11 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, PaymentRequest, PaymentStatusRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, InvalidPaymentStatus, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.PaymentService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import cats.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,8 +34,9 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
     RequestWithPaymentStatus()
       .map(requestWithStatus =>
       updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), requestWithStatus.paymentStatus).value
-        .map { _ => NoContent }
+        DeclarationId(id), requestWithStatus.paymentStatus).fold ({
+        case InvalidPaymentStatus => BadRequest
+      }, (_ => NoContent))
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 }
