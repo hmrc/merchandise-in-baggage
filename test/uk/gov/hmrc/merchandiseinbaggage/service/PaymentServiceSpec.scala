@@ -7,7 +7,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, Outstanding, Paid, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,19 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     val updateStatus: (Declaration, PaymentStatus) => Future[Declaration] = (_, _) => Future(updatedDeclaration)
 
     whenReady(updatePaymentStatus(findByDeclarationId, updateStatus, declarationInInitialState.declarationId, newStatus).value) { result =>
-      result mustBe Some(updatedDeclaration)
+      result mustBe Right(updatedDeclaration)
+    }
+  }
+
+  "fail to update a declaration payment status if invalid" in new PaymentService {
+    val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
+    val invalidStatus: PaymentStatus = Outstanding
+    val updatedDeclaration: Declaration = outstandingDeclaration.copy(paymentStatus = invalidStatus)
+    val findByDeclarationId: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Option(outstandingDeclaration))
+    val updateStatus: (Declaration, PaymentStatus) => Future[Declaration] = (_, _) => Future(updatedDeclaration)
+
+    whenReady(updatePaymentStatus(findByDeclarationId, updateStatus, outstandingDeclaration.declarationId, invalidStatus).value) { result =>
+      result mustBe Left(InvalidPaymentStatus)
     }
   }
 }

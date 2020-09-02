@@ -8,7 +8,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding, Paid}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
