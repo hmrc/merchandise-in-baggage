@@ -42,12 +42,15 @@ sealed trait PaymentStatus
 case object Outstanding extends PaymentStatus
 case object Paid extends PaymentStatus
 case object Reconciled extends PaymentStatus
+case object Failed extends PaymentStatus
+
 object PaymentStatus {
   implicit val write = new Writes[PaymentStatus] {
     override def writes(status: PaymentStatus): JsValue = status match {
       case Outstanding => Json.toJson("OUTSTANDING")
       case Paid        => Json.toJson("PAID")
       case Reconciled  => Json.toJson("RECONCILED")
+      case Failed      => Json.toJson("FAILED")
     }
   }
 
@@ -56,6 +59,7 @@ object PaymentStatus {
       case JsString("OUTSTANDING") => JsSuccess(Outstanding)
       case JsString("PAID")        => JsSuccess(Paid)
       case JsString("RECONCILED")  => JsSuccess(Reconciled)
+      case JsString("FAILED")      => JsSuccess(Failed)
       case _                       => JsError("invalid value")
     }
   }

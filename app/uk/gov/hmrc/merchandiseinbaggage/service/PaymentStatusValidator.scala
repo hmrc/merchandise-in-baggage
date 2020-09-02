@@ -17,6 +17,7 @@ trait PaymentStatusValidator {
 
   private val validPaymentStatusUpdates: Map[(PaymentStatus, PaymentStatus), PaymentStatus] = Map(
     (Outstanding, Paid)       -> Paid,
-    (Outstanding, Reconciled) -> Reconciled
+    (Outstanding, Reconciled) -> Reconciled,
+    (Outstanding, Failed)     -> Failed
   )
 }
