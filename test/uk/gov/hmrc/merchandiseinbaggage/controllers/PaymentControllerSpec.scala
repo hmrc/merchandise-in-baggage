@@ -44,12 +44,11 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   "on updatePaymentStatus will invoke the service to update the payment status" in {
     val declaration = aDeclaration
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db) {
-      override def updateStatus(declaration: Declaration, paymentStatus: PaymentStatus): Future[Declaration] =
-        Future.successful(declaration.withPaidStatus)
+    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val controller = new PaymentController(component, repository) {
+      override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(Right(declaration.withPaidStatus())))
     }
-
-    val controller = new PaymentController(component, repository)
     val patchRequest = buildPatch(routes.PaymentController.onUpdate(declaration.declarationId.value).url)
       .withJsonBody(Json.toJson(PaymentStatusRequest(Paid)))
     val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
