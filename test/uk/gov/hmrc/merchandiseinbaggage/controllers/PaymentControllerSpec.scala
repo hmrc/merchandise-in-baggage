@@ -25,11 +25,8 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   private lazy val component = app.injector.instanceOf[MessagesControllerComponents]
 
   "on submit will trigger a call to pay-api and render the response" in {
-    setUp { (declaration, repository) =>
-      val controller = new PaymentController(component, repository) {
-        override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
-                                       (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(declaration)
-      }
+    val declaration = aDeclaration
+    setUp(Right(declaration)) { controller =>
       val paymentRequest = aPaymentRequest
       val requestBody = Json.toJson(paymentRequest)
       val postRequest = buildPost(routes.PaymentController.onPayments().url).withJsonBody(requestBody)
@@ -41,11 +38,8 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   }
 
   "on updatePaymentStatus will invoke the service to update the payment status" in {
-    setUp { (declaration, repository) =>
-      val controller = new PaymentController(component, repository) {
-        override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-          EitherT[Future, BusinessError, Declaration](Future.successful(Right(declaration.withPaidStatus())))
-      }
+    val declaration = aDeclaration
+    setUp(Right(declaration.withPaidStatus())) { controller =>
       val patchRequest = buildPatch(routes.PaymentController.onUpdate(declaration.declarationId.value).url)
         .withJsonBody(Json.toJson(PaymentStatusRequest(Paid)))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
@@ -55,12 +49,8 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   }
 
   "on updatePaymentStatus will invoke the service to update the payment status if invalid will return 400" in {
-    setUp { (declaration, repository) =>
-      val controller = new PaymentController(component, repository) {
-        override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-          EitherT[Future, BusinessError, Declaration](Future.successful(Left(InvalidPaymentStatus)))
-      }
-
+    val declaration = aDeclaration
+    setUp(Left(InvalidPaymentStatus)) { controller =>
       val patchRequest = buildPatch(routes.PaymentController.onUpdate(declaration.declarationId.value).url)
         .withJsonBody(Json.toJson(PaymentStatusRequest(Outstanding)))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
@@ -70,11 +60,18 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   }
 
 
-  def setUp(fn: (Declaration, DeclarationRepository) => Any)(): Unit = {
-    val declaration = aDeclaration
+  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: PaymentController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
 
-    fn(declaration, repository)
+    val controller = new PaymentController(component, repository) {
+      override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+
+      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
+                                     (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
+    }
+
+    fn(controller)
   }
 }
