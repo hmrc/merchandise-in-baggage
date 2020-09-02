@@ -34,7 +34,7 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
     RequestWithPaymentStatus()
       .map(requestWithStatus =>
       updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), requestWithStatus.paymentStatus).fold ({
+        DeclarationId(id), requestWithStatus.paymentStatus) fold ({
         case InvalidPaymentStatus => BadRequest
         case DeclarationNotFound  => NotFound //TODO untested - not sure about requirement
       }, (_ => NoContent))
