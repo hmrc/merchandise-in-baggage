@@ -35,4 +35,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
 
   def buildPatch(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(PATCH, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+  def buildGet(url: String): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(GET, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 }

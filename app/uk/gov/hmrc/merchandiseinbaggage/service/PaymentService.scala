@@ -22,17 +22,18 @@ trait PaymentService extends PaymentStatusValidator {
       persisted   <- persist(declaration)
     } yield persisted
 
+  def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
+                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+    EitherT.fromOptionF(findById(declarationId), DeclarationNotFound)
+
   def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]],
                           updateStatus: (Declaration, PaymentStatus) => Future[Declaration],
                           declarationId: DeclarationId,
                           paymentStatus: PaymentStatus)
                           (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-    {
-
-      for {
-        declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
-        _           <- EitherT.fromEither[Future](validateNewStatus(declaration, paymentStatus).value)
-        update      <- EitherT.liftF(updateStatus(declaration, paymentStatus))
-      } yield update
-    }
+    for {
+      declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
+      _           <- EitherT.fromEither[Future](validateNewStatus(declaration, paymentStatus).value)
+      update      <- EitherT.liftF(updateStatus(declaration, paymentStatus))
+    } yield update
 }

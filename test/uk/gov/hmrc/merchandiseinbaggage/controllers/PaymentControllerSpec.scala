@@ -37,6 +37,17 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
     }
   }
 
+  "on retrieve will return declaration for a given id" in {
+    val declaration = aDeclaration
+    setUp(Right(declaration)) { controller =>
+      val getRequest = buildGet(routes.PaymentController.onRetrieve(declaration.declarationId.value).url)
+      val eventualResult = controller.onRetrieve(declaration.declarationId.value)(getRequest)
+
+      status(eventualResult) mustBe 200
+      contentAsJson(eventualResult) mustBe Json.toJson(declaration)
+    }
+  }
+
   "on updatePaymentStatus will invoke the service to update the payment status" in {
     val declaration = aDeclaration
     setUp(Right(declaration.withPaidStatus())) { controller =>
@@ -70,6 +81,10 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
 
       override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
                                      (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
+
+      override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
+                             (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
 
     fn(controller)

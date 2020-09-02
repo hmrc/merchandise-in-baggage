@@ -30,6 +30,13 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 
+  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
+    findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)) fold ({
+      case DeclarationNotFound => NotFound
+      case _                   => InternalServerError("Something went wrong")
+    }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
+  }
+
   def onUpdate(id: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
     RequestWithPaymentStatus()
       .map(requestWithStatus =>
