@@ -24,7 +24,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
 
   private lazy val component = app.injector.instanceOf[MessagesControllerComponents]
 
-  "on submit will trigger a call to pay-api and render the response" in {
+  "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
       val paymentRequest = aPaymentRequest
