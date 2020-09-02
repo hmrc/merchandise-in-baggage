@@ -7,7 +7,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, DeclarationNotFound, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,6 +24,20 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     whenReady(persistDeclaration(persist, paymentRequest)) { result =>
       result mustBe Declaration(result.declarationId, traderName, amount, csgTpsProviderId,
         chargeReference, result.paymentStatus, result.paid, result.reconciled)
+    }
+  }
+
+  "find a declaration by id or returns not found" in new PaymentService {
+    val declaration = aDeclaration
+    val stubbedFind: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Some(declaration))
+    val stubbedNotFound: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(None)
+
+    whenReady(findByDeclarationId(stubbedFind, declaration.declarationId).value) { result =>
+      result mustBe Right(declaration)
+    }
+
+    whenReady(findByDeclarationId(stubbedNotFound, declaration.declarationId).value) { result =>
+      result mustBe Left(DeclarationNotFound)
     }
   }
 

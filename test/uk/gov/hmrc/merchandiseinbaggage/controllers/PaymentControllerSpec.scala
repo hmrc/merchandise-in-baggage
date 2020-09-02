@@ -83,7 +83,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
                                      (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
-                             (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
 
