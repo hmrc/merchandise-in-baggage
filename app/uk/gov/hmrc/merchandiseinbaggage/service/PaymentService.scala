@@ -5,6 +5,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDateTime
+
 import cats.data.EitherT
 import cats.instances.future._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
@@ -28,12 +30,20 @@ trait PaymentService extends PaymentStatusValidator {
 
   def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]],
                           updateStatus: (Declaration, PaymentStatus) => Future[Declaration],
-                          declarationId: DeclarationId,
-                          paymentStatus: PaymentStatus)
+                          declarationId: DeclarationId, paymentStatus: PaymentStatus)
                           (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     for {
       declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
       _           <- EitherT.fromEither[Future](validateNewStatus(declaration, paymentStatus).value)
-      update      <- EitherT.liftF(updateStatus(declaration, paymentStatus))
+      update      <- EitherT.liftF(updateStatus(statusUpdateTime(paymentStatus, declaration), paymentStatus))
     } yield update
+
+  protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: Declaration): Declaration = {
+    val now = LocalDateTime.now
+    paymentStatus match {
+      case Paid       => declaration.copy(paid = Some(now))
+      case Reconciled => declaration.copy(reconciled = Some(now))
+      case _          => declaration
+    }
+  }
 }

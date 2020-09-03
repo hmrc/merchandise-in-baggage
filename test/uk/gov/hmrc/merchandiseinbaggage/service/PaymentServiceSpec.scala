@@ -7,7 +7,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, DeclarationNotFound, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,7 +41,7 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     }
   }
 
-  "update a declaration payment status" in new PaymentService {
+  "update a declaration payment status and add time" in new PaymentService {
     val declarationInInitialState = aDeclaration.copy(paymentStatus = Outstanding)
     val newStatus: PaymentStatus = Paid
     val updatedDeclaration: Declaration = declarationInInitialState.copy(paymentStatus = newStatus)
@@ -50,6 +50,9 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
 
     whenReady(updatePaymentStatus(findByDeclarationId, updateStatus, declarationInInitialState.declarationId, newStatus).value) { result =>
       result mustBe Right(updatedDeclaration)
+      result.right.get.paid must matchPattern {
+        case Some(_) =>
+      }
     }
   }
 
