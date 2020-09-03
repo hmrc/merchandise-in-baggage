@@ -6,6 +6,3 @@ POST       /payments                uk.gov.hmrc.merchandiseinbaggage.controllers
 PATCH      /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onUpdate(id: String)
 GET        /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onRetrieve(id: String)
 
-
-# for QA only
-DELETE     /test-only/payments      uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onTestDelete

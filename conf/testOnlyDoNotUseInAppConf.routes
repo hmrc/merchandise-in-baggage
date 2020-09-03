@@ -11,3 +11,6 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
+
+# for QA only
+DELETE     /test-only/payments        uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onTestDelete
