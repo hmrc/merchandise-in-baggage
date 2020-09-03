@@ -5,7 +5,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.LocalDateTime
 import java.util.UUID
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
@@ -20,8 +19,7 @@ trait CoreTestData {
 
   def aDeclaration =
     Declaration(DeclarationId(UUID.randomUUID().toString),
-      aTraderName, anAmount, aCsgTpsProviderId, aChargeReference, Outstanding,
-      Some(LocalDateTime.now), None)
+      aTraderName, anAmount, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
 
   def aPaymentRequest = PaymentRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
 

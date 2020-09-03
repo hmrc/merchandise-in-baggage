@@ -35,15 +35,18 @@ trait PaymentService extends PaymentStatusValidator {
     for {
       declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
       _           <- EitherT.fromEither[Future](validateNewStatus(declaration, paymentStatus).value)
-      update      <- EitherT.liftF(updateStatus(statusUpdateTime(paymentStatus, declaration), paymentStatus))
+      withTime    = statusUpdateTime(paymentStatus, declaration)
+      update      <- EitherT.liftF(updateStatus(withTime, paymentStatus))
     } yield update
 
   protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: Declaration): Declaration = {
-    val now = LocalDateTime.now
+    val now: LocalDateTime = generateTime
     paymentStatus match {
       case Paid       => declaration.copy(paid = Some(now))
       case Reconciled => declaration.copy(reconciled = Some(now))
       case _          => declaration
     }
   }
+
+  protected def generateTime = LocalDateTime.now
 }

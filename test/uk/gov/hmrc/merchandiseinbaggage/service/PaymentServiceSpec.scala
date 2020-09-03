@@ -5,6 +5,9 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicBoolean
+
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
@@ -42,17 +45,21 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
   }
 
   "update a declaration payment status and add time" in new PaymentService {
+    val withStatusUpdate = new AtomicBoolean(false)
     val declarationInInitialState = aDeclaration.copy(paymentStatus = Outstanding)
     val newStatus: PaymentStatus = Paid
     val updatedDeclaration: Declaration = declarationInInitialState.copy(paymentStatus = newStatus)
     val findByDeclarationId: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Option(declarationInInitialState))
     val updateStatus: (Declaration, PaymentStatus) => Future[Declaration] = (_, _) => Future(updatedDeclaration)
 
+    override protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: Declaration): Declaration = {
+      withStatusUpdate.set(true)
+      updatedDeclaration
+    }
+
     whenReady(updatePaymentStatus(findByDeclarationId, updateStatus, declarationInInitialState.declarationId, newStatus).value) { result =>
       result mustBe Right(updatedDeclaration)
-      result.right.get.paid must matchPattern {
-        case Some(_) =>
-      }
+      withStatusUpdate.get() mustBe true
     }
   }
 
@@ -66,5 +73,16 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     whenReady(updatePaymentStatus(findByDeclarationId, updateStatus, outstandingDeclaration.declarationId, invalidStatus).value) { result =>
       result mustBe Left(InvalidPaymentStatus)
     }
+  }
+
+  "generate time for valid updates or None if invalid" in new PaymentService {
+    val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
+    val now = LocalDateTime.now
+    override protected def generateTime: LocalDateTime = now
+
+    statusUpdateTime(Paid, outstandingDeclaration).paid mustBe Some(now)
+    statusUpdateTime(Reconciled, outstandingDeclaration).reconciled mustBe Some(now)
+    statusUpdateTime(Outstanding, outstandingDeclaration).paid mustBe None
+    statusUpdateTime(Outstanding, outstandingDeclaration).reconciled mustBe None
   }
 }
