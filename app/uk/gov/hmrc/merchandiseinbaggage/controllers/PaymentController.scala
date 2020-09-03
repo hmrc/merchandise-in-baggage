@@ -47,6 +47,10 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
       }, (_ => NoContent))
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
+
+  def onTestDelete: Action[AnyContent] = Action(parse.default).async { _  =>
+    Future.successful(declarationRepository.removeAll()).map(_ => NoContent)
+  }
 }
 
 
