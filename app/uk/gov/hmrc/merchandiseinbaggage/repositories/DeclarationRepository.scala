@@ -24,7 +24,6 @@ class DeclarationRepository @Inject()(mongo: () => DB)
   extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) {
 
   override def indexes: Seq[Index] = Seq(
-    Index(key = Seq("createdOn" -> IndexType.Ascending), name = Some("createdOnTime"), options = BSONDocument("expireAfterSeconds" -> "60")),
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
