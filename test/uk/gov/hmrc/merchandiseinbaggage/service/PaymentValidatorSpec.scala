@@ -10,6 +10,15 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class PaymentValidatorSpec extends BaseSpec with CoreTestData {
 
+  "runs all validations" in new PaymentValidator {
+    val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
+
+    validateRequest(outstandingDeclaration, Outstanding).value mustBe Left(InvalidPaymentStatus)
+    validateAmount(aDeclaration.copy(amount = Amount(0.0))).value mustBe Left(InvalidAmount)
+    validateTraderName(aDeclaration.copy(name = TraderName(""))).value mustBe Left(InvalidName)
+    validateChargeReference(aDeclaration.copy(reference = ChargeReference(""))).value mustBe Left(InvalidChargeReference)
+  }
+
   "payment status can only be updated to PAID & RECONCILED from OUTSTANDING" in new PaymentValidator {
     val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
 

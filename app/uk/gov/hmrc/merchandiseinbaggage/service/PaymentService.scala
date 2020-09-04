@@ -34,7 +34,7 @@ trait PaymentService extends PaymentValidator {
                           (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     for {
       declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
-      _           <- EitherT.fromEither[Future](validateNewStatus(declaration, paymentStatus).value)
+      _           <- EitherT.fromEither[Future](validateRequest(declaration, paymentStatus).value)
       withTime    = statusUpdateTime(paymentStatus, declaration)
       update      <- EitherT.liftF(updateStatus(withTime, paymentStatus))
     } yield update
