@@ -17,12 +17,12 @@ object ValueClassFormat {
       Writes[A](a => JsString(fromAToString(a)))
     )
 
-  def formatLong[A: Format](fromNumberToA: Long => A)(fromAToLong: A => Long) =
+  def formatDouble[A: Format](fromNumberToA: Double => A)(fromAToDouble: A => Double) =
     Format[A](
       Reads[A] {
-        case JsNumber(n) => JsSuccess(fromNumberToA(n.toLong))
+        case JsNumber(n) => JsSuccess(fromNumberToA(n.toDouble))
         case unknown     => JsError(s"JsString value expected, got: $unknown")
       },
-      Writes[A](a => JsNumber(fromAToLong(a)))
+      Writes[A](a => JsNumber(fromAToDouble(a)))
     )
 }

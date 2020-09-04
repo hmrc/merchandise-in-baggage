@@ -15,7 +15,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-trait PaymentService extends PaymentStatusValidator {
+trait PaymentService extends PaymentValidator {
 
   def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
                         (implicit ec: ExecutionContext): Future[Declaration] =
