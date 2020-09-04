@@ -9,9 +9,8 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import reactivemongo.api.DB
+import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, PaymentStatus}
 import uk.gov.hmrc.mongo.ReactiveRepository
