@@ -13,4 +13,4 @@
 ->         /                          prod.Routes
 
 # for QA only
-DELETE     /test-only/payments        uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onTestDelete
+DELETE     /test-only/payments        uk.gov.hmrc.merchandiseinbaggage.testonly.QATestingController.onTestDelete
