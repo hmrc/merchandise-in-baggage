@@ -48,5 +48,5 @@ class DeclarationRepository @Inject()(mongo: () => DB)
   }
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
-  def deleteAll: Future[Unit] = super.removeAll().map(_ => ())
+  def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 }

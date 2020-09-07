@@ -73,9 +73,9 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     def insertTwo(): Future[Declaration] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
 
     val collection = for {
-      _ <- repository.deleteAll
+      _ <- repository.deleteAll()
       _ <- insertTwo()
-      _ <- repository.deleteAll
+      _ <- repository.deleteAll()
       all <- repository.findAll
     } yield all
 

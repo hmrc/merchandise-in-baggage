@@ -5,7 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, ChargeReference, Declaration, Failed, InvalidAmount, InvalidChargeReference, InvalidName, InvalidPaymentStatus, Outstanding, Paid, Reconciled, TraderName}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, ChargeReference, Declaration, Failed, InvalidAmount, InvalidChargeReference, InvalidName, InvalidPaymentStatus, Outstanding, Paid, Reconciled, TraderName}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationValidatorSpec extends BaseSpec with CoreTestData {
@@ -14,7 +14,7 @@ class DeclarationValidatorSpec extends BaseSpec with CoreTestData {
     val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
 
     validateRequest(outstandingDeclaration, Outstanding).value mustBe Left(InvalidPaymentStatus)
-    validateAmount(aDeclaration.copy(amount = Amount(0.0))).value mustBe Left(InvalidAmount)
+    validateAmount(aDeclaration.copy(amount = AmountInPence(0.0))).value mustBe Left(InvalidAmount)
     validateTraderName(aDeclaration.copy(name = TraderName(""))).value mustBe Left(InvalidName)
     validateChargeReference(aDeclaration.copy(reference = ChargeReference(""))).value mustBe Left(InvalidChargeReference)
   }
@@ -34,10 +34,10 @@ class DeclarationValidatorSpec extends BaseSpec with CoreTestData {
   }
 
   "validate amount by checking if at least 1 pence" in new DeclarationValidator {
-    val declaration: Declaration = aDeclaration.copy(amount = Amount(0.01))
+    val declaration: Declaration = aDeclaration.copy(amount = AmountInPence(0.01))
 
     validateAmount(declaration).value mustBe Right(declaration)
-    validateAmount(aDeclaration.copy(amount = Amount(0.0))).value mustBe Left(InvalidAmount)
+    validateAmount(aDeclaration.copy(amount = AmountInPence(0.0))).value mustBe Left(InvalidAmount)
   }
 
   "validate name by checking if empty" in new DeclarationValidator {

@@ -17,9 +17,9 @@ object TraderName {
 }
 
 
-case class Amount(value: Double)
-object Amount {
-  implicit val format: Format[Amount] = ValueClassFormat.formatDouble(value => Amount.apply(value))(_.value)
+case class AmountInPence(value: Double)
+object AmountInPence {
+  implicit val format: Format[AmountInPence] = ValueClassFormat.formatDouble(value => AmountInPence.apply(value))(_.value)
 }
 
 
@@ -66,7 +66,7 @@ object PaymentStatus {
 }
 
 
-case class Declaration(declarationId: DeclarationId, name: TraderName, amount: Amount,
+case class Declaration(declarationId: DeclarationId, name: TraderName, amount: AmountInPence,
                        csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference, paymentStatus: PaymentStatus,
                        paid: Option[LocalDateTime], reconciled: Option[LocalDateTime]
                       )
