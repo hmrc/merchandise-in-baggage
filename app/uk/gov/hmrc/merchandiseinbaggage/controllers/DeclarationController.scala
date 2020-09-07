@@ -18,8 +18,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentController @Inject()(mcc: MessagesControllerComponents,
-                                  declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
+class DeclarationController @Inject()(mcc: MessagesControllerComponents,
+                                      declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with PaymentService {
 
   def onDeclarations(): Action[AnyContent] = Action(parse.default).async { implicit request  =>

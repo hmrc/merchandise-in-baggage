@@ -20,7 +20,7 @@ import uk.gov.hmrc.mongo.MongoConnector
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
+class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
 
   private lazy val component = app.injector.instanceOf[MessagesControllerComponents]
 
@@ -29,7 +29,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
     setUp(Right(declaration)) { controller =>
       val paymentRequest = aPaymentRequest
       val requestBody = Json.toJson(paymentRequest)
-      val postRequest = buildPost(routes.PaymentController.onDeclarations().url).withJsonBody(requestBody)
+      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withJsonBody(requestBody)
       val eventualResult = controller.onDeclarations()(postRequest)
 
       status(eventualResult) mustBe 201
@@ -40,7 +40,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   "on retrieve will return declaration for a given id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
-      val getRequest = buildGet(routes.PaymentController.onRetrieve(declaration.declarationId.value).url)
+      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId.value).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId.value)(getRequest)
 
       status(eventualResult) mustBe 200
@@ -51,7 +51,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   "on updatePaymentStatus will invoke the service to update the payment status" in {
     val declaration = aDeclaration
     setUp(Right(declaration.withPaidStatus())) { controller =>
-      val patchRequest = buildPatch(routes.PaymentController.onUpdate(declaration.declarationId.value).url)
+      val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
         .withJsonBody(Json.toJson(PaymentStatusRequest(Paid)))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
@@ -62,7 +62,7 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   "on updatePaymentStatus will invoke the service to update the payment status if invalid will return 400" in {
     val declaration = aDeclaration
     setUp(Left(InvalidPaymentStatus)) { controller =>
-      val patchRequest = buildPatch(routes.PaymentController.onUpdate(declaration.declarationId.value).url)
+      val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
         .withJsonBody(Json.toJson(PaymentStatusRequest(Outstanding)))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
@@ -71,11 +71,11 @@ class PaymentControllerSpec extends BaseSpecWithApplication with CoreTestData wi
   }
 
 
-  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: PaymentController => Any)(): Unit = {
+  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
 
-    val controller = new PaymentController(component, repository) {
+    val controller = new DeclarationController(component, repository) {
       override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
