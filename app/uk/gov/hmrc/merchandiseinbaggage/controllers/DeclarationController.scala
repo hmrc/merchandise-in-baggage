@@ -45,7 +45,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
         case InvalidPaymentStatus => BadRequest
         case DeclarationNotFound  => NotFound
         case _                    => BadRequest
-      }, (_ => NoContent))
+      }, _ => NoContent)
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 }
