@@ -10,10 +10,7 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
 import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig() extends AuthConfiguration with MongoConfiguration {
-  val auditingEnabled: Boolean = configSource("auditing.enabled").loadOrThrow[Boolean]
-  val graphiteHost: String     = configSource("microservice.metrics.graphite.host").loadOrThrow[String]
-}
+class AppConfig() extends AuthConfiguration with MongoConfiguration
 
 trait AuthConfiguration {
   lazy val authConfig: AuthConfig = configSource("microservice.services.auth").loadOrThrow[AuthConfig]
