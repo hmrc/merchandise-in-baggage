@@ -22,8 +22,8 @@ class PaymentController @Inject()(mcc: MessagesControllerComponents,
                                   declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with PaymentService {
 
-  def onPayments(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
-    RequestWithPayment().map(rwp =>
+  def onDeclarations(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
+    RequestWithDeclaration().map(rwp =>
       persistDeclaration(declarationRepository.insert, rwp.paymentRequest).map { dec =>
         Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
       }

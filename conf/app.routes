@@ -2,7 +2,7 @@
 
 GET        /hello-world             uk.gov.hmrc.merchandiseinbaggage.controllers.MicroserviceHelloWorldController.hello
 
-POST       /payments                uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onPayments
+POST       /payments                uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onDeclarations
 PATCH      /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onUpdate(id: String)
 GET        /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.PaymentController.onRetrieve(id: String)
 
