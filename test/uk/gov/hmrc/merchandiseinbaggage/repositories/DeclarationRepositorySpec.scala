@@ -10,6 +10,7 @@ import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
+import uk.gov.hmrc.mongo.MongoConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -19,7 +20,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 
   "insert a declaration object into MongoDB" in {
-    val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
+    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
 
@@ -29,7 +30,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "find a declaration by declaration id" in {
-    val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
+    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
 
@@ -45,7 +46,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "updates the payment status for a given declaration id" in {
-    val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
+    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
     val updatedDeclaration = declaration.withPaidStatus
@@ -65,7 +66,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "delete all declarations for testing purpose" in {
-    val reactiveMongo = injector.instanceOf[ReactiveMongoComponent]
+    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
 
