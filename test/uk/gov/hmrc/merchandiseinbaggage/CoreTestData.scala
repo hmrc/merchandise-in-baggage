@@ -12,16 +12,16 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 trait CoreTestData {
 
-  val aTraderName = TraderName("name")
-  val anAmount = AmountInPence(1)
-  val aCsgTpsProviderId = CsgTpsProviderId("123")
-  val aChargeReference = ChargeReference("ref")
+  val aTraderName: TraderName = TraderName("name")
+  val anAmount: AmountInPence = AmountInPence(1)
+  val aCsgTpsProviderId: CsgTpsProviderId = CsgTpsProviderId("123")
+  val aChargeReference: ChargeReference = ChargeReference("ref")
 
-  def aDeclaration =
+  def aDeclaration: Declaration =
     Declaration(DeclarationId(UUID.randomUUID().toString),
       aTraderName, anAmount, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
 
-  def aPaymentRequest = DeclarationRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
+  def aPaymentRequest: DeclarationRequest = DeclarationRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
 
   implicit class WithPaidStatus(declaration: Declaration) {
     def withPaidStatus(): Declaration = declaration.copy(paymentStatus = Paid)
