@@ -11,7 +11,7 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, PaymentRequest, PaymentStatusRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, Declaration, DeclarationId, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -79,7 +79,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
+      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
                                      (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)

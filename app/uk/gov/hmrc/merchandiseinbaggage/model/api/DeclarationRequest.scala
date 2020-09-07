@@ -10,11 +10,11 @@ import java.util.UUID
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
-case class PaymentRequest(traderName: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
-object PaymentRequest {
-  implicit val format: Format[PaymentRequest] = Json.format
+case class DeclarationRequest(traderName: TraderName, amount: Amount, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
+object DeclarationRequest {
+  implicit val format: Format[DeclarationRequest] = Json.format
 
-  implicit class ToDeclaration(paymentRequest: PaymentRequest) {
+  implicit class ToDeclaration(paymentRequest: DeclarationRequest) {
     def toDeclarationInInitialState: Declaration = {
       import paymentRequest._
       Declaration(DeclarationId(UUID.randomUUID().toString), traderName, amount, csgTpsProviderId,

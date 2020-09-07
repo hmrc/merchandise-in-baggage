@@ -13,14 +13,14 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
-import uk.gov.hmrc.merchandiseinbaggage.service.PaymentService
+import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(mcc: MessagesControllerComponents,
                                       declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
-  extends BackendController(mcc) with PaymentService {
+  extends BackendController(mcc) with DeclarationService {
 
   def onDeclarations(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
     RequestWithDeclaration().map(rwp =>

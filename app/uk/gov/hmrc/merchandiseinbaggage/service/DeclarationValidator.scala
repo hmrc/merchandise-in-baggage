@@ -9,7 +9,7 @@ import cats.Id
 import cats.data.EitherT
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
-trait PaymentValidator {
+trait DeclarationValidator {
 
   def validateRequest(declaration: Declaration, newStatus: PaymentStatus): EitherT[Id, BusinessError, Declaration] =
     for {

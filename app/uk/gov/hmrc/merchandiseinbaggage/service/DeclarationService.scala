@@ -9,15 +9,15 @@ import java.time.LocalDateTime
 
 import cats.data.EitherT
 import cats.instances.future._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-trait PaymentService extends PaymentValidator {
+trait DeclarationService extends DeclarationValidator {
 
-  def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: PaymentRequest)
+  def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
                         (implicit ec: ExecutionContext): Future[Declaration] =
     for {
       declaration <- Future.fromTry(Try(paymentRequest.toDeclarationInInitialState))

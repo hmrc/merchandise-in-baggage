@@ -9,17 +9,17 @@ import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.merchandiseinbaggage.model.api.PaymentRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
+class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
-  "persist a declaration from a payment request" in new PaymentService {
-    val paymentRequest: PaymentRequest = aPaymentRequest
+  "persist a declaration from a payment request" in new DeclarationService {
+    val paymentRequest: DeclarationRequest = aPaymentRequest
     val declarationInInitialState = paymentRequest.toDeclarationInInitialState
     val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
     import paymentRequest._
@@ -30,7 +30,7 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     }
   }
 
-  "find a declaration by id or returns not found" in new PaymentService {
+  "find a declaration by id or returns not found" in new DeclarationService {
     val declaration = aDeclaration
     val stubbedFind: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Some(declaration))
     val stubbedNotFound: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(None)
@@ -44,7 +44,7 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     }
   }
 
-  "update a declaration payment status and add time" in new PaymentService {
+  "update a declaration payment status and add time" in new DeclarationService {
     val withStatusUpdate = new AtomicBoolean(false)
     val declarationInInitialState = aDeclaration.copy(paymentStatus = Outstanding)
     val newStatus: PaymentStatus = Paid
@@ -63,7 +63,7 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     }
   }
 
-  "fail to update a declaration payment status if invalid" in new PaymentService {
+  "fail to update a declaration payment status if invalid" in new DeclarationService {
     val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
     val invalidStatus: PaymentStatus = Outstanding
     val updatedDeclaration: Declaration = outstandingDeclaration.copy(paymentStatus = invalidStatus)
@@ -75,7 +75,7 @@ class PaymentServiceSpec extends BaseSpecWithApplication with CoreTestData with 
     }
   }
 
-  "generate time for valid updates or None if invalid" in new PaymentService {
+  "generate time for valid updates or None if invalid" in new DeclarationService {
     val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
     val now = LocalDateTime.now
     override protected def generateTime: LocalDateTime = now
