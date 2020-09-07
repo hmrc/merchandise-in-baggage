@@ -48,5 +48,5 @@ trait DeclarationService extends DeclarationValidator {
     }
   }
 
-  protected def generateTime = LocalDateTime.now
+  protected def generateTime: LocalDateTime = LocalDateTime.now
 }
