@@ -20,7 +20,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
   "persist a declaration from a payment request" in new DeclarationService {
     val paymentRequest: DeclarationRequest = aPaymentRequest
-    val declarationInInitialState = paymentRequest.toDeclarationInInitialState
+    val declarationInInitialState: Declaration = paymentRequest.toDeclarationInInitialState
     val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
     import paymentRequest._
 
@@ -31,7 +31,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   }
 
   "find a declaration by id or returns not found" in new DeclarationService {
-    val declaration = aDeclaration
+    val declaration: Declaration = aDeclaration
     val stubbedFind: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Some(declaration))
     val stubbedNotFound: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(None)
 
@@ -46,7 +46,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
   "update a declaration payment status and add time" in new DeclarationService {
     val withStatusUpdate = new AtomicBoolean(false)
-    val declarationInInitialState = aDeclaration.copy(paymentStatus = Outstanding)
+    val declarationInInitialState: Declaration = aDeclaration.copy(paymentStatus = Outstanding)
     val newStatus: PaymentStatus = Paid
     val updatedDeclaration: Declaration = declarationInInitialState.copy(paymentStatus = newStatus)
     val findByDeclarationId: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Option(declarationInInitialState))
@@ -64,7 +64,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   }
 
   "fail to update a declaration payment status if invalid" in new DeclarationService {
-    val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
+    val outstandingDeclaration: Declaration = aDeclaration.copy(paymentStatus = Outstanding)
     val invalidStatus: PaymentStatus = Outstanding
     val updatedDeclaration: Declaration = outstandingDeclaration.copy(paymentStatus = invalidStatus)
     val findByDeclarationId: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Option(outstandingDeclaration))
@@ -76,8 +76,8 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   }
 
   "generate time for valid updates or None if invalid" in new DeclarationService {
-    val outstandingDeclaration = aDeclaration.copy(paymentStatus = Outstanding)
-    val now = LocalDateTime.now
+    val outstandingDeclaration: Declaration = aDeclaration.copy(paymentStatus = Outstanding)
+    val now: LocalDateTime = LocalDateTime.now
     override protected def generateTime: LocalDateTime = now
 
     statusUpdateTime(Paid, outstandingDeclaration).paid mustBe Some(now)

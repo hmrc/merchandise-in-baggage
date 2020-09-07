@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
 
-  private lazy val component = app.injector.instanceOf[MessagesControllerComponents]
+  private lazy val component = injector.instanceOf[MessagesControllerComponents]
 
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
