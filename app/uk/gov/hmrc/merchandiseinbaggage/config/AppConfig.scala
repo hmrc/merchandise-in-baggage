@@ -5,15 +5,22 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.config
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import javax.inject.Singleton
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
+import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig() extends AuthConfiguration with MongoConfiguration
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+trait AuthConfiguration {
+  lazy val authConfig: AuthConfig = configSource("microservice.services.auth").loadOrThrow[AuthConfig]
+  import authConfig._
+  lazy val authBaseUrl = s"$protocol://$host:$port"
 }
+
+trait MongoConfiguration {
+  lazy val mongoConf: MongoConf = configSource("mongodb").loadOrThrow[MongoConf]
+}
+
+final case class MongoConf(uri: String, host: String = "localhost", port: Int = 27017, collectionName: String = "declaration")
+final case class AuthConfig(protocol: String, host: String, port: Int)
