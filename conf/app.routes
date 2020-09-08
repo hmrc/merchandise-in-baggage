@@ -1,6 +1,6 @@
 # microservice specific routes
 
-POST       /payments                uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onDeclarations
-PATCH      /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onUpdate(id: String)
-GET        /payments/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onRetrieve(id: String)
+POST       /declarations                uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onDeclarations
+PATCH      /declarations/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onUpdate(id: String)
+GET        /declarations/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onRetrieve(id: String)
 
