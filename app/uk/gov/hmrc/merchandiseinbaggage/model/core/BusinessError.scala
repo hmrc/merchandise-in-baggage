@@ -6,6 +6,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.core
 
 sealed trait BusinessError
+case object InvalidRequest extends BusinessError
 case object InvalidPaymentStatus extends BusinessError
 case object DeclarationNotFound extends BusinessError
 case object InvalidAmount extends BusinessError

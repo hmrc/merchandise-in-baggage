@@ -24,10 +24,10 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
     import paymentRequest._
 
-    whenReady(persistDeclaration(persist, paymentRequest)) { result =>
-      result mustBe Declaration(result.declarationId, traderName, amount, csgTpsProviderId,
-        chargeReference, result.paymentStatus, result.paid, result.reconciled)
-    }
+    val actual: Declaration = persistDeclaration(persist, paymentRequest).value.right.get
+
+    actual mustBe Declaration(actual.declarationId, traderName, amount, csgTpsProviderId,
+        chargeReference, actual.paymentStatus, actual.paid, actual.reconciled)
   }
 
   "find a declaration by id or returns not found" in new DeclarationService {

@@ -5,6 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
+import cats.Id
 import cats.data.EitherT
 import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
@@ -80,7 +81,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
       override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                                     (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
+                                     (implicit ec: ExecutionContext):  EitherT[Id, BusinessError, Declaration] =
+        EitherT.fromEither(stubbedPersistedDeclaration)
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =

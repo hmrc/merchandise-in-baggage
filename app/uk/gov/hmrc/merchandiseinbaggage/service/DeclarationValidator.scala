@@ -14,7 +14,12 @@ trait DeclarationValidator {
   def validateRequest(declaration: Declaration, newStatus: PaymentStatus): EitherT[Id, BusinessError, Declaration] =
     for {
       status    <- validateNewStatus(declaration, newStatus)
-      amount    <- validateAmount(status)
+      validated <- validatePersistRequest(status)
+    } yield validated
+
+  def validatePersistRequest(declaration: Declaration): EitherT[Id, BusinessError, Declaration] =
+    for {
+      amount    <- validateAmount(declaration)
       name      <- validateTraderName(amount)
       reference <- validateChargeReference(name)
     } yield reference
