@@ -21,7 +21,7 @@ trait DeclarationService extends DeclarationValidator {
     for {
       declaration <- EitherT.fromEither[Future](validatePersistRequest(paymentRequest.toDeclarationInInitialState).value)
       persisted   <- EitherT.liftF(persist(declaration))
-    } yield declaration
+    } yield persisted
 
   def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
