@@ -8,7 +8,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.Declaration
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -42,26 +42,6 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
 
     whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
       findResult mustBe Some(declaration)
-    }
-  }
-
-  "updates the payment status for a given declaration id" in {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
-    val updatedDeclaration = declaration.withPaidStatus
-
-    whenReady(repository.insert(declaration)) { insertResult =>
-      insertResult mustBe declaration
-      declaration.paymentStatus mustBe Outstanding
-    }
-
-    whenReady(repository.updateStatus(declaration, updatedDeclaration.paymentStatus)) { patchResult =>
-      patchResult mustBe updatedDeclaration
-    }
-
-    whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
-      findResult mustBe Some(updatedDeclaration)
     }
   }
 

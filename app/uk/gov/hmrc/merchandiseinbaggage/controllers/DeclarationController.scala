@@ -17,7 +17,7 @@ import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(mcc: MessagesControllerComponents,
                                       declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
@@ -28,28 +28,16 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
       optRequest  <- EitherT.fromOption(RequestWithDeclaration(), InvalidRequest)
       declaration <- persistDeclaration(declarationRepository.insert, optRequest.paymentRequest)
     } yield declaration).fold({
-      case err: BusinessError => InternalServerError(s"$err")
+      err: BusinessError => InternalServerError(s"$err")
     }, dec =>
       Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
     )
   }
 
-  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
+  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async {
     findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)) fold ({
       case DeclarationNotFound => NotFound
       case _                   => InternalServerError("Something went wrong")
     }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
-  }
-
-  def onUpdate(id: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
-    RequestWithPaymentStatus()
-      .map(requestWithStatus =>
-      updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), requestWithStatus.paymentStatus) fold ({
-        case InvalidPaymentStatus => BadRequest
-        case DeclarationNotFound  => NotFound
-        case _                    => BadRequest
-      }, _ => NoContent)
-    ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 }
