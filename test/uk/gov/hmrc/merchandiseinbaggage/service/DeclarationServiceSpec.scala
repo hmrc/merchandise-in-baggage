@@ -8,6 +8,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
+import cats.data.EitherT
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
@@ -19,15 +20,23 @@ import scala.concurrent.Future
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
   "persist a declaration from a payment request" in new DeclarationService {
+    val persistCall = new AtomicBoolean(false)
     val paymentRequest: DeclarationRequest = aPaymentRequest
     val declarationInInitialState: Declaration = paymentRequest.toDeclarationInInitialState
-    val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
+    val persist: Declaration => Future[Declaration] = {
+      persistCall.set(true); _ => Future.successful(declarationInInitialState)
+    }
+
     import paymentRequest._
 
-    val actual: Declaration = persistDeclaration(persist, paymentRequest).value.right.get
+    val actual: EitherT[Future, BusinessError, Declaration] = persistDeclaration(persist, paymentRequest)
 
-    actual mustBe Declaration(actual.declarationId, traderName, amount, csgTpsProviderId,
-        chargeReference, actual.paymentStatus, actual.paid, actual.reconciled)
+    whenReady(actual.value) { res =>
+      val result = res.right.get
+      persistCall.get() mustBe true
+      result mustBe Declaration(result.declarationId, traderName, amount, csgTpsProviderId,
+        chargeReference, result.paymentStatus, result.paid, result.reconciled)
+    }
   }
 
   "find a declaration by id or returns not found" in new DeclarationService {

@@ -7,7 +7,6 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDateTime
 
-import cats.Id
 import cats.data.EitherT
 import cats.instances.future._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
@@ -18,8 +17,11 @@ import scala.concurrent.{ExecutionContext, Future}
 trait DeclarationService extends DeclarationValidator {
 
   def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                        (implicit ec: ExecutionContext): EitherT[Id, BusinessError, Declaration] =
-    validatePersistRequest(paymentRequest.toDeclarationInInitialState)
+                        (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+    for {
+      declaration <- EitherT.fromEither[Future](validatePersistRequest(paymentRequest.toDeclarationInInitialState).value)
+      persisted   <- EitherT.liftF(persist(declaration))
+    } yield persisted
 
   def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =

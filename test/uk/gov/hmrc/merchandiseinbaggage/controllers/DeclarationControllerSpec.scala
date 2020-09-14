@@ -5,7 +5,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import cats.Id
 import cats.data.EitherT
 import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
@@ -13,7 +12,7 @@ import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, Declaration, DeclarationId, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
@@ -78,15 +77,15 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     val controller = new DeclarationController(component, repository) {
       override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+        EitherT(Future.successful(stubbedPersistedDeclaration))
 
       override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                                     (implicit ec: ExecutionContext):  EitherT[Id, BusinessError, Declaration] =
-        EitherT.fromEither(stubbedPersistedDeclaration)
+                                     (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT(Future.successful(stubbedPersistedDeclaration))
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+        EitherT(Future.successful(stubbedPersistedDeclaration))
     }
 
     fn(controller)

@@ -5,7 +5,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import cats.Id
 import cats.data.EitherT
 import cats.instances.future._
 import javax.inject.Inject
@@ -27,7 +26,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
   def onDeclarations(): Action[AnyContent] = Action(parse.default).async { implicit request =>
     (for {
       optRequest  <- EitherT.fromOption(RequestWithDeclaration(), InvalidRequest)
-      declaration <- persistDeclaration(declarationRepository.insert, optRequest.paymentRequest).mapK[Future](transform)
+      declaration <- persistDeclaration(declarationRepository.insert, optRequest.paymentRequest)
     } yield declaration).fold({
       case err: BusinessError => InternalServerError(s"$err")
     }, dec =>
@@ -52,12 +51,5 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
         case _                    => BadRequest
       }, _ => NoContent)
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
-  }
-
-  import cats.syntax.applicative._
-  import cats.~>
-
-  private val transform: cats.Id ~> Future = new (cats.Id ~> Future) {
-    override def apply[A](fa: Id[A]): Future[A] = fa.pure[Future]
   }
 }
