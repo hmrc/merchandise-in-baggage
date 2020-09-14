@@ -20,20 +20,15 @@ import scala.concurrent.Future
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
 
   "persist a declaration from a payment request" in new DeclarationService {
-    val persistCall = new AtomicBoolean(false)
     val paymentRequest: DeclarationRequest = aPaymentRequest
     val declarationInInitialState: Declaration = paymentRequest.toDeclarationInInitialState
-    val persist: Declaration => Future[Declaration] = {
-      persistCall.set(true); _ => Future.successful(declarationInInitialState)
-    }
+    val persist: Declaration => Future[Declaration] = _ => Future.successful(declarationInInitialState)
 
     import paymentRequest._
-
     val actual: EitherT[Future, BusinessError, Declaration] = persistDeclaration(persist, paymentRequest)
 
     whenReady(actual.value) { res =>
       val result = res.right.get
-      persistCall.get() mustBe true
       result mustBe Declaration(result.declarationId, traderName, amount, csgTpsProviderId,
         chargeReference, result.paymentStatus, result.paid, result.reconciled)
     }
