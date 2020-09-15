@@ -8,6 +8,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.core
 import java.util.UUID.randomUUID
 
 import play.api.libs.json._
+import play.api.mvc.PathBindable
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
 
@@ -43,18 +44,27 @@ object DeclarationId {
   def apply(): DeclarationId = DeclarationId(randomUUID().toString)
 
   implicit val format: Format[DeclarationId] = ValueClassFormat.format(value => DeclarationId.apply(value))(_.value)
+
+  implicit def pathBinder(implicit stringBinder: PathBindable[String]): PathBindable[DeclarationId] =
+    new PathBindable[DeclarationId] {
+      private def parseString(str: String) =
+        JsString(str).validate[DeclarationId] match {
+          case JsSuccess(a, _) => Right(a)
+          case JsError(error)  => Left(s"No valid value in path: $str. Error: $error")
+        }
+
+      override def bind(key: String, value: String): Either[String, DeclarationId] = stringBinder.bind(key, value).right.flatMap(parseString)
+
+      override def unbind(key: String, declarationId: DeclarationId): String = stringBinder.unbind(key, declarationId.value)
+    }
+
 }
 
 case class Declaration(declarationId: DeclarationId, name: TraderName, amount: AmountInPence, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference)
 
 object Declaration {
   def apply(name: TraderName, amount: AmountInPence, csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference): Declaration =
-    new Declaration(
-      declarationId = DeclarationId(),
-      name = name,
-      amount = amount,
-      csgTpsProviderId = csgTpsProviderId,
-      reference = reference)
+    Declaration(DeclarationId(), name, amount, csgTpsProviderId, reference)
 
   val id = "declarationId"
 

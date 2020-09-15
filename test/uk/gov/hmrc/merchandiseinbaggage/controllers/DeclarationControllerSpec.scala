@@ -5,63 +5,57 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import cats.data.EitherT
+import akka.stream.Materializer
+import org.scalatestplus.play.WsScalaTestClient
+import play.api.http.Status
 import play.api.libs.json.Json
-import play.api.mvc.MessagesControllerComponents
-import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
-import uk.gov.hmrc.merchandiseinbaggage.model.core._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import play.api.libs.json.Json.toJson
+import play.api.libs.ws.ahc.AhcWSClient
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.mongo.MongoConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
 
-class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
+class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with Status with WsScalaTestClient {
+  private implicit val mat: Materializer = injector.instanceOf[Materializer]
+  private implicit val wsClient: AhcWSClient = AhcWSClient()
 
-  private lazy val component = injector.instanceOf[MessagesControllerComponents]
+  override def beforeEach(): Unit = repository.deleteAll().futureValue
 
-  "on submit will persist the declaration returning 201 + declaration id" in {
-    val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val paymentRequest = aPaymentRequest
-      val requestBody = Json.toJson(paymentRequest)
-      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withJsonBody(requestBody)
-      val eventualResult = controller.onDeclarations()(postRequest)
+  "post to /merchandise-in-baggage/declarations will save a declaration" in {
+    val response = wsUrl("/merchandise-in-baggage/declarations").post(toJson(aDeclarationRequest)).futureValue
+    val id = Json.parse(response.body).as[DeclarationIdResponse].id
+    val persisted: Option[Declaration] = repository.findByDeclarationId(id).futureValue
 
-      status(eventualResult) mustBe 201
-      contentAsJson(eventualResult) mustBe Json.toJson(DeclarationIdResponse(declaration.declarationId))
-    }
+    response.status mustBe CREATED
+    persisted.isDefined mustBe true
   }
 
-  "on retrieve will return declaration for a given id" in {
-    val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId.value).url)
-      val eventualResult = controller.onRetrieve(declaration.declarationId.value)(getRequest)
+  "get of /merchandise-in-baggage/declarations/id" should {
+    "return a declaration" when {
+      "the declaration id is found" in {
+        val persisted =
+          (for {
+            persisted <- repository.insert(aDeclaration)
+            _ <- repository.insert(aDeclarationRequest.toDeclaration)
+          } yield persisted).futureValue
 
-      status(eventualResult) mustBe 200
-      contentAsJson(eventualResult) mustBe Json.toJson(declaration)
-    }
-  }
+        repository.findAll.futureValue.size mustBe 2
 
-  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+        val id = persisted.declarationId
+        val response = wsUrl(s"/merchandise-in-baggage/declarations/${id.value}").get().futureValue
+        val found = Json.parse(response.body).as[Declaration]
 
-    val controller = new DeclarationController(component, repository) {
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                                     (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT(Future.successful(stubbedPersistedDeclaration))
-
-      override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
-                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT(Future.successful(stubbedPersistedDeclaration))
+        response.status mustBe OK
+        found mustBe persisted
+      }
     }
 
-    fn(controller)
+    "return 404" when {
+      "the declaration id is not found" in {
+        wsUrl(s"/merchandise-in-baggage/declarations/${DeclarationId().value}").get().futureValue.status mustBe NOT_FOUND
+      }
+    }
   }
 }

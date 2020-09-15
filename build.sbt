@@ -23,6 +23,10 @@ lazy val microservice = Project(appName, file("."))
     )
     // ***************
   )
+  .settings(
+    routesImport ++= Seq(
+      "uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId"
+    ))
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)

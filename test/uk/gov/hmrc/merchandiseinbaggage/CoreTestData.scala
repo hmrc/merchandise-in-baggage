@@ -14,7 +14,7 @@ trait CoreTestData {
   private val aCsgTpsProviderId = CsgTpsProviderId("123")
   private val aChargeReference = ChargeReference("ref")
 
-  def aDeclaration: Declaration = Declaration(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
+  val aDeclaration: Declaration = Declaration(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
 
-  def aPaymentRequest: DeclarationRequest = DeclarationRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
+  val aDeclarationRequest: DeclarationRequest = DeclarationRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
 }
