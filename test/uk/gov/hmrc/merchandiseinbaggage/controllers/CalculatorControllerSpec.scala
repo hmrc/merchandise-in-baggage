@@ -7,7 +7,7 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
-import play.api.test.Helpers.{contentAsJson, status, _}
+import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
