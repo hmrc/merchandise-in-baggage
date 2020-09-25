@@ -8,13 +8,14 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculatorController @Inject()(mcc: MessagesControllerComponents)
+class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClient: HttpClient)
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
@@ -24,7 +25,7 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents)
       req    <- parsed.asOpt[CalculationRequest]
     } yield req).fold(
       Future.successful(InternalServerError("invalid")))(req =>
-      Future.successful(Ok(Json.toJson(customDuty(req.currency, req.amount))))
+      customDuty(httpClient, CalculationRequest(req.currency, req.amount)).map(amount => Ok(Json.toJson(amount)))
     )
   }
 }

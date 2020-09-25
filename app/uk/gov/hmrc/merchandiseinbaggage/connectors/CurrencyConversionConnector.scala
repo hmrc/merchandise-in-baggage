@@ -3,7 +3,7 @@
  *
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.service
+package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import java.time.LocalDate
 
@@ -13,7 +13,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.CurrencyConversionResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait CurrencyConversionService extends CurrencyConversionConfiguration {
+trait CurrencyConversionConnector extends CurrencyConversionConfiguration {
 
   def findCurrencyConversion(httpClient: HttpClient, currencyCode: String, date: LocalDate)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =

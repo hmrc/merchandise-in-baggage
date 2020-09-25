@@ -8,7 +8,9 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpec
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, GBP}
 
-class CustomsDutyCalculatorSpec extends BaseSpec {
+class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFutures {
+
+  implicit val hc = HeaderCarrier()
 
   "will calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
 

@@ -3,7 +3,7 @@
  *
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.service
+package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import java.time.LocalDate
 
@@ -14,9 +14,9 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CurrencyConver
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class CurrencyConversionServiceSpec extends BaseSpecWithApplication with CurrencyConversionStub with ScalaFutures {
+class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with CurrencyConversionStub with ScalaFutures {
 
-  "retrieve currency conversion" in new CurrencyConversionService {
+  "retrieve currency conversion" in new CurrencyConversionConnector {
     val client = injector.instanceOf[HttpClient]
     val currencyCode = "USD"
     val conversionResponse: CurrencyConversionResponse = CurrencyConversionResponse(currencyCode, "1.3064")
