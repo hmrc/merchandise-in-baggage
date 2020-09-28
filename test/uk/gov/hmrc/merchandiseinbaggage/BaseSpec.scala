@@ -28,6 +28,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1L, Second)))
 
   implicit val headerCarrier = HeaderCarrier()
+  implicit val mat = app.materializer
 
   def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]

@@ -5,15 +5,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
+import cats.instances.future._
 import javax.inject.Inject
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, MessagesControllerComponents, Result}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.CurrencyNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import cats.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,14 +21,10 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
-  def onCalculations(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
-    (for {
-      parsed <- request.body.asJson
-      req    <- parsed.asOpt[CalculationRequest]
-    } yield req).fold(
+  def onCalculations(): Action[JsValue] = Action(parse.json).async { implicit request  =>
+    request.body.asOpt[CalculationRequest].fold(
       Future.successful(InternalServerError("invalid")))(req =>
-      dutyCalculation(req)
-    ).recover { case _ => InternalServerError }
+      dutyCalculation(req)).recover { case _ => InternalServerError }
   }
 
   private def dutyCalculation(calculationRequest: CalculationRequest)

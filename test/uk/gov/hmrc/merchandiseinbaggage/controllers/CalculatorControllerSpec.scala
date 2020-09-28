@@ -6,6 +6,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
+import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers.{status, _}
@@ -18,7 +19,7 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
+class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration with ScalaFutures {
 
   private lazy val component = injector.instanceOf[MessagesControllerComponents]
   private lazy val client = injector.instanceOf[HttpClient]
@@ -34,7 +35,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.successful(Right(AmountInPence(expectedValue.toDouble))))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
-      .withJsonBody(requestBody).withHeaders("Content-Type" -> "application/json")
+      .withBody(requestBody).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 200
@@ -51,7 +52,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.successful(Left(CurrencyNotFound)))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
-      .withJsonBody(requestBody).withHeaders("Content-Type" -> "application/json")
+      .withBody(requestBody).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 404
@@ -64,6 +65,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.failed(new Exception))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
+      .withBody(Json.toJson(aCalculationRequest)).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 500
