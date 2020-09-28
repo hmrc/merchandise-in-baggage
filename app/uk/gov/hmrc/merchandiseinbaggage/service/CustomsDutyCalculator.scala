@@ -12,12 +12,12 @@ import cats.instances.future._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, BusinessError, CurrencyNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.AmountInPence._
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, BusinessError, CurrencyNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.CustomsRate._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait CustomsDutyCalculator extends CurrencyConversionConnector {
 

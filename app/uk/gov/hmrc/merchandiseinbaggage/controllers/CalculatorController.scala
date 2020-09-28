@@ -7,8 +7,8 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import javax.inject.Inject
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.http.HttpClient
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.CurrencyNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
@@ -27,11 +27,15 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
       req    <- parsed.asOpt[CalculationRequest]
     } yield req).fold(
       Future.successful(InternalServerError("invalid")))(req =>
-      customDuty(httpClient, CalculationRequest(req.currency, req.amount))
-      .fold( {
+      dutyCalculation(req)
+    ).recover { case _ => InternalServerError }
+  }
+
+  private def dutyCalculation(calculationRequest: CalculationRequest)
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    customDuty(httpClient, CalculationRequest(calculationRequest.currency, calculationRequest.amount))
+      .fold({
         case CurrencyNotFound => NotFound("Currency not found")
         case _                => BadRequest
       }, duty => Ok(Json.toJson(duty)))
-    ).recover { case _ => InternalServerError }
-  }
 }
