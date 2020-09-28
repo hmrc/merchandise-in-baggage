@@ -32,6 +32,6 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
         case CurrencyNotFound => NotFound("Currency not found")
         case _                => BadRequest
       }, duty => Ok(Json.toJson(duty)))
-    )
+    ).recover { case _ => InternalServerError }
   }
 }
