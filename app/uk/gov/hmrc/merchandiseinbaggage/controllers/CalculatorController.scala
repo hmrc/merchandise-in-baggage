@@ -10,8 +10,10 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.core.CurrencyNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import cats.instances.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,7 +27,11 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
       req    <- parsed.asOpt[CalculationRequest]
     } yield req).fold(
       Future.successful(InternalServerError("invalid")))(req =>
-      customDuty(httpClient, CalculationRequest(req.currency, req.amount)).map(amount => Ok(Json.toJson(amount)))
+      customDuty(httpClient, CalculationRequest(req.currency, req.amount))
+      .fold( {
+        case CurrencyNotFound => NotFound("Currency not found")
+        case _                => BadRequest
+      }, duty => Ok(Json.toJson(duty)))
     )
   }
 }

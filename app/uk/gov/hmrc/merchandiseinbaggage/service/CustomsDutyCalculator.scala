@@ -7,30 +7,33 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDate
 
+import cats.data.EitherT
+import cats.instances.future._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.AmountInPence
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, BusinessError, CurrencyNotFound}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.AmountInPence._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.CustomsRate._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait CustomsDutyCalculator extends CurrencyConversionConnector {
 
   def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
-                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AmountInPence] =
+                (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, AmountInPence] =
     for {
-      lt         <- findCurrencyConversion(httpClient, calculationRequest.currency, LocalDate.now)
-      customDuty <- Future.fromTry(calculateConvertedRate(lt, calculationRequest))
+      lt         <- EitherT.liftF(findCurrencyConversion(httpClient, calculationRequest.currency, LocalDate.now))
+      customDuty <- EitherT.fromEither(calculateConvertedRate(lt, calculationRequest))
     } yield customDuty
 
 
-  private def calculateConvertedRate(currencyRates: List[CurrencyConversionResponse], calculationRequest: CalculationRequest): Try[AmountInPence] = Try {
-    val rate = currencyRates.find(_.currencyCode == calculationRequest.currency).get.rate.toDouble
-    AmountInPence(BigDecimal((calculationRequest.amount.value / rate) * customFlatRate)
-      .setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
-  }
-
-
+  private def calculateConvertedRate(currencyRates: List[CurrencyConversionResponse],
+                                     calculationRequest: CalculationRequest): Either[BusinessError, AmountInPence] =
+    (for {
+      code        <- currencyRates.find(_.currencyCode == calculationRequest.currency)
+      rate        <- code.rate
+      calculation <- Try(((calculationRequest.amount.value / rate.toDouble) * customFlatRate).twoDecimalsHalfUp).toOption
+    } yield calculation).fold(Left(CurrencyNotFound): Either[BusinessError, AmountInPence])(res => Right(res))
 }

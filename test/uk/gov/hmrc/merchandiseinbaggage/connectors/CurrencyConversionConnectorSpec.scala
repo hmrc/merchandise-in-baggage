@@ -19,7 +19,7 @@ class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with Curre
   "retrieve currency conversion" in new CurrencyConversionConnector {
     val client = injector.instanceOf[HttpClient]
     val currencyCode = "USD"
-    val conversionResponse: CurrencyConversionResponse = CurrencyConversionResponse(currencyCode, "1.3064")
+    val conversionResponse: CurrencyConversionResponse = CurrencyConversionResponse(currencyCode, Some("1.3064"))
 
     getCurrencyConversionStub(currencyCode)
     findCurrencyConversion(client, currencyCode, LocalDate.now).futureValue mustBe List(conversionResponse)

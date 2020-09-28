@@ -5,13 +5,14 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
+import cats.data.EitherT
 import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.core.AmountInPence
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{AmountInPence, BusinessError}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,8 +30,8 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
 
     val controller = new CalculatorController(component, client) {
       override def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
-                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AmountInPence] =
-        Future.successful(AmountInPence(expectedValue.toDouble))
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, AmountInPence] =
+        EitherT[Future, BusinessError, AmountInPence](Future.successful(Right(AmountInPence(expectedValue.toDouble))))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
       .withJsonBody(requestBody).withHeaders("Content-Type" -> "application/json")
