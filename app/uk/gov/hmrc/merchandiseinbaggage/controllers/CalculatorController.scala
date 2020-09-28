@@ -7,7 +7,7 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.instances.future._
 import javax.inject.Inject
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, MessagesControllerComponents, Result}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
@@ -21,10 +21,8 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
-  def onCalculations(): Action[JsValue] = Action(parse.json).async { implicit request  =>
-    request.body.asOpt[CalculationRequest].fold(
-      Future.successful(InternalServerError("invalid")))(req =>
-      dutyCalculation(req)).recover { case _ => InternalServerError }
+  def onCalculations(): Action[CalculationRequest] = Action(parse.json[CalculationRequest]).async { implicit request  =>
+      dutyCalculation(request.body).recover { case _ => InternalServerError }
   }
 
   private def dutyCalculation(calculationRequest: CalculationRequest)

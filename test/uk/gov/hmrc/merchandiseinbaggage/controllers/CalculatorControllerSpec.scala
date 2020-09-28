@@ -25,8 +25,6 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   private lazy val client = injector.instanceOf[HttpClient]
 
   "will trigger customs duty calculation" in {
-    val calculationRequest = aCalculationRequest
-    val requestBody = Json.toJson(calculationRequest)
     val expectedValue = "1.22"
 
     val controller = new CalculatorController(component, client) {
@@ -35,7 +33,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.successful(Right(AmountInPence(expectedValue.toDouble))))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
-      .withBody(requestBody).withHeaders(CONTENT_TYPE -> JSON)
+      .withBody[CalculationRequest](aCalculationRequest).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 200
@@ -52,7 +50,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.successful(Left(CurrencyNotFound)))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
-      .withBody(requestBody).withHeaders(CONTENT_TYPE -> JSON)
+      .withBody[CalculationRequest](aCalculationRequest).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 404
@@ -65,7 +63,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
         EitherT[Future, BusinessError, AmountInPence](Future.failed(new Exception))
     }
     val postRequest = buildPost(routes.CalculatorController.onCalculations().url)
-      .withBody(Json.toJson(aCalculationRequest)).withHeaders(CONTENT_TYPE -> JSON)
+      .withBody[CalculationRequest](aCalculationRequest).withHeaders(CONTENT_TYPE -> JSON)
 
     val eventualResult = controller.onCalculations()(postRequest)
     status(eventualResult) mustBe 500
