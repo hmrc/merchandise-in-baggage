@@ -5,6 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.config
 
+import java.time.LocalDate
 import javax.inject.Singleton
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
 import pureconfig.generic.auto._ // Do not remove this
@@ -27,7 +28,14 @@ trait CurrencyConversionConfiguration {
     configSource("microservice.services.currency").loadOrThrow[CurrencyConversionConfig]
 
   import currencyConversionConf._
-  lazy val currencyConversionBaseUrl = s"$protocol://$host:$port/currency-conversion/rates"
+
+  lazy val currencyConversionBaseUrl: String = s"$protocol://$host:$port"
+  lazy val currencyConversionRatesUrl: String = s"/currency-conversion/rates/"
+  lazy val currencyConversion: (LocalDate, String) => String =
+    (date, currency) => s"$currencyConversionRatesUrl${date.toString}?cc=$currency"
+
+  lazy val currencyConversionUrl: (LocalDate, String) => String =
+    (date, currency) => s"$currencyConversionBaseUrl${currencyConversion(date, currency)}"
 }
 
 final case class MongoConf(uri: String, host: String = "localhost", port: Int = 27017, collectionName: String = "declaration")

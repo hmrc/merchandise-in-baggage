@@ -17,6 +17,6 @@ trait CurrencyConversionConnector extends CurrencyConversionConfiguration {
 
   def findCurrencyConversion(httpClient: HttpClient, currencyCode: String, date: LocalDate)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
-    httpClient.GET[List[CurrencyConversionResponse]](s"$currencyConversionBaseUrl/${date.toString}?cc=$currencyCode")
+    httpClient.GET[List[CurrencyConversionResponse]](s"${currencyConversionUrl(date, currencyCode)}")
 
 }

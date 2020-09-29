@@ -5,7 +5,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.core
 
-import play.api.libs.json.{JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 
 sealed trait Currency
 case object GBP extends Currency

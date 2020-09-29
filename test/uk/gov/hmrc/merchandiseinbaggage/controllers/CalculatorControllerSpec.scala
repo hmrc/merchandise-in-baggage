@@ -7,7 +7,6 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
 import org.scalatest.concurrent.ScalaFutures
-import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
@@ -41,9 +40,6 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   }
 
   "will return not found if currency conversion do not exists" in {
-    val calculationRequest = aCalculationRequest
-    val requestBody = Json.toJson(calculationRequest)
-
     val controller = new CalculatorController(component, client) {
       override def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, AmountInPence] =
