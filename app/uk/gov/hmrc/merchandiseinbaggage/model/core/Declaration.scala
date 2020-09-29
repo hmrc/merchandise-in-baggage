@@ -22,8 +22,7 @@ object AmountInPence {
   implicit val format: Format[AmountInPence] = ValueClassFormat.formatDouble(value => AmountInPence.apply(value))(_.value)
 
   implicit class Rounding(amount: Double) {
-    def twoDecimalsHalfUp: AmountInPence = AmountInPence(BigDecimal(amount)
-      .setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
+    def twoDecimalsHalfUp: AmountInPence = AmountInPence(amount / 100.toDouble)
   }
 }
 
