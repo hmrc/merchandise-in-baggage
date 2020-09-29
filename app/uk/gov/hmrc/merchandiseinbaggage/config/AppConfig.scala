@@ -28,14 +28,14 @@ trait CurrencyConversionConfiguration {
     configSource("microservice.services.currency").loadOrThrow[CurrencyConversionConfig]
 
   import currencyConversionConf._
-
-  lazy val currencyConversionBaseUrl: String = s"$protocol://$host:$port"
-  lazy val currencyConversionRatesUrl: String = s"/currency-conversion/rates/"
-  lazy val currencyConversion: (LocalDate, String) => String =
+  private lazy val currencyConversionBaseUrl: String = s"$protocol://$host:$port"
+  private lazy val currencyConversionRatesUrl: String = s"/currency-conversion/rates/"
+  
+  lazy val currencyConversionPostFix: (LocalDate, String) => String =
     (date, currency) => s"$currencyConversionRatesUrl${date.toString}?cc=$currency"
 
   lazy val currencyConversionUrl: (LocalDate, String) => String =
-    (date, currency) => s"$currencyConversionBaseUrl${currencyConversion(date, currency)}"
+    (date, currency) => s"$currencyConversionBaseUrl${currencyConversionPostFix(date, currency)}"
 }
 
 final case class MongoConf(uri: String, host: String = "localhost", port: Int = 27017, collectionName: String = "declaration")

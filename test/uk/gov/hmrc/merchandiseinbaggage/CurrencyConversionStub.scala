@@ -16,7 +16,7 @@ trait CurrencyConversionStub extends BaseSpec with BaseSpecWithWireMock with Cur
   private val todayDate: LocalDate = LocalDate.now
 
   def getCurrencyConversionStub(currency: String): StubMapping =
-    currencyConversionMockServer.stubFor(get(urlEqualTo(s"${currencyConversion(todayDate, currency)}"))
+    currencyConversionMockServer.stubFor(get(urlEqualTo(s"${currencyConversionPostFix(todayDate, currency)}"))
       .willReturn(okJson(responseTemplate)))
 
   val responseTemplate =
