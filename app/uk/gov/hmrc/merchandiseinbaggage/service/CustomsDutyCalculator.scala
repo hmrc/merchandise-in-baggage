@@ -24,7 +24,7 @@ trait CustomsDutyCalculator extends CurrencyConversionConnector {
   def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, AmountInPence] =
     for {
-      lt         <- EitherT.liftF(findCurrencyConversion(httpClient, calculationRequest.currency, LocalDate.now))
+      lt         <- EitherT.liftF(findCurrencyRate(httpClient, calculationRequest.currency, LocalDate.now))
       customDuty <- EitherT.fromEither(calculateConvertedRate(lt, calculationRequest))
     } yield customDuty
 

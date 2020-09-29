@@ -15,8 +15,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait CurrencyConversionConnector extends CurrencyConversionConfiguration {
 
-  def findCurrencyConversion(httpClient: HttpClient, currencyCode: String, date: LocalDate)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
+  def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
     httpClient.GET[List[CurrencyConversionResponse]](s"${currencyConversionUrl(date, currencyCode)}")
 
 }

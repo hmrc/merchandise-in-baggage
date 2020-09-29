@@ -22,6 +22,6 @@ class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with Curre
     val conversionResponse: CurrencyConversionResponse = CurrencyConversionResponse(currencyCode, Some("1.3064"))
 
     getCurrencyConversionStub(currencyCode)
-    findCurrencyConversion(client, currencyCode, LocalDate.now).futureValue mustBe List(conversionResponse)
+    findCurrencyRate(client, currencyCode, LocalDate.now).futureValue mustBe List(conversionResponse)
   }
 }

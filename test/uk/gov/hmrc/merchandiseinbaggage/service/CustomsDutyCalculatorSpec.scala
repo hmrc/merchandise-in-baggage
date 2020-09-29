@@ -22,8 +22,8 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
     val client = injector.instanceOf[HttpClient]
-    override def findCurrencyConversion(httpClient: HttpClient, currencyCode: String, date: LocalDate)
-                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
+    override def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.3064"))))
 
     val eventualAmountInPence = customDuty(client, CalculationRequest("USD", AmountInPence(100.0))).value
@@ -33,8 +33,8 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
 
   "will return a failure if currency is not found" in new CustomsDutyCalculator {
     val client = injector.instanceOf[HttpClient]
-    override def findCurrencyConversion(httpClient: HttpClient, currencyCode: String, date: LocalDate)
-                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
+    override def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", None)))
 
     val eventualAmountInPence = customDuty(client, CalculationRequest("USD", AmountInPence(100.0))).value
