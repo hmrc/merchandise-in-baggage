@@ -23,7 +23,7 @@ trait CoreTestData {
 
   def aPaymentRequest: DeclarationRequest = DeclarationRequest(aTraderName, anAmount, aCsgTpsProviderId, aChargeReference)
 
-  def aCalculationRequest: CalculationRequest = CalculationRequest(GBP, anAmount)
+  def aCalculationRequest: CalculationRequest = CalculationRequest("USD", anAmount)
 
   implicit class WithPaidStatus(declaration: Declaration) {
     def withPaidStatus(): Declaration = declaration.copy(paymentStatus = Paid)
