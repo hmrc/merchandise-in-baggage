@@ -21,16 +21,15 @@ import java.time.LocalDateTime
 import play.api.libs.json._
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
-
 case class TraderName(value: String)
 object TraderName {
   implicit val format: Format[TraderName] = ValueClassFormat.format(value => TraderName.apply(value))(_.value)
 }
 
 
-case class AmountInPence(value: Double)
-object AmountInPence {
-  implicit val format: Format[AmountInPence] = ValueClassFormat.formatDouble(value => AmountInPence.apply(value))(_.value)
+case class ForeignAmount(value: Long)
+object ForeignAmount {
+  implicit val format: Format[ForeignAmount] = ValueClassFormat.formatLong(value => ForeignAmount.apply(value))(_.value)
 }
 
 
@@ -77,7 +76,7 @@ object PaymentStatus {
 }
 
 
-case class Declaration(declarationId: DeclarationId, name: TraderName, amount: AmountInPence,
+case class Declaration(declarationId: DeclarationId, name: TraderName, amount: ForeignAmount,
                        csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference, paymentStatus: PaymentStatus,
                        paid: Option[LocalDateTime], reconciled: Option[LocalDateTime]
                       )

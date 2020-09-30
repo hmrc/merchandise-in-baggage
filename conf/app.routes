@@ -4,3 +4,6 @@ POST       /declarations                uk.gov.hmrc.merchandiseinbaggage.control
 PATCH      /declarations/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onUpdate(id: String)
 GET        /declarations/:id            uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onRetrieve(id: String)
 
+
+POST       /calculations                uk.gov.hmrc.merchandiseinbaggage.controllers.CalculatorController.onCalculations
+

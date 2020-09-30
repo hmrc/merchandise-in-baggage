@@ -21,7 +21,7 @@ import java.util.UUID
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
-case class DeclarationRequest(traderName: TraderName, amount: AmountInPence, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
+case class DeclarationRequest(traderName: TraderName, amount: ForeignAmount, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
 object DeclarationRequest {
   implicit val format: Format[DeclarationRequest] = Json.format
 
