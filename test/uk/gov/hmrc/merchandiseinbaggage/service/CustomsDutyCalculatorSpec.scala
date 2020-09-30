@@ -11,7 +11,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, AmountInPence, CurrencyNotFound}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, ForeignAmount, CurrencyNotFound}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,7 +26,7 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.3064"))))
 
-    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", AmountInPence(100))).value
+    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", ForeignAmount(100))).value
 
     eventualAmountInPence.futureValue mustBe Right(Amount(7.654623392529088))
   }
@@ -37,7 +37,7 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", None)))
 
-    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", AmountInPence(100))).value
+    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", ForeignAmount(100))).value
 
     eventualAmountInPence.futureValue mustBe Left(CurrencyNotFound)
   }

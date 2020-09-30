@@ -13,7 +13,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 trait CoreTestData {
 
   val aTraderName: TraderName = TraderName("name")
-  val anAmountInPence: AmountInPence = AmountInPence(1)
+  val anAmountInPence: ForeignAmount = ForeignAmount(1)
   val aCsgTpsProviderId: CsgTpsProviderId = CsgTpsProviderId("123")
   val aChargeReference: ChargeReference = ChargeReference("ref")
 
