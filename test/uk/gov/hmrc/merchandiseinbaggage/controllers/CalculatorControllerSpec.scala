@@ -37,8 +37,8 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   "will trigger customs duty calculation" in {
     val expectedValue = "122"
 
-    val controller = new CalculatorController(component, client) {
-      override def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
+    val controller: CalculatorController = new CalculatorController(component, client) {
+      override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.successful(Right(Amount(expectedValue.toDouble))))
     }
@@ -51,8 +51,8 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   }
 
   "will return not found if currency conversion do not exists" in {
-    val controller = new CalculatorController(component, client) {
-      override def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
+    val controller: CalculatorController = new CalculatorController(component, client) {
+      override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.successful(Left(CurrencyNotFound)))
     }
@@ -64,8 +64,8 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   }
 
   "will return 500 if currency conversion service call fails" in {
-    val controller = new CalculatorController(component, client) {
-      override def customDuty(httpClient: HttpClient, calculationRequest: CalculationRequest)
+    val controller: CalculatorController = new CalculatorController(component, client) {
+      override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.failed(new Exception))
     }

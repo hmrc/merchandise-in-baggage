@@ -22,33 +22,33 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, ForeignAmount, CurrencyNotFound}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, CurrencyNotFound, ForeignAmount}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFutures {
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
-    val client = injector.instanceOf[HttpClient]
-    override def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
+    override def findCurrencyRate(currencyCode: String, date: LocalDate)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.3064"))))
 
-    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", ForeignAmount(100))).value
+    private val eventualAmountInPence = customDuty(CalculationRequest("USD", ForeignAmount(100))).value
 
     eventualAmountInPence.futureValue mustBe Right(Amount(7.654623392529088))
   }
 
   "will return a failure if currency is not found" in new CustomsDutyCalculator {
-    val client = injector.instanceOf[HttpClient]
-    override def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
+    override def findCurrencyRate(currencyCode: String, date: LocalDate)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", None)))
 
-    val eventualAmountInPence = customDuty(client, CalculationRequest("USD", ForeignAmount(100))).value
+    private val eventualAmountInPence = customDuty(CalculationRequest("USD", ForeignAmount(100))).value
 
     eventualAmountInPence.futureValue mustBe Left(CurrencyNotFound)
   }
