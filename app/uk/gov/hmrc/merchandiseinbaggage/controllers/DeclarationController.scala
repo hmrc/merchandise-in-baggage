@@ -41,7 +41,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
     ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 
-  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
+  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async {
     findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)) fold ({
       case DeclarationNotFound => NotFound
       case _                   => InternalServerError("Something went wrong")

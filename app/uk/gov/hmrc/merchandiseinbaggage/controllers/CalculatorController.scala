@@ -28,7 +28,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClient: HttpClient)
+class CalculatorController @Inject()(mcc: MessagesControllerComponents, override val httpClient: HttpClient)
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
@@ -38,7 +38,7 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
 
   private def dutyCalculation(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    customDuty(httpClient, calculationRequest)
+    customDuty(calculationRequest)
       .fold({
         case CurrencyNotFound => NotFound("Currency not found")
         case _                => BadRequest

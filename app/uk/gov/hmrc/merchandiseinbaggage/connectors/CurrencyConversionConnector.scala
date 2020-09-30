@@ -21,12 +21,14 @@ import java.time.LocalDate
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CurrencyConversionResponse
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CurrencyConversionConnector extends CurrencyConversionConfiguration {
+  protected val httpClient: HttpClient
 
-  def findCurrencyRate(httpClient: HttpClient, currencyCode: String, date: LocalDate)
+  def findCurrencyRate(currencyCode: String, date: LocalDate)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
     httpClient.GET[List[CurrencyConversionResponse]](s"${currencyConversionUrl(date, currencyCode)}")
 

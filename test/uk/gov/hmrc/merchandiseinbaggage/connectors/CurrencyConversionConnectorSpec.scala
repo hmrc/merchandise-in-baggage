@@ -28,11 +28,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with CurrencyConversionStub with ScalaFutures {
 
   "retrieve currency conversion" in new CurrencyConversionConnector {
-    val client = injector.instanceOf[HttpClient]
+    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
     val currencyCode = "USD"
     val conversionResponse: CurrencyConversionResponse = CurrencyConversionResponse(currencyCode, Some("1.3064"))
 
     getCurrencyConversionStub(currencyCode)
-    findCurrencyRate(client, currencyCode, LocalDate.now).futureValue mustBe List(conversionResponse)
+    findCurrencyRate(currencyCode, LocalDate.now).futureValue mustBe List(conversionResponse)
   }
 }
