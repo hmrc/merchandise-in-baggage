@@ -18,15 +18,15 @@ package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import java.time.LocalDate
 
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.CurrencyConversionResponse
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.factories.HttpClientFactory
+import uk.gov.hmrc.merchandiseinbaggage.model.api.CurrencyConversionResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait CurrencyConversionConnector extends CurrencyConversionConfiguration {
-  protected val httpClient: HttpClient
+trait CurrencyConversionConnector extends CurrencyConversionConfiguration with HttpClientFactory {
 
   def findCurrencyRate(currencyCode: String, date: LocalDate)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
