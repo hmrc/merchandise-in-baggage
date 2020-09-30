@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import java.time.LocalDate
 
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, CurrencyNotFound, ForeignAmount}
@@ -32,7 +32,6 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
-    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
     override def findCurrencyRate(currencyCode: String, date: LocalDate)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.3064"))))
@@ -43,7 +42,6 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
   }
 
   "will return a failure if currency is not found" in new CustomsDutyCalculator {
-    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
     override def findCurrencyRate(currencyCode: String, date: LocalDate)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", None)))

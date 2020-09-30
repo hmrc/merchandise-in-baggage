@@ -16,16 +16,21 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.factories
 
-import com.google.inject.Inject
+import com.google.inject.{AbstractModule, Guice}
+import play.api.inject.SimpleModule
 import uk.gov.hmrc.http.HttpClient
 
-
-trait HttpClientFactory {
-  val httpClient: HttpClient
+object ServiceFactory extends SimpleModule {
+  private val injector = Guice.createInjector(
+    new AbstractModule {
+      override def configure(): Unit = {
+        play.api.inject.bind[HttpClientFactory].toProvider[HttpClientProvider]
+      }
+    }
+  )
+  def httpClient: HttpClient = injector.getProvider(classOf[HttpClient]).get()
 }
 
-class HttpClientProvider @Inject()(client: HttpClient) extends javax.inject.Provider[HttpClientFactory] {
-  override def get(): HttpClientFactory = new HttpClientFactory {
-    override val httpClient: HttpClient = client
-  }
+trait ServiceFactory {
+  def httpClient: HttpClient = ServiceFactory.httpClient
 }

@@ -20,7 +20,7 @@ import cats.data.EitherT
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers.{status, _}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, BusinessError, CurrencyNotFound}
@@ -32,12 +32,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration with ScalaFutures {
 
   private lazy val component = injector.instanceOf[MessagesControllerComponents]
-  private lazy val client = injector.instanceOf[HttpClient]
 
   "will trigger customs duty calculation" in {
     val expectedValue = "122"
 
-    val controller: CalculatorController = new CalculatorController(component, client) {
+    val controller: CalculatorController = new CalculatorController(component) {
       override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.successful(Right(Amount(expectedValue.toDouble))))
@@ -51,7 +50,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   }
 
   "will return not found if currency conversion do not exists" in {
-    val controller: CalculatorController = new CalculatorController(component, client) {
+    val controller: CalculatorController = new CalculatorController(component) {
       override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.successful(Left(CurrencyNotFound)))
@@ -64,7 +63,7 @@ class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData
   }
 
   "will return 500 if currency conversion service call fails" in {
-    val controller: CalculatorController = new CalculatorController(component, client) {
+    val controller: CalculatorController = new CalculatorController(component) {
       override def customDuty(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Amount] =
         EitherT[Future, BusinessError, Amount](Future.failed(new Exception))
