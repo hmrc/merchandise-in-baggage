@@ -10,20 +10,15 @@ import java.time.LocalDateTime
 import play.api.libs.json._
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
-
 case class TraderName(value: String)
 object TraderName {
   implicit val format: Format[TraderName] = ValueClassFormat.format(value => TraderName.apply(value))(_.value)
 }
 
 
-case class AmountInPence(value: Double)
+case class AmountInPence(value: Long)
 object AmountInPence {
-  implicit val format: Format[AmountInPence] = ValueClassFormat.formatDouble(value => AmountInPence.apply(value))(_.value)
-
-  implicit class Rounding(amount: Double) {
-    def twoDecimalsHalfUp: AmountInPence = AmountInPence(amount / 100.toDouble)
-  }
+  implicit val format: Format[AmountInPence] = ValueClassFormat.formatLong(value => AmountInPence.apply(value))(_.value)
 }
 
 

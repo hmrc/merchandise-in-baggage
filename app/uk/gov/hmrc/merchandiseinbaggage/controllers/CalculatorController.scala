@@ -27,7 +27,7 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, httpClie
 
   private def dutyCalculation(calculationRequest: CalculationRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    customDuty(httpClient, CalculationRequest(calculationRequest.currency, calculationRequest.amount))
+    customDuty(httpClient, calculationRequest)
       .fold({
         case CurrencyNotFound => NotFound("Currency not found")
         case _                => BadRequest

@@ -7,5 +7,5 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 object CustomsRate {
 
-  val customFlatRate = 0.1
+  val customFlatRate: Double = 0.1
 }
