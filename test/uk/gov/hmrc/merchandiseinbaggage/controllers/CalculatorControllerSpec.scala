@@ -20,7 +20,7 @@ import cats.data.EitherT
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers.{status, _}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, BusinessError, CurrencyNotFound}
