@@ -32,7 +32,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class CalculatorControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration with ScalaFutures {
 
   private lazy val component = injector.instanceOf[MessagesControllerComponents]
-  private lazy val client = injector.instanceOf[HttpClient]
 
   "will trigger customs duty calculation" in {
     val expectedValue = "122"
