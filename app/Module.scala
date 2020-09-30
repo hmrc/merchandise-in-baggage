@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
+import java.time.LocalDate
+
 import com.google.inject.{AbstractModule, Provides}
 import javax.inject.Singleton
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
+import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
+import uk.gov.hmrc.merchandiseinbaggage.model.api.CurrencyConversionResponse
+
+import scala.concurrent.Future
 
 class Module extends AbstractModule {
+  @Provides
+  @Singleton
+  def findCurrencyRate(connector: CurrencyConversionConnector): (String, LocalDate) => Future[List[CurrencyConversionResponse]] =
+    connector.findCurrencyRate
 
   @Provides
   @Singleton

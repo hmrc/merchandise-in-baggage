@@ -19,22 +19,20 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import java.time.LocalDate
 
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{Amount, CurrencyNotFound, ForeignAmount}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFutures {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
-    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
-    override def findCurrencyRate(currencyCode: String, date: LocalDate)
-                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
+    override val findCurrencyRate: (String, LocalDate) => Future[List[CurrencyConversionResponse]] = (currencyCode: String, date: LocalDate) =>
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.3064"))))
 
     private val eventualAmountInPence = customDuty(CalculationRequest("USD", ForeignAmount(100))).value
@@ -43,9 +41,7 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
   }
 
   "will return a failure if currency is not found" in new CustomsDutyCalculator {
-    override val httpClient: HttpClient = injector.instanceOf[HttpClient]
-    override def findCurrencyRate(currencyCode: String, date: LocalDate)
-                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
+    override val findCurrencyRate: (String, LocalDate) => Future[List[CurrencyConversionResponse]] = (currencyCode: String, date: LocalDate) =>
       Future.successful(List(CurrencyConversionResponse("USD", None)))
 
     private val eventualAmountInPence = customDuty(CalculationRequest("USD", ForeignAmount(100))).value

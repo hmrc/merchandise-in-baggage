@@ -16,19 +16,21 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
+import java.time.LocalDate
+
 import cats.instances.future._
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, MessagesControllerComponents, Result}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, CurrencyConversionResponse}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.CurrencyNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculatorController @Inject()(mcc: MessagesControllerComponents, override val httpClient: HttpClient)
+class CalculatorController @Inject()(mcc: MessagesControllerComponents,
+                                     override val findCurrencyRate: (String, LocalDate) => Future[List[CurrencyConversionResponse]])
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
@@ -36,8 +38,7 @@ class CalculatorController @Inject()(mcc: MessagesControllerComponents, override
       dutyCalculation(request.body).recover { case _ => InternalServerError }
   }
 
-  private def dutyCalculation(calculationRequest: CalculationRequest)
-                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  private def dutyCalculation(calculationRequest: CalculationRequest)(implicit ec: ExecutionContext): Future[Result] =
     customDuty(calculationRequest)
       .fold({
         case CurrencyNotFound => NotFound("Currency not found")
