@@ -20,7 +20,7 @@ import cats.instances.future._
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
@@ -33,12 +33,10 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
                                       declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with DeclarationService {
 
-  def onDeclarations(): Action[AnyContent] = Action(parse.default).async { implicit request  =>
-    RequestWithDeclaration().map(rwp =>
-      persistDeclaration(declarationRepository.insert, rwp.paymentRequest).map { dec =>
-        Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
-      }
-    ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
+  def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request  =>
+    persistDeclaration(declarationRepository.insert, request.body).map { dec =>
+      Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
+    }
   }
 
   def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async {
