@@ -21,8 +21,8 @@ import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus, PaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -46,9 +46,9 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
     }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
   }
 
-  def onUpdate(id: String): Action[PaymentStatusRequest] = Action(parse.json[PaymentStatusRequest]).async { implicit request  =>
+  def onUpdate(id: String): Action[PaymentStatus] = Action(parse.json[PaymentStatus]).async { implicit request  =>
       updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), request.body.status) fold ({
+        DeclarationId(id), request.body) fold ({
         case InvalidPaymentStatus => BadRequest
         case DeclarationNotFound  => NotFound
         case _                    => BadRequest

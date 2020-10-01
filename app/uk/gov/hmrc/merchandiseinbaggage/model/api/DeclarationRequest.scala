@@ -33,8 +33,3 @@ object DeclarationRequest {
     }
   }
 }
-
-case class PaymentStatusRequest(status: PaymentStatus)
-object PaymentStatusRequest {
-  implicit val format: Format[PaymentStatusRequest] = Json.format
-}

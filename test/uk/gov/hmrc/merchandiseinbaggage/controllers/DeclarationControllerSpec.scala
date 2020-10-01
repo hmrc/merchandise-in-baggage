@@ -22,7 +22,7 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -62,7 +62,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Right(declaration.withPaidStatus())) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withBody[PaymentStatusRequest](PaymentStatusRequest(Paid))
+        .withBody[PaymentStatus](Paid)
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 204
@@ -73,7 +73,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Left(InvalidPaymentStatus)) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withBody[PaymentStatusRequest](PaymentStatusRequest(Outstanding))
+        .withBody[PaymentStatus](Outstanding)
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 400
