@@ -20,14 +20,14 @@ import cats.instances.future._
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(mcc: MessagesControllerComponents,
                                       declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
@@ -39,22 +39,19 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
     }
   }
 
-  def onRetrieve(declarationId: String): Action[AnyContent] = Action(parse.default).async {
+  def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
     findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)) fold ({
       case DeclarationNotFound => NotFound
       case _                   => InternalServerError("Something went wrong")
     }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
   }
 
-  def onUpdate(id: String): Action[AnyContent] = Action(parse.default).async { implicit request  =>
-    RequestWithPaymentStatus()
-      .map(requestWithStatus =>
+  def onUpdate(id: String): Action[PaymentStatusRequest] = Action(parse.json[PaymentStatusRequest]).async { implicit request  =>
       updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), requestWithStatus.paymentStatus) fold ({
+        DeclarationId(id), request.body.status) fold ({
         case InvalidPaymentStatus => BadRequest
         case DeclarationNotFound  => NotFound
         case _                    => BadRequest
       }, _ => NoContent)
-    ).getOrElse(Future.successful(InternalServerError("Invalid Request")))
   }
 }

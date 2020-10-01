@@ -62,7 +62,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Right(declaration.withPaidStatus())) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withJsonBody(Json.toJson(PaymentStatusRequest(Paid)))
+        .withBody[PaymentStatusRequest](PaymentStatusRequest(Paid))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 204
@@ -73,7 +73,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Left(InvalidPaymentStatus)) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withJsonBody(Json.toJson(PaymentStatusRequest(Outstanding)))
+        .withBody[PaymentStatusRequest](PaymentStatusRequest(Outstanding))
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 400
