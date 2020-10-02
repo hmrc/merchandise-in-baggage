@@ -22,8 +22,8 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest, PaymentStatusRequest}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, Declaration, DeclarationId, InvalidPaymentStatus, Outstanding, Paid, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
@@ -38,9 +38,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
-      val paymentRequest = aPaymentRequest
-      val requestBody = Json.toJson(paymentRequest)
-      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withJsonBody(requestBody)
+      val declarationRequest = aPaymentRequest
+      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[DeclarationRequest](declarationRequest)
       val eventualResult = controller.onDeclarations()(postRequest)
 
       status(eventualResult) mustBe 201
@@ -63,7 +62,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Right(declaration.withPaidStatus())) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withJsonBody(Json.toJson(PaymentStatusRequest(Paid)))
+        .withBody[PaymentStatus](Paid)
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 204
@@ -74,7 +73,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     setUp(Left(InvalidPaymentStatus)) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
-        .withJsonBody(Json.toJson(PaymentStatusRequest(Outstanding)))
+        .withBody[PaymentStatus](Outstanding)
       val eventualResult = controller.onUpdate(declaration.declarationId.value)(patchRequest)
 
       status(eventualResult) mustBe 400
