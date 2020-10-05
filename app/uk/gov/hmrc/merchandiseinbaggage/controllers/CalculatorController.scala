@@ -20,7 +20,7 @@ import cats.instances.future._
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, MessagesControllerComponents, Result}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.CurrencyNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.CustomsDutyCalculator
@@ -28,7 +28,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculatorController @Inject()(mcc: MessagesControllerComponents)
+class CalculatorController @Inject()(mcc: MessagesControllerComponents, override val httpClient: HttpClient)
                                     (implicit val ec: ExecutionContext)
   extends BackendController(mcc) with CustomsDutyCalculator {
 
