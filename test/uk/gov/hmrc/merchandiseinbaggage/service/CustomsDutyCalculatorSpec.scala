@@ -30,7 +30,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFutures {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
-  lazy val httpClient = injector.instanceOf[HttpClient]
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence" in new CustomsDutyCalculator {
     override val httpClient = injector.instanceOf[HttpClient]
