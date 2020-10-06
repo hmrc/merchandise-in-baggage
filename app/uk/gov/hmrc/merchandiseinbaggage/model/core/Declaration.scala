@@ -27,9 +27,9 @@ object TraderName {
 }
 
 
-case class ForeignAmount(value: Long)
+case class ForeignAmount(value: Double)
 object ForeignAmount {
-  implicit val format: Format[ForeignAmount] = ValueClassFormat.formatLong(value => ForeignAmount.apply(value))(_.value)
+  implicit val format: Format[ForeignAmount] = ValueClassFormat.formatDouble(value => ForeignAmount.apply(value))(_.value)
 }
 
 
