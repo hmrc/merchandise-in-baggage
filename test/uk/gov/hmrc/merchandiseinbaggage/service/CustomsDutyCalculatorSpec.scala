@@ -43,6 +43,7 @@ class CustomsDutyCalculatorSpec extends BaseSpecWithApplication with ScalaFuture
   }
 
   "will convert currency in GBP and calculate a customs duty in pounds and pence for a foreign amount with decimals" in new CustomsDutyCalculator {
+    override val httpClient = injector.instanceOf[HttpClient]
     override def findCurrencyRate(currencyCode: String, date: LocalDate)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CurrencyConversionResponse]] =
       Future.successful(List(CurrencyConversionResponse("USD", Some("1.2763"))))
