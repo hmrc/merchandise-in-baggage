@@ -28,6 +28,7 @@ import uk.gov.hmrc.merchandiseinbaggage.repositories.CustomsRate._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import BigDecimal.RoundingMode._
 
 trait CustomsDutyCalculator extends CurrencyConversionConnector {
 
@@ -44,6 +45,10 @@ trait CustomsDutyCalculator extends CurrencyConversionConnector {
     (for {
       code        <- currencyRates.find(_.currencyCode == calculationRequest.currency)
       rate        <- code.rate
-      calculation <- Try(Amount((calculationRequest.amount.value / rate.toDouble) * customFlatRate)).toOption
+      calculation <- Try(Amount(duty(calculationRequest, rate))).toOption
     } yield calculation).fold(Left(CurrencyNotFound): Either[BusinessError, Amount])(res => Right(res))
+
+  private def duty(calculationRequest: CalculationRequest, rate: String): Double =
+    BigDecimal((calculationRequest.amount.value / rate.toDouble) * customFlatRate)
+      .setScale(2, HALF_UP).toDouble
 }
