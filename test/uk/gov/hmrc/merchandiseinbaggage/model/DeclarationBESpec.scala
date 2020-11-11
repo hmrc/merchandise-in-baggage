@@ -22,7 +22,7 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 class DeclarationBESpec extends BaseSpec with CoreTestData {
 
   "Serialise/Deserialise from/to json to Declaration" in {
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     val actual = Json.toJson(declaration).toString
 
     Json.toJson(declaration) mustBe Json.parse(actual)

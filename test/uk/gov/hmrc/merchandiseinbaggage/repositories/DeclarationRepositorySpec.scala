@@ -33,7 +33,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   "insert a declaration object into MongoDB" in {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
 
     whenReady(repository.insert(declaration)) { result =>
       result mustBe declaration
@@ -43,9 +43,9 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   "find a declaration by declaration id" in {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
 
-    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclarationBE).flatMap(_ => repository.insert(declaration))
 
     whenReady(insertTwo()) { insertResult =>
       insertResult mustBe declaration
@@ -59,7 +59,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   "updates the payment status for a given declaration id" in {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     val updatedDeclaration = declaration.withPaidStatus
 
     whenReady(repository.insert(declaration)) { insertResult =>
@@ -79,9 +79,9 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
   "delete all declarations for testing purpose" in {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
 
-    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclarationBE).flatMap(_ => repository.insert(declaration))
 
     val collection = for {
       _ <- repository.deleteAll()

@@ -175,8 +175,8 @@ case class Declaration(sessionId: SessionId,
                        maybeCustomsAgent: Option[CustomsAgent],
                        eori: Eori,
                        journeyDetails: JourneyDetails,
+                       mibReference: MibReference,
                        dateOfDeclaration: LocalDateTime = LocalDateTime.now,
-                       mibReference: MibReference
                       )
 
 object Declaration {

@@ -16,9 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
+import java.time.LocalDate
 import java.util.UUID
 
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Ports.Dover
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, Declaration, DeclarationGoods, DeclarationRequest, Eori, Goods, JourneyOnFootViaVehiclePort, MibReference, Name, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 trait CoreTestData {
@@ -28,7 +32,7 @@ trait CoreTestData {
   val aCsgTpsProviderId: CsgTpsProviderId = CsgTpsProviderId("123")
   val aChargeReference: ChargeReference = ChargeReference("ref")
 
-  def aDeclaration: DeclarationBE =
+  def aDeclarationBE: DeclarationBE =
     DeclarationBE(DeclarationId(UUID.randomUUID().toString),
       aTraderName, anAmountInPence, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
 
@@ -41,4 +45,14 @@ trait CoreTestData {
     def withReconciledStatus(): DeclarationBE = declaration.copy(paymentStatus = Reconciled)
     def withFailedStatus(): DeclarationBE = declaration.copy(paymentStatus = Failed)
   }
+
+  val aSessionId = SessionId("123456789")
+  val aGoodDestination = GreatBritain
+  val aDeclarationGoods = DeclarationGoods(Seq[Goods]())
+  val aName = Name("Terry", "Crews")
+  val aEori = Eori("eori-test")
+  val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
+  val aMibReference = MibReference("mib-ref-1234")
+  val aDeclaration: Declaration = Declaration(aSessionId, Import, aGoodDestination, aDeclarationGoods,
+    aName, None, aEori, aJourneyDetails, aMibReference)
 }

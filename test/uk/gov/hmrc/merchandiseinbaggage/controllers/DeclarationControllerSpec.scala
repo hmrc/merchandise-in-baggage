@@ -36,7 +36,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   private lazy val component = injector.instanceOf[MessagesControllerComponents]
 
   "on submit will persist the declaration returning 201 + declaration id" in {
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     setUp(Right(declaration)) { controller =>
       val declarationRequest = aPaymentRequest
       val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[DeclarationRequest](declarationRequest)
@@ -48,7 +48,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "on retrieve will return declaration for a given id" in {
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     setUp(Right(declaration)) { controller =>
       val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId.value).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId.value)(getRequest)
@@ -59,7 +59,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "on updatePaymentStatus will invoke the service to update the payment status" in {
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     setUp(Right(declaration.withPaidStatus())) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
         .withBody[PaymentStatus](Paid)
@@ -70,7 +70,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   "on updatePaymentStatus will invoke the service to update the payment status if invalid will return 400" in {
-    val declaration = aDeclaration
+    val declaration = aDeclarationBE
     setUp(Left(InvalidPaymentStatus)) { controller =>
       val patchRequest = buildPatch(routes.DeclarationController.onUpdate(declaration.declarationId.value).url)
         .withBody[PaymentStatus](Outstanding)
