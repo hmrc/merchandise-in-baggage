@@ -20,8 +20,9 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
 import uk.gov.hmrc.mongo.MongoConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -43,7 +44,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
 
   "find a declaration by declaration id" in {
     val declarationOne = aDeclaration
-    val declarationTwo = declarationOne.copy(sessionId = SessionId("something different"))
+    val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
     def insertTwo(): Future[Declaration] = repository.insert(declarationOne).flatMap(_ => repository.insert(declarationTwo))
 
@@ -51,14 +52,14 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
       insertResult mustBe declarationTwo
     }
 
-    whenReady(repository.findBySessionId(declarationOne.sessionId)) { findResult =>
+    whenReady(repository.findByDeclarationId(declarationOne.declarationId)) { findResult =>
       findResult mustBe Some(declarationOne)
     }
   }
 
   "delete all declarations for testing purpose" in {
     val declarationOne = aDeclaration
-    val declarationTwo = declarationOne.copy(sessionId = SessionId("something different"))
+    val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
     def insertTwo(): Future[Declaration] = repository.insert(declarationOne).flatMap(_ => repository.insert(declarationTwo))
 

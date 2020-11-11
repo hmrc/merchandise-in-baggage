@@ -22,7 +22,8 @@ import play.api.libs.json.{Format, JsString}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +38,7 @@ class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionCon
 
   def insert(declaration: Declaration): Future[Declaration] = super.insert(declaration).map(_ => declaration)
 
-  def findBySessionId(declarationId: SessionId): Future[Option[Declaration]] = {
+  def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
     find(query).map(_.headOption)
   }

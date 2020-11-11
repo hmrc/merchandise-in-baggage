@@ -53,6 +53,6 @@ trait CoreTestData {
   val aEori = Eori("eori-test")
   val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
   val aMibReference = MibReference("mib-ref-1234")
-  val aDeclaration: Declaration = Declaration(aSessionId, Import, aGoodDestination, aDeclarationGoods,
+  val aDeclaration: Declaration = Declaration(DeclarationId(UUID.randomUUID().toString), aSessionId, Import, aGoodDestination, aDeclarationGoods,
     aName, None, aEori, aJourneyDetails, aMibReference)
 }

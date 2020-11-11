@@ -23,6 +23,7 @@ import enumeratum.EnumEntry
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 
 import scala.collection.immutable
 
@@ -167,7 +168,8 @@ object JourneyInSmallVehicle {
   implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
 }
 
-case class Declaration(sessionId: SessionId,
+case class Declaration(declarationId: DeclarationId,
+                       sessionId: SessionId,
                        declarationType: DeclarationType,
                        goodsDestination: GoodsDestination,
                        declarationGoods: DeclarationGoods,
@@ -180,7 +182,7 @@ case class Declaration(sessionId: SessionId,
                       )
 
 object Declaration {
-  val id = "sessionId"
+  val id = "declarationId"
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
 }
 
