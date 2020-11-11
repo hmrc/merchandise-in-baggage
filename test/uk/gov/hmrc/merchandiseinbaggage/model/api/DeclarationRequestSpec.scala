@@ -17,24 +17,20 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationRequestSpec extends BaseSpec with CoreTestData {
 
   "Serialise/Deserialise from/to json to PaymentRequest" in {
-    val paymentRequest = aPaymentRequest
-    val actual = Json.toJson(paymentRequest).toString
+    val declarationRequest = aDeclarationRequest
+    val actual = Json.toJson(declarationRequest).toString
 
-    Json.toJson(paymentRequest) mustBe Json.parse(actual)
+    Json.toJson(declarationRequest) mustBe Json.parse(actual)
   }
 
-  "convert a payment request in to an outstanding declaration with no recorded payments and reconciliation" in {
-    val actualDeclaration: DeclarationBE = aPaymentRequest.toDeclarationInInitialState
+  "convert a declaration request in to a declaration" in {
+    val actualDeclaration: Declaration = aDeclarationRequest.toDeclaration
 
-    actualDeclaration must matchPattern { case DeclarationBE(_, _, _, _, _, _, _, _) => }
-    actualDeclaration.paymentStatus mustBe Outstanding
-    actualDeclaration.paid mustBe empty
-    actualDeclaration.reconciled mustBe empty
+    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _) => }
   }
 }

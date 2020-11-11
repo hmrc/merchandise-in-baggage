@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Ports.Dover
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{CalculationRequest, Declaration, DeclarationGoods, DeclarationRequest, Eori, Goods, JourneyOnFootViaVehiclePort, MibReference, Name, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 trait CoreTestData {
@@ -32,11 +32,11 @@ trait CoreTestData {
   val aCsgTpsProviderId: CsgTpsProviderId = CsgTpsProviderId("123")
   val aChargeReference: ChargeReference = ChargeReference("ref")
 
-  def aDeclarationBE: DeclarationBE =
-    DeclarationBE(DeclarationId(UUID.randomUUID().toString),
-      aTraderName, anAmountInPence, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
+  val aDeclarationId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
 
-  def aPaymentRequest: DeclarationRequest = DeclarationRequest(aTraderName, anAmountInPence, aCsgTpsProviderId, aChargeReference)
+  def aDeclarationBE: DeclarationBE =
+    DeclarationBE(aDeclarationId,
+      aTraderName, anAmountInPence, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
 
   def aCalculationRequest: CalculationRequest = CalculationRequest("USD", anAmountInPence)
 
@@ -53,6 +53,9 @@ trait CoreTestData {
   val aEori = Eori("eori-test")
   val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
   val aMibReference = MibReference("mib-ref-1234")
-  val aDeclaration: Declaration = Declaration(DeclarationId(UUID.randomUUID().toString), aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, None, aEori, aJourneyDetails, aMibReference)
+  val aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
+    aName, None, aEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+
+  def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
+    aName, None, aEori, aJourneyDetails, LocalDateTime.now, aMibReference)
 }

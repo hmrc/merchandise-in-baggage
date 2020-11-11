@@ -22,15 +22,15 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound, InvalidPaymentStatus, PaymentStatus}
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationBERepository
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(mcc: MessagesControllerComponents,
-                                      declarationRepository: DeclarationBERepository)(implicit val ec: ExecutionContext)
+                                      declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with DeclarationService {
 
   def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request  =>
@@ -44,14 +44,5 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
       case DeclarationNotFound => NotFound
       case _                   => InternalServerError("Something went wrong")
     }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
-  }
-
-  def onUpdate(id: String): Action[PaymentStatus] = Action(parse.json[PaymentStatus]).async { implicit request  =>
-      updatePaymentStatus(declarationRepository.findByDeclarationId, declarationRepository.updateStatus,
-        DeclarationId(id), request.body) fold ({
-        case InvalidPaymentStatus => BadRequest
-        case DeclarationNotFound  => NotFound
-        case _                    => BadRequest
-      }, _ => NoContent)
   }
 }

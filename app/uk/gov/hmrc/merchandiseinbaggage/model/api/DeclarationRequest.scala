@@ -16,20 +16,31 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
+import java.time.LocalDateTime
 import java.util.UUID
 
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
-case class DeclarationRequest(traderName: TraderName, amount: ForeignAmount, csgTpsProviderId: CsgTpsProviderId, chargeReference: ChargeReference)
+case class DeclarationRequest(sessionId: SessionId,
+                              declarationType: DeclarationType,
+                              goodsDestination: GoodsDestination,
+                              declarationGoods: DeclarationGoods,
+                              nameOfPersonCarryingTheGoods: Name,
+                              maybeCustomsAgent: Option[CustomsAgent],
+                              eori: Eori,
+                              journeyDetails: JourneyDetails,
+                              dateOfDeclaration: LocalDateTime = LocalDateTime.now,
+                              mibReference: MibReference
+                             )
 object DeclarationRequest {
   implicit val format: Format[DeclarationRequest] = Json.format
 
-  implicit class ToDeclaration(paymentRequest: DeclarationRequest) {
-    def toDeclarationInInitialState: DeclarationBE = {
-      import paymentRequest._
-      DeclarationBE(DeclarationId(UUID.randomUUID().toString), traderName, amount, csgTpsProviderId,
-        chargeReference, Outstanding, None, None)
+  implicit class ToDeclaration(declarationRequest: DeclarationRequest) {
+    def toDeclaration: Declaration = {
+      import declarationRequest._
+      Declaration(DeclarationId(UUID.randomUUID().toString), sessionId, declarationType, goodsDestination, declarationGoods,
+        nameOfPersonCarryingTheGoods, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference)
     }
   }
 }

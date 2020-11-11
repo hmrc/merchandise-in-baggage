@@ -20,44 +20,20 @@ import java.time.LocalDateTime
 
 import cats.data.EitherT
 import cats.instances.future._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 trait DeclarationService extends DeclarationValidator {
 
-  def persistDeclaration(persist: DeclarationBE => Future[DeclarationBE], paymentRequest: DeclarationRequest)
-                        (implicit ec: ExecutionContext): Future[DeclarationBE] =
-    for {
-      declaration <- Future.fromTry(Try(paymentRequest.toDeclarationInInitialState))
-      persisted   <- persist(declaration)
-    } yield persisted
+  def persistDeclaration(persist: Declaration => Future[Declaration], declaration: DeclarationRequest)
+                        (implicit ec: ExecutionContext): Future[Declaration] =
+    persist(declaration.toDeclaration)
 
-  def findByDeclarationId(findById: DeclarationId => Future[Option[DeclarationBE]], declarationId: DeclarationId)
-                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
+  def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
+                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(findById(declarationId), DeclarationNotFound)
-
-  def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[DeclarationBE]],
-                          updateStatus: (DeclarationBE, PaymentStatus) => Future[DeclarationBE],
-                          declarationId: DeclarationId, paymentStatus: PaymentStatus)
-                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
-    for {
-      declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
-      _           <- EitherT.fromEither[Future](validateRequest(declaration, paymentStatus).value)
-      withTime    = statusUpdateTime(paymentStatus, declaration)
-      update      <- EitherT.liftF(updateStatus(withTime, paymentStatus))
-    } yield update
-
-  protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: DeclarationBE): DeclarationBE = {
-    val now: LocalDateTime = generateTime
-    paymentStatus match {
-      case Paid       => declaration.copy(paid = Some(now))
-      case Reconciled => declaration.copy(reconciled = Some(now))
-      case _          => declaration
-    }
-  }
 
   protected def generateTime: LocalDateTime = LocalDateTime.now
 }

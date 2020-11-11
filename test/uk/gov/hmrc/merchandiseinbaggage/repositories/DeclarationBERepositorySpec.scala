@@ -16,23 +16,25 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, Outstanding}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, DeclarationId, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DeclarationBERepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
+class DeclarationBERepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 
+  val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
+  val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
+
   "insert a declaration object into MongoDB" in {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclarationBE
 
     whenReady(repository.insert(declaration)) { result =>
@@ -41,24 +43,21 @@ class DeclarationBERepositorySpec extends BaseSpecWithApplication with CoreTestD
   }
 
   "find a declaration by declaration id" in {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclarationBE
+    val declarationTwo = aDeclarationBE.copy(declarationId = DeclarationId("different"))
 
-    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclarationBE).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(declaration).flatMap(_ => repository.insert(declarationTwo))
 
     whenReady(insertTwo()) { insertResult =>
-      insertResult mustBe declaration
+      insertResult mustBe declarationTwo
     }
 
-    whenReady(repository.findByDeclarationId(declaration.declarationId)) { findResult =>
-      findResult mustBe Some(declaration)
+    whenReady(repository.findByDeclarationId(declarationTwo.declarationId)) { findResult =>
+      findResult mustBe Some(declarationTwo)
     }
   }
 
   "updates the payment status for a given declaration id" in {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclarationBE
     val updatedDeclaration = declaration.withPaidStatus
 
@@ -77,11 +76,10 @@ class DeclarationBERepositorySpec extends BaseSpecWithApplication with CoreTestD
   }
 
   "delete all declarations for testing purpose" in {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclarationBE
+    val declarationTwo = declaration.copy(declarationId = DeclarationId("something different"))
 
-    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclarationBE).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(declaration).flatMap(_ => repository.insert(declarationTwo))
 
     val collection = for {
       _ <- repository.deleteAll()
@@ -94,4 +92,7 @@ class DeclarationBERepositorySpec extends BaseSpecWithApplication with CoreTestD
       deleteResult mustBe Nil
     }
   }
+
+  override def beforeEach(): Unit = repository.deleteAll()
+  override def afterEach(): Unit = repository.deleteAll()
 }
