@@ -180,6 +180,7 @@ case class Declaration(sessionId: SessionId,
                       )
 
 object Declaration {
+  val id = "sessionId"
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
 }
 

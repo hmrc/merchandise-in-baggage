@@ -24,7 +24,7 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationBERepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -83,7 +83,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
   def setUp(stubbedPersistedDeclaration: Either[BusinessError, DeclarationBE])(fn: DeclarationController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val repository = new DeclarationBERepository(reactiveMongo.mongoConnector.db)
 
     val controller = new DeclarationController(component, repository) {
       override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[DeclarationBE]], updateStatus: (DeclarationBE, PaymentStatus) => Future[DeclarationBE], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =

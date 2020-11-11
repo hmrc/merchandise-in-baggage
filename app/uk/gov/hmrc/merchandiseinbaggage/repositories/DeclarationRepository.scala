@@ -18,45 +18,31 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json.JsValueWrapper
-import play.api.libs.json._
+import play.api.libs.json.{Format, JsString}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, DeclarationId, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DeclarationRepository @Inject()(mongo: () => DB)
-  extends ReactiveRepository[DeclarationBE, String]("declaration", mongo, DeclarationBE.format, implicitly[Format[String]]) {
+class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
+  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) {
 
   override def indexes: Seq[Index] = Seq(
-    Index(Seq(s"${DeclarationBE.id}" -> Ascending), Option("primaryKey"), unique = true)
+    Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
-  def insert(declaration: DeclarationBE): Future[DeclarationBE] = super.insert(declaration).map(_ => declaration)
+  def insert(declaration: Declaration): Future[Declaration] = super.insert(declaration).map(_ => declaration)
 
-  def findByDeclarationId(declarationId: DeclarationId): Future[Option[DeclarationBE]] = {
-    val query: (String, JsValueWrapper) = s"${DeclarationBE.id}" -> JsString(declarationId.value)
+  def findBySessionId(declarationId: SessionId): Future[Option[Declaration]] = {
+    val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
     find(query).map(_.headOption)
   }
 
-  def findAll: Future[List[DeclarationBE]] = super.findAll()
-
-  def updateStatus(declaration: DeclarationBE, paymentStatus: PaymentStatus): Future[DeclarationBE] = {
-    val selector = Json.obj(s"${DeclarationBE.id}" -> JsString(s"${declaration.declarationId.value}"))
-    val updatedDeclaration = declaration.copy(paymentStatus = paymentStatus)
-    val modifier = Json.obj("$set" -> updatedDeclaration)
-
-    collection.update(ordered = false)
-      .one(selector, modifier, upsert = true)
-      .map { lastError =>
-        lastError.ok
-      }.map(_ => updatedDeclaration)
-  }
+  def findAll: Future[List[Declaration]] = super.findAll()
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
