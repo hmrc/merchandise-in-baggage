@@ -76,12 +76,12 @@ object PaymentStatus {
 }
 
 
-case class Declaration(declarationId: DeclarationId, name: TraderName, amount: ForeignAmount,
-                       csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference, paymentStatus: PaymentStatus,
-                       paid: Option[LocalDateTime], reconciled: Option[LocalDateTime]
+case class DeclarationBE(declarationId: DeclarationId, name: TraderName, amount: ForeignAmount,
+                         csgTpsProviderId: CsgTpsProviderId, reference: ChargeReference, paymentStatus: PaymentStatus,
+                         paid: Option[LocalDateTime], reconciled: Option[LocalDateTime]
                       )
 
-object Declaration {
+object DeclarationBE {
   val id = "declarationId"
-  implicit val format: Format[Declaration] = Json.format
+  implicit val format: Format[DeclarationBE] = Json.format
 }

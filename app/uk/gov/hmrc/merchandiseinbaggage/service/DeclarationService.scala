@@ -28,21 +28,21 @@ import scala.util.Try
 
 trait DeclarationService extends DeclarationValidator {
 
-  def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                        (implicit ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(persist: DeclarationBE => Future[DeclarationBE], paymentRequest: DeclarationRequest)
+                        (implicit ec: ExecutionContext): Future[DeclarationBE] =
     for {
       declaration <- Future.fromTry(Try(paymentRequest.toDeclarationInInitialState))
       persisted   <- persist(declaration)
     } yield persisted
 
-  def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
-                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  def findByDeclarationId(findById: DeclarationId => Future[Option[DeclarationBE]], declarationId: DeclarationId)
+                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
     EitherT.fromOptionF(findById(declarationId), DeclarationNotFound)
 
-  def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]],
-                          updateStatus: (Declaration, PaymentStatus) => Future[Declaration],
+  def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[DeclarationBE]],
+                          updateStatus: (DeclarationBE, PaymentStatus) => Future[DeclarationBE],
                           declarationId: DeclarationId, paymentStatus: PaymentStatus)
-                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
     for {
       declaration <- EitherT.fromOptionF(findByDeclarationId(declarationId), DeclarationNotFound)
       _           <- EitherT.fromEither[Future](validateRequest(declaration, paymentStatus).value)
@@ -50,7 +50,7 @@ trait DeclarationService extends DeclarationValidator {
       update      <- EitherT.liftF(updateStatus(withTime, paymentStatus))
     } yield update
 
-  protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: Declaration): Declaration = {
+  protected def statusUpdateTime(paymentStatus: PaymentStatus, declaration: DeclarationBE): DeclarationBE = {
     val now: LocalDateTime = generateTime
     paymentStatus match {
       case Paid       => declaration.copy(paid = Some(now))

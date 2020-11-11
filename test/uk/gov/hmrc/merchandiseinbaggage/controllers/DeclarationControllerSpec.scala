@@ -81,20 +81,20 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   }
 
 
-  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
+  def setUp(stubbedPersistedDeclaration: Either[BusinessError, DeclarationBE])(fn: DeclarationController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
 
     val controller = new DeclarationController(component, repository) {
-      override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[Declaration]], updateStatus: (Declaration, PaymentStatus) => Future[Declaration], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+      override def updatePaymentStatus(findByDeclarationId: DeclarationId => Future[Option[DeclarationBE]], updateStatus: (DeclarationBE, PaymentStatus) => Future[DeclarationBE], declarationId: DeclarationId, paymentStatus: PaymentStatus)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
+        EitherT[Future, BusinessError, DeclarationBE](Future.successful(stubbedPersistedDeclaration))
 
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                                     (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
+      override def persistDeclaration(persist: DeclarationBE => Future[DeclarationBE], paymentRequest: DeclarationRequest)
+                                     (implicit ec: ExecutionContext): Future[DeclarationBE] = Future.successful(stubbedPersistedDeclaration.right.get)
 
-      override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
-                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+      override def findByDeclarationId(findById: DeclarationId => Future[Option[DeclarationBE]], declarationId: DeclarationId)
+                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, DeclarationBE] =
+        EitherT[Future, BusinessError, DeclarationBE](Future.successful(stubbedPersistedDeclaration))
     }
 
     fn(controller)

@@ -26,9 +26,9 @@ object DeclarationRequest {
   implicit val format: Format[DeclarationRequest] = Json.format
 
   implicit class ToDeclaration(paymentRequest: DeclarationRequest) {
-    def toDeclarationInInitialState: Declaration = {
+    def toDeclarationInInitialState: DeclarationBE = {
       import paymentRequest._
-      Declaration(DeclarationId(UUID.randomUUID().toString), traderName, amount, csgTpsProviderId,
+      DeclarationBE(DeclarationId(UUID.randomUUID().toString), traderName, amount, csgTpsProviderId,
         chargeReference, Outstanding, None, None)
     }
   }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationRequestSpec extends BaseSpec with CoreTestData {
@@ -30,9 +30,9 @@ class DeclarationRequestSpec extends BaseSpec with CoreTestData {
   }
 
   "convert a payment request in to an outstanding declaration with no recorded payments and reconciliation" in {
-    val actualDeclaration: Declaration = aPaymentRequest.toDeclarationInInitialState
+    val actualDeclaration: DeclarationBE = aPaymentRequest.toDeclarationInInitialState
 
-    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _) => }
+    actualDeclaration must matchPattern { case DeclarationBE(_, _, _, _, _, _, _, _) => }
     actualDeclaration.paymentStatus mustBe Outstanding
     actualDeclaration.paid mustBe empty
     actualDeclaration.reconciled mustBe empty

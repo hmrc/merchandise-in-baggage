@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, Outstanding}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationBE, Outstanding}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -45,7 +45,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
 
-    def insertTwo(): Future[Declaration] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
 
     whenReady(insertTwo()) { insertResult =>
       insertResult mustBe declaration
@@ -81,7 +81,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
     val declaration = aDeclaration
 
-    def insertTwo(): Future[Declaration] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
+    def insertTwo(): Future[DeclarationBE] = repository.insert(aDeclaration).flatMap(_ => repository.insert(declaration))
 
     val collection = for {
       _ <- repository.deleteAll()

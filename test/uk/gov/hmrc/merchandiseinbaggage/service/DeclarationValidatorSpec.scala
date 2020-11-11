@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{ForeignAmount, ChargeReference, Declaration, Failed, InvalidAmount, InvalidChargeReference, InvalidName, InvalidPaymentStatus, Outstanding, Paid, Reconciled, TraderName}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{ForeignAmount, ChargeReference, DeclarationBE, Failed, InvalidAmount, InvalidChargeReference, InvalidName, InvalidPaymentStatus, Outstanding, Paid, Reconciled, TraderName}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationValidatorSpec extends BaseSpec with CoreTestData {
@@ -45,21 +45,21 @@ class DeclarationValidatorSpec extends BaseSpec with CoreTestData {
   }
 
   "validate amount by checking if at least 1 pence" in new DeclarationValidator {
-    val declaration: Declaration = aDeclaration.copy(amount = ForeignAmount(1))
+    val declaration: DeclarationBE = aDeclaration.copy(amount = ForeignAmount(1))
 
     validateAmount(declaration).value mustBe Right(declaration)
     validateAmount(aDeclaration.copy(amount = ForeignAmount(0))).value mustBe Left(InvalidAmount)
   }
 
   "validate name by checking if empty" in new DeclarationValidator {
-    val declaration: Declaration = aDeclaration.copy(name = TraderName("Mr"))
+    val declaration: DeclarationBE = aDeclaration.copy(name = TraderName("Mr"))
 
     validateTraderName(declaration).value mustBe Right(declaration)
     validateTraderName(aDeclaration.copy(name = TraderName(""))).value mustBe Left(InvalidName)
   }
 
   "validate charge reference by checking if empty" in new DeclarationValidator {
-    val declaration: Declaration = aDeclaration.copy(reference = ChargeReference("456"))
+    val declaration: DeclarationBE = aDeclaration.copy(reference = ChargeReference("456"))
 
     validateChargeReference(declaration).value mustBe Right(declaration)
     validateChargeReference(aDeclaration.copy(reference = ChargeReference(""))).value mustBe Left(InvalidChargeReference)
