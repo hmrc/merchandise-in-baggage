@@ -27,6 +27,7 @@ case class DeclarationRequest(sessionId: SessionId,
                               goodsDestination: GoodsDestination,
                               declarationGoods: DeclarationGoods,
                               nameOfPersonCarryingTheGoods: Name,
+                              email: Email,
                               maybeCustomsAgent: Option[CustomsAgent],
                               eori: Eori,
                               journeyDetails: JourneyDetails,
@@ -40,7 +41,7 @@ object DeclarationRequest {
     def toDeclaration: Declaration = {
       import declarationRequest._
       Declaration(DeclarationId(UUID.randomUUID().toString), sessionId, declarationType, goodsDestination, declarationGoods,
-        nameOfPersonCarryingTheGoods, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference)
+        nameOfPersonCarryingTheGoods, email, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference)
     }
   }
 }

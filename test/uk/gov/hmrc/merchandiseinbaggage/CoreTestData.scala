@@ -36,12 +36,13 @@ trait CoreTestData {
   val aGoodDestination = GreatBritain
   val aDeclarationGoods = DeclarationGoods(Seq[Goods]())
   val aName = Name("Terry", "Crews")
-  val aEori = Eori("eori-test")
+  val anEori = Eori("eori-test")
+  val anEmail = Email("someone@", "someone@")
   val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
   val aMibReference = MibReference("mib-ref-1234")
   val aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, None, aEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
 
   def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, None, aEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
 }
