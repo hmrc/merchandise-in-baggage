@@ -27,24 +27,10 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 trait CoreTestData {
 
-  val aTraderName: TraderName = TraderName("name")
   val anAmountInPence: ForeignAmount = ForeignAmount(1)
-  val aCsgTpsProviderId: CsgTpsProviderId = CsgTpsProviderId("123")
-  val aChargeReference: ChargeReference = ChargeReference("ref")
-
   val aDeclarationId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
 
-  def aDeclarationBE: DeclarationBE =
-    DeclarationBE(aDeclarationId,
-      aTraderName, anAmountInPence, aCsgTpsProviderId, aChargeReference, Outstanding, None, None)
-
   def aCalculationRequest: CalculationRequest = CalculationRequest("USD", anAmountInPence)
-
-  implicit class WithPaidStatus(declaration: DeclarationBE) {
-    def withPaidStatus(): DeclarationBE = declaration.copy(paymentStatus = Paid)
-    def withReconciledStatus(): DeclarationBE = declaration.copy(paymentStatus = Reconciled)
-    def withFailedStatus(): DeclarationBE = declaration.copy(paymentStatus = Failed)
-  }
 
   val aSessionId = SessionId("123456789")
   val aGoodDestination = GreatBritain

@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDateTime
-
 import cats.data.EitherT
 import cats.instances.future._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
@@ -25,7 +23,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DeclarationService extends DeclarationValidator {
+trait DeclarationService {
 
   def persistDeclaration(persist: Declaration => Future[Declaration], declaration: DeclarationRequest)
                         (implicit ec: ExecutionContext): Future[Declaration] =
@@ -34,6 +32,4 @@ trait DeclarationService extends DeclarationValidator {
   def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(findById(declarationId), DeclarationNotFound)
-
-  protected def generateTime: LocalDateTime = LocalDateTime.now
 }

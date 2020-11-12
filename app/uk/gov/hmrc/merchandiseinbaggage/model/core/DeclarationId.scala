@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model
+package uk.gov.hmrc.merchandiseinbaggage.model.core
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
+import play.api.libs.json._
+import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
-class DeclarationBESpec extends BaseSpec with CoreTestData {
+case class ForeignAmount(value: Double)
+object ForeignAmount {
+  implicit val format: Format[ForeignAmount] = ValueClassFormat.formatDouble(value => ForeignAmount.apply(value))(_.value)
+}
 
-  "Serialise/Deserialise from/to json to Declaration" in {
-    val declaration = aDeclarationBE
-    val actual = Json.toJson(declaration).toString
-
-    Json.toJson(declaration) mustBe Json.parse(actual)
-  }
+case class DeclarationId(value: String)
+object DeclarationId {
+  implicit val format: Format[DeclarationId] = ValueClassFormat.format(value => DeclarationId.apply(value))(_.value)
 }
