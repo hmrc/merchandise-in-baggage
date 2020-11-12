@@ -183,6 +183,7 @@ case class Declaration(declarationId: DeclarationId,
 
 object Declaration {
   val id = "declarationId"
+  val sessionId = "sessionId"
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
 }
 

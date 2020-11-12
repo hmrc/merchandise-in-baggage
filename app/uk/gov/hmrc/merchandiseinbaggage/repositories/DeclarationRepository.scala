@@ -22,7 +22,7 @@ import play.api.libs.json.{Format, JsString}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -41,6 +41,13 @@ class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionCon
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
     find(query).map(_.headOption)
+  }
+
+  def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
+    implicit val localDateOrdering: Ordering[Declaration] = Ordering.by(_.dateOfDeclaration.toLocalTime)
+    val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
+
+    find(query).map(_.sortWith((d1, d2) => d1.dateOfDeclaration.isAfter(d2.dateOfDeclaration)).max)
   }
 
   def findAll: Future[List[Declaration]] = super.findAll()

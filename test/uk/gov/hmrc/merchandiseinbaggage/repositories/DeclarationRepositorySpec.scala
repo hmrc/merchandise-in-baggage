@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
+import java.time.LocalDateTime
+
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
@@ -75,6 +77,22 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+  "find latest for session id in a multi declaration scenario" in {
+    val declaration = aDeclaration
+    val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
+    val dateTime = LocalDateTime.of(2020, 1, 1, 1, 1)
+    val declarations: List[Declaration] = (1 to 10).toList.map(x =>
+      declaration.copy(declarationId = DeclarationId(x.toString)).copy(dateOfDeclaration = dateTime.plusDays(x)))
+
+    repository.insert(declarationWithDifferentSessionId).futureValue
+    declarations.foreach { dec => repository.insert(dec).futureValue }
+
+    whenReady(repository.findAll) { res => res.size mustBe declarations.size + 1 }
+
+    whenReady(repository.findLatestBySessionId(declaration.sessionId)) { found =>
+      found.dateOfDeclaration mustBe dateTime.plusDays(10)
+    }
+  }
   override def beforeEach(): Unit = repository.deleteAll()
   override def afterEach(): Unit = repository.deleteAll()
 }
