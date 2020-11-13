@@ -77,32 +77,23 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
-  "find latest for session id in a multi declaration scenario" in {
+  "return the latest for session id in a multi declaration scenario" in {
     val declaration = aDeclaration
+    val declarationTwo = aDeclaration
     val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
-    val dateTime = LocalDateTime.of(2020, 1, 1, 1, 1)
-    val declarations: List[Declaration] = (1 to 5).toList.map(idx =>
-      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = dateTime.plusDays(idx)))
-
-    repository.insert(declarationWithDifferentSessionId).futureValue
-    declarations.foreach { dec => repository.insert(dec).futureValue }
-
-    whenReady(repository.findAll) { res => res.size mustBe declarations.size + 1 }
-
-    whenReady(repository.findLatestBySessionId(declaration.sessionId)) { found =>
-      found.dateOfDeclaration mustBe dateTime.plusDays(5)
+    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db) {
+      override def latest(declarations: List[Declaration]): Declaration = declarationTwo
     }
-  }
 
-  "find latest of a list declaration created date" in {
-    val declaration = aDeclaration
-    val newest = 20
-    val now = LocalDateTime.now
-    val declarations: List[Declaration] = (1 to newest).toList.map(idx =>
-      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx))
-    )
+    def insertThree(): Future[Declaration] =
+      for {
+        _     <- repository.insert(declaration)
+        _     <- repository.insert(declarationTwo)
+        three <- repository.insert(declarationWithDifferentSessionId)
+      } yield three
 
-    repository.latest(declarations).dateOfDeclaration.withSecond(0) mustBe now.plusMinutes(newest).withSecond(0)
+    insertThree().futureValue mustBe declarationWithDifferentSessionId
+    repository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
   }
 
   override def beforeEach(): Unit = repository.deleteAll()

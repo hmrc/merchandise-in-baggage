@@ -28,7 +28,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 trait CoreTestData {
 
   val anAmountInPence: ForeignAmount = ForeignAmount(1)
-  val aDeclarationId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
+  def aDeclarationId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
 
   def aCalculationRequest: CalculationRequest = CalculationRequest("USD", anAmountInPence)
 
@@ -40,7 +40,7 @@ trait CoreTestData {
   val anEmail = Email("someone@", "someone@")
   val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
   val aMibReference = MibReference("mib-ref-1234")
-  val aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
+  def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
     aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
 
   def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,

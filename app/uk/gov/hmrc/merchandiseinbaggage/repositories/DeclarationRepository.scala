@@ -24,13 +24,15 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
+import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
-  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) {
+  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
+    with DeclarationDateOrdering {
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
@@ -47,10 +49,6 @@ class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionCon
     val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
     find(query).map(latest)
   }
-
-  implicit val localDateOrdering: Ordering[Declaration] = Ordering.by(_.dateOfDeclaration.toLocalTime)
-  def latest(declarations: List[Declaration]): Declaration =
-    declarations.sortWith((d1, d2) => d1.dateOfDeclaration.isAfter(d2.dateOfDeclaration)).max
 
   def findAll: Future[List[Declaration]] = super.findAll()
 
