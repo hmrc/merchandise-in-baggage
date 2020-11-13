@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
-import java.time.LocalDateTime
-
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
