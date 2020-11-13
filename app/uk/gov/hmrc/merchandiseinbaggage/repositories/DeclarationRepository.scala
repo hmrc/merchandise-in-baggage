@@ -18,20 +18,21 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json.JsValueWrapper
-import play.api.libs.json._
+import play.api.libs.json.{Format, JsString}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{Declaration, DeclarationId, PaymentStatus}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
+import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DeclarationRepository @Inject()(mongo: () => DB)
-  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]]) {
+class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
+  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
+    with DeclarationDateOrdering {
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
@@ -44,19 +45,12 @@ class DeclarationRepository @Inject()(mongo: () => DB)
     find(query).map(_.headOption)
   }
 
-  def findAll: Future[List[Declaration]] = super.findAll()
-
-  def updateStatus(declaration: Declaration, paymentStatus: PaymentStatus): Future[Declaration] = {
-    val selector = Json.obj(s"${Declaration.id}" -> JsString(s"${declaration.declarationId.value}"))
-    val updatedDeclaration = declaration.copy(paymentStatus = paymentStatus)
-    val modifier = Json.obj("$set" -> updatedDeclaration)
-
-    collection.update(ordered = false)
-      .one(selector, modifier, upsert = true)
-      .map { lastError =>
-        lastError.ok
-      }.map(_ => updatedDeclaration)
+  def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
+    val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
+    find(query).map(latest)
   }
+
+  def findAll: Future[List[Declaration]] = super.findAll()
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())

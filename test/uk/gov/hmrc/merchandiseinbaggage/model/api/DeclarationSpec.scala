@@ -16,21 +16,14 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.Json.{parse, toJson}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
-class DeclarationRequestSpec extends BaseSpec with CoreTestData {
+class DeclarationSpec extends BaseSpec with CoreTestData {
 
-  "Serialise/Deserialise from/to json to PaymentRequest" in {
-    val declarationRequest = aDeclarationRequest
-    val actual = Json.toJson(declarationRequest).toString
+  "serialise and de-serialise" in {
+    val declaration = aDeclaration
 
-    Json.toJson(declarationRequest) mustBe Json.parse(actual)
-  }
-
-  "convert a declaration request in to a declaration" in {
-    val actualDeclaration: Declaration = aDeclarationRequest.toDeclaration
-
-    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _, _) => }
+    parse(toJson(declaration).toString()).validate[Declaration].get mustBe declaration
   }
 }

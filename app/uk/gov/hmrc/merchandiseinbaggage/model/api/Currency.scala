@@ -16,21 +16,12 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
+import play.api.libs.json.{Json, OFormat}
 
-class DeclarationRequestSpec extends BaseSpec with CoreTestData {
+case class Currency(countryName: String, currencyName: String, currencyCode: String) {
+  def displayName = s"${countryName.trim} ${currencyName.trim} (${currencyCode.trim})"
+}
 
-  "Serialise/Deserialise from/to json to PaymentRequest" in {
-    val declarationRequest = aDeclarationRequest
-    val actual = Json.toJson(declarationRequest).toString
-
-    Json.toJson(declarationRequest) mustBe Json.parse(actual)
-  }
-
-  "convert a declaration request in to a declaration" in {
-    val actualDeclaration: Declaration = aDeclarationRequest.toDeclaration
-
-    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _, _) => }
-  }
+object Currency {
+  implicit val format: OFormat[Currency] = Json.format[Currency]
 }
