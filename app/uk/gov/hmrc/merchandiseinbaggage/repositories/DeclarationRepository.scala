@@ -44,11 +44,13 @@ class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionCon
   }
 
   def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
-    implicit val localDateOrdering: Ordering[Declaration] = Ordering.by(_.dateOfDeclaration.toLocalTime)
     val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
-
-    find(query).map(_.sortWith((d1, d2) => d1.dateOfDeclaration.isAfter(d2.dateOfDeclaration)).max)
+    find(query).map(latest)
   }
+
+  implicit val localDateOrdering: Ordering[Declaration] = Ordering.by(_.dateOfDeclaration.toLocalTime)
+  def latest(declarations: List[Declaration]): Declaration =
+    declarations.sortWith((d1, d2) => d1.dateOfDeclaration.isAfter(d2.dateOfDeclaration)).max
 
   def findAll: Future[List[Declaration]] = super.findAll()
 

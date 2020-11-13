@@ -81,8 +81,8 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
     val dateTime = LocalDateTime.of(2020, 1, 1, 1, 1)
-    val declarations: List[Declaration] = (1 to 10).toList.map(x =>
-      declaration.copy(declarationId = DeclarationId(x.toString)).copy(dateOfDeclaration = dateTime.plusDays(x)))
+    val declarations: List[Declaration] = (1 to 5).toList.map(idx =>
+      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = dateTime.plusDays(idx)))
 
     repository.insert(declarationWithDifferentSessionId).futureValue
     declarations.foreach { dec => repository.insert(dec).futureValue }
@@ -90,9 +90,21 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     whenReady(repository.findAll) { res => res.size mustBe declarations.size + 1 }
 
     whenReady(repository.findLatestBySessionId(declaration.sessionId)) { found =>
-      found.dateOfDeclaration mustBe dateTime.plusDays(10)
+      found.dateOfDeclaration mustBe dateTime.plusDays(5)
     }
   }
+
+  "find latest of a list declaration created date" in {
+    val declaration = aDeclaration
+    val newest = 20
+    val now = LocalDateTime.now
+    val declarations: List[Declaration] = (1 to newest).toList.map(idx =>
+      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx))
+    )
+
+    repository.latest(declarations).dateOfDeclaration.withSecond(0) mustBe now.plusMinutes(newest).withSecond(0)
+  }
+
   override def beforeEach(): Unit = repository.deleteAll()
   override def afterEach(): Unit = repository.deleteAll()
 }
