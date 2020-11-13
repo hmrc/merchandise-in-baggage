@@ -22,6 +22,8 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 class DeclarationSpec extends BaseSpec with CoreTestData {
 
   "serialise and de-serialise" in {
-    parse(toJson(aDeclaration).toString()).validate[Declaration].get mustBe aDeclaration
+    val declaration = aDeclaration
+
+    parse(toJson(declaration).toString()).validate[Declaration].get mustBe declaration
   }
 }
