@@ -19,7 +19,6 @@ object AppDependencies {
     "com.typesafe.play"       %% "play-test"                % current   % Test,
     "com.vladsch.flexmark"    %  "flexmark-all"             % "0.35.10" % "test, it",
     "org.scalatestplus.play"  %% "scalatestplus-play"       % "4.0.3"   % "test, it",
-    "de.bwaldvogel"           %  "mongo-java-server"        % "1.34.0"  % Test,
-    "com.github.tomakehurst"  % "wiremock-jre8"             % "2.26.0"  % Test
+    "de.bwaldvogel"           %  "mongo-java-server"        % "1.34.0"  % Test
   )
 }

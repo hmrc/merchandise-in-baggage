@@ -25,8 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait DeclarationService {
 
-  def persistDeclaration(persist: Declaration => Future[Declaration], declaration: DeclarationRequest)
-                        (implicit ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(persist: Declaration => Future[Declaration], declaration: DeclarationRequest): Future[Declaration] =
     persist(declaration.toDeclaration)
 
   def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
