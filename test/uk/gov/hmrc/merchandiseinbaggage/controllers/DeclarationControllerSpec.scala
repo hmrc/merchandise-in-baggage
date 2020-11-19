@@ -63,8 +63,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
 
     val controller = new DeclarationController(component, repository) {
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
-                                     (implicit ec: ExecutionContext): Future[Declaration] = Future.successful(stubbedPersistedDeclaration.right.get)
+      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest): Future[Declaration] =
+        Future.successful(stubbedPersistedDeclaration.right.get)
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =

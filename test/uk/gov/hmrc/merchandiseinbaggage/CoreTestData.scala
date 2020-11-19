@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID
+import java.time.LocalDate
+import java.time.LocalDateTime.now
+import java.util.UUID.randomUUID
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
@@ -27,22 +28,20 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 trait CoreTestData {
 
-  val anAmountInPence: ForeignAmount = ForeignAmount(1)
-  def aDeclarationId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
+  def aDeclarationId: DeclarationId = DeclarationId(randomUUID().toString)
 
-  def aCalculationRequest: CalculationRequest = CalculationRequest("USD", anAmountInPence)
+  private val aSessionId = SessionId("123456789")
+  private val aGoodDestination = GreatBritain
+  private val aDeclarationGoods = DeclarationGoods(Seq[Goods]())
+  private val aName = Name("Terry", "Crews")
+  private val anEori = Eori("eori-test")
+  private val anEmail = Email("someone@", "someone@")
+  private val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
+  private val aMibReference = MibReference("mib-ref-1234")
 
-  val aSessionId = SessionId("123456789")
-  val aGoodDestination = GreatBritain
-  val aDeclarationGoods = DeclarationGoods(Seq[Goods]())
-  val aName = Name("Terry", "Crews")
-  val anEori = Eori("eori-test")
-  val anEmail = Email("someone@", "someone@")
-  val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
-  val aMibReference = MibReference("mib-ref-1234")
   def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, now, aMibReference)
 
   def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, now, aMibReference)
 }

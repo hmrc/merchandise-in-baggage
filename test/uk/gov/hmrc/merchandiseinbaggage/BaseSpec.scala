@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import com.github.tomakehurst.wiremock.WireMockServer
+import akka.stream.Materializer
 import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Second, Seconds, Span}
@@ -38,25 +38,14 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
   def injector: Injector = app.injector
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1L, Second)))
 
-  implicit val headerCarrier = HeaderCarrier()
-  implicit val mat = app.materializer
+  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
+  implicit val mat: Materializer = app.materializer
 
   def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
-
-  def buildPatch(url: String): FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(PATCH, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 
   def buildGet(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 }
 
-trait BaseSpecWithWireMock extends BaseSpecWithApplication {
-
-  val currencyConversionMockServer = new WireMockServer(9016)
-
-  override def beforeEach: Unit = currencyConversionMockServer.start()
-
-  override def afterEach: Unit = currencyConversionMockServer.stop()
-}
 

@@ -31,8 +31,8 @@ import scala.concurrent.Future
 class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
-  val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-  val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+  private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
+  private val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration

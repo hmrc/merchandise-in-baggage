@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.util
 import play.api.libs.json._
 
 object ValueClassFormat {
-  def format[A: Format](fromStringToA: String => A)(fromAToString: A => String) =
+  def format[A: Format](fromStringToA: String => A)(fromAToString: A => String): Format[A] =
     Format[A](
       Reads[A] {
         case JsString(str) => JsSuccess(fromStringToA(str))
@@ -28,7 +28,7 @@ object ValueClassFormat {
       Writes[A](a => JsString(fromAToString(a)))
     )
 
-  def formatDouble[A: Format](fromNumberToA: Double => A)(fromAToDouble: A => Double) =
+  def formatDouble[A: Format](fromNumberToA: Double => A)(fromAToDouble: A => Double): Format[A] =
     Format[A](
       Reads[A] {
         case JsNumber(n) => JsSuccess(fromNumberToA(n.toDouble))
@@ -37,7 +37,7 @@ object ValueClassFormat {
       Writes[A](a => JsNumber(fromAToDouble(a)))
     )
 
-  def formatLong[A: Format](fromNumberToA: Long => A)(fromAToLong: A => Long) =
+  def formatLong[A: Format](fromNumberToA: Long => A)(fromAToLong: A => Long): Format[A] =
     Format[A](
       Reads[A] {
         case JsNumber(n) => JsSuccess(fromNumberToA(n.toLong))
