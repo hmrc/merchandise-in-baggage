@@ -22,7 +22,7 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationIdResponse, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -43,7 +43,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       val eventualResult = controller.onDeclarations()(postRequest)
 
       status(eventualResult) mustBe 201
-      contentAsJson(eventualResult) mustBe Json.toJson(DeclarationIdResponse(declaration.declarationId))
+      contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
     }
   }
 

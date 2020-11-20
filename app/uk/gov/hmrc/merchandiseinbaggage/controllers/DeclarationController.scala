@@ -20,8 +20,7 @@ import cats.instances.future._
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationIdResponse._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationIdResponse, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
@@ -35,7 +34,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
 
   def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request  =>
     persistDeclaration(declarationRepository.insert, request.body).map { dec =>
-      Created(Json.toJson(DeclarationIdResponse(dec.declarationId)))
+      Created(Json.toJson(dec.declarationId))
     }
   }
 

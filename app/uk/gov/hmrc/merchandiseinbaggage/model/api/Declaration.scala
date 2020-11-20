@@ -93,8 +93,7 @@ object JourneyDetailsEntry {
 case class Goods(categoryQuantityOfGoods: CategoryQuantityOfGoods,
                  goodsVatRate: GoodsVatRate,
                  countryOfPurchase: String,
-                 purchaseDetails: PurchaseDetails,
-                 invoiceNumber: String)
+                 purchaseDetails: PurchaseDetails)
 
 object Goods {
   implicit val format: OFormat[Goods] = Json.format[Goods]
@@ -165,7 +164,7 @@ object JourneyOnFootViaVehiclePort {
 }
 
 object JourneyInSmallVehicle {
-  implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
+  implicit val format: Format[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
 }
 
 case class Declaration(declarationId: DeclarationId,

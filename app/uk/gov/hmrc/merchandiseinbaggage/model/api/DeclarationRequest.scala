@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import java.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID
 
 import play.api.libs.json.{Format, Json}
@@ -31,9 +31,27 @@ case class DeclarationRequest(sessionId: SessionId,
                               maybeCustomsAgent: Option[CustomsAgent],
                               eori: Eori,
                               journeyDetails: JourneyDetails,
-                              dateOfDeclaration: LocalDateTime = LocalDateTime.now,
+                              dateOfDeclaration: LocalDateTime,
                               mibReference: MibReference
                              )
+
+case class DeclarationRequestFoo(sessionId: SessionId,
+                              declarationType: DeclarationType,
+                              goodsDestination: GoodsDestination,
+                              declarationGoods: DeclarationGoods,
+                              nameOfPersonCarryingTheGoods: Name,
+                              email: Email,
+                              maybeCustomsAgent: Option[CustomsAgent],
+                              eori: Eori,
+                              journeyDetails: JourneyDetails,
+                              dateOfDeclaration: LocalDateTime,
+                              mibReference: MibReference
+                             )
+object DeclarationRequestFoo {
+  implicit val format: Format[DeclarationRequestFoo] = Json.format
+}
+
+
 object DeclarationRequest {
   implicit val format: Format[DeclarationRequest] = Json.format
 
