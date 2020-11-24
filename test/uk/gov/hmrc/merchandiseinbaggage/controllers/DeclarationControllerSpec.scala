@@ -21,12 +21,14 @@ import play.api.libs.json.Json
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -59,11 +61,16 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   }
 
   def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
-    val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val reactiveMongo = new ReactiveMongoComponent {
+      override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)
+    }
 
-    val controller = new DeclarationController(component, repository) {
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest): Future[Declaration] =
+    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val auditConnector = injector.instanceOf[AuditConnector]
+
+    val controller = new DeclarationController(component, repository, auditConnector) {
+      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
+                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 
       override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)

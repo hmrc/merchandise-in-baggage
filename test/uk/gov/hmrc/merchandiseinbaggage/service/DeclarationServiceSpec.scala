@@ -20,23 +20,33 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
+  private val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
 
   "persist a declaration from a declaration request" in new DeclarationService {
+    override val auditConnector: AuditConnector = testAuditConnector
+
     val declarationRequest: DeclarationRequest = aDeclarationRequest
     val declaration: Declaration = declarationRequest.toDeclaration.copy(declarationId = aDeclarationId)
     val persist: Declaration => Future[Declaration] = _ => Future.successful(declaration)
 
+    testAuditConnector.audited.isDefined mustBe false
+
     whenReady(persistDeclaration(persist, declarationRequest)) { result =>
       result mustBe declaration
+      testAuditConnector.audited.isDefined mustBe true
     }
   }
 
   "find a declaration by id or returns not found" in new DeclarationService {
+    override val auditConnector: TestAuditConnector = testAuditConnector
+
     val declaration: Declaration = aDeclaration
     val stubbedFind: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Some(declaration))
     val stubbedNotFound: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(None)

@@ -25,12 +25,14 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(mcc: MessagesControllerComponents,
-                                      declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
+                                      declarationRepository: DeclarationRepository,
+                                      override val auditConnector: AuditConnector)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with DeclarationService {
 
   private val logger = Logger(this.getClass)
