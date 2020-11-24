@@ -27,18 +27,18 @@ import scala.concurrent.Future
 class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
   private val failed = Failure("failed")
 
-  "auditDeclarationPersisted" should {
+  "auditDeclarationComplete" should {
     Seq(Success, Disabled, failed).foreach { auditStatus =>
       s"delegate to the auditConnector and return $auditStatus" in new Auditor {
         private val declaration = aDeclaration
 
         override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(auditStatus), injector)
 
-        auditDeclarationPersisted(declaration).futureValue mustBe auditStatus
+        auditDeclarationComplete(declaration).futureValue mustBe auditStatus
 
         private val auditedEvent = auditConnector.audited.get
         auditedEvent.auditSource mustBe "merchandise-in-baggage"
-        auditedEvent.auditType mustBe "declarationPersisted"
+        auditedEvent.auditType mustBe "declarationComplete"
         auditedEvent.detail mustBe toJson(declaration)
       }
     }
@@ -47,7 +47,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
       override val auditConnector: TestAuditConnector =
         TestAuditConnector(Future.failed(new RuntimeException("failed")), injector)
 
-      auditDeclarationPersisted(aDeclaration).futureValue mustBe failed
+      auditDeclarationComplete(aDeclaration).futureValue mustBe failed
     }
   }
 }
