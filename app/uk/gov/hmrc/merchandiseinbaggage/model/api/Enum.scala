@@ -20,10 +20,7 @@ import enumeratum.{EnumEntry, PlayEnum}
 import play.api.libs.json._
 
 trait Enum[A <: EnumEntry] extends PlayEnum[A] {
-  val baseMessageKey: String
-
   def forCode(code: String): Option[A] = values.find(_.toString == code)
-
 }
 
 object EnumFormat {

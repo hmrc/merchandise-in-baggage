@@ -14,20 +14,32 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api
+package uk.gov.hmrc.merchandiseinbaggage.util
 
-import play.api.libs.json._
+import uk.gov.hmrc.merchandiseinbaggage.BaseSpec
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.{maybeObfuscate, obfuscate}
 
-case class Country(code: String, name: Option[String]){
-  lazy val obfuscated: Country = Country(obfuscate(code), maybeObfuscate(name))
-}
+class ObfuscatorSpec extends BaseSpec {
+  "obfuscate should" should {
+    "return a string of `*` characters of the same length as the input" in {
+      obfuscate("1") mustBe "*"
+      obfuscate("12") mustBe "**"
+    }
 
-case class Address(lines: Seq[String], postcode: Option[String], country: Country) {
-  lazy val obfuscated: Address = Address(lines.map(line => obfuscate(line)), maybeObfuscate(postcode), country.obfuscated)
-}
+    "return an empty string" when {
+      "the input is empty" in {
+        obfuscate("") mustBe ""
+      }
+    }
+  }
 
-object Address {
-  implicit val formatCountry: OFormat[Country] = Json.format[Country]
-  implicit val formatAddressLookupAddress: OFormat[Address] = Json.format[Address]
+  "maybeObfuscate" should {
+    "obfuscate a defined option" in {
+      maybeObfuscate(Some("1")) mustBe Some("*")
+    }
+
+    "tolerate an undefined option" in {
+      maybeObfuscate(None) mustBe None
+    }
+  }
 }

@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.LocalDate
-import java.time.LocalDateTime.now
+import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID.randomUUID
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
@@ -40,8 +39,14 @@ trait CoreTestData {
   private val aMibReference = MibReference("mib-ref-1234")
 
   def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
 
   def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+
+  val aCustomsAgent: CustomsAgent =
+    CustomsAgent(
+      "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), Country("GB", Some("United Kingdom"))))
+
+  val aJourneyInASmallVehicle: JourneyInSmallVehicle = JourneyInSmallVehicle(Dover, LocalDate.now(), "licence")
 }

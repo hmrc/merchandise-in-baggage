@@ -18,7 +18,8 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.instances.future._
 import javax.inject.Inject
-import play.api.libs.json.Json
+import play.api.Logger
+import play.api.libs.json.Json.{prettyPrint, toJson}
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
@@ -32,16 +33,36 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
                                       declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) with DeclarationService {
 
-  def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request  =>
-    persistDeclaration(declarationRepository.insert, request.body).map { dec =>
-      Created(Json.toJson(dec.declarationId))
+  private val logger = Logger(this.getClass)
+
+  def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request =>
+    val declarationRequest = request.body
+    val obfuscatedLogText = prettyPrint(toJson(declarationRequest.obfuscated))
+
+    logger.info(s"Received declaration request [$obfuscatedLogText]")
+
+    persistDeclaration(declarationRepository.insert, declarationRequest).map { dec =>
+      logger.info(s"Persisted declaration request for session id [${declarationRequest.sessionId}]")
+      Created(toJson(dec.declarationId))
     }
   }
 
   def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
-    findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)) fold ({
-      case DeclarationNotFound => NotFound
-      case _                   => InternalServerError("Something went wrong")
-    }, foundDeclaration => Ok(Json.toJson(foundDeclaration)))
+    logger.info(s"Received retrieve request for declarationId [$declarationId]")
+
+    findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)).fold(
+      {
+        case DeclarationNotFound =>
+          logger.warn(s"DeclarationId [$declarationId] not found")
+          NotFound
+        case e =>
+          logger.error(s"Error for declarationId [$declarationId] - [$e]]")
+          InternalServerError("Something went wrong")
+      },
+      foundDeclaration => {
+        logger.info(s"Found [${prettyPrint(toJson(foundDeclaration.obfuscated))}]")
+        Ok(toJson(foundDeclaration))
+      }
+    )
   }
 }

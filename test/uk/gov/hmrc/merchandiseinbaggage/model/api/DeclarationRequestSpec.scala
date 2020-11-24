@@ -17,20 +17,34 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json
+import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationRequestSpec extends BaseSpec with CoreTestData {
 
   "Serialise/Deserialise from/to json to PaymentRequest" in {
     val declarationRequest = aDeclarationRequest
-    val actual = Json.toJson(declarationRequest).toString
+    val actual = toJson(declarationRequest).toString
 
-    Json.toJson(declarationRequest) mustBe Json.parse(actual)
+    toJson(declarationRequest) mustBe Json.parse(actual)
   }
 
   "convert a declaration request in to a declaration" in {
     val actualDeclaration: Declaration = aDeclarationRequest.toDeclaration
 
     actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _, _) => }
+  }
+
+  "be obfuscated" in {
+    val declarationRequest =
+      aDeclarationRequest.copy(maybeCustomsAgent = Some(aCustomsAgent), journeyDetails = aJourneyInASmallVehicle)
+
+    declarationRequest.obfuscated.nameOfPersonCarryingTheGoods mustBe Name("*****", "*****")
+    declarationRequest.obfuscated.email mustBe Email("********", "********")
+    declarationRequest.obfuscated.maybeCustomsAgent.get.name mustBe "**********"
+    declarationRequest.obfuscated.maybeCustomsAgent.get.address mustBe
+      Address(Seq("*************", "**********"), Some("*******"), Country("**", Some("**************")))
+    declarationRequest.obfuscated.eori mustBe Eori("*********")
+    declarationRequest.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
   }
 }

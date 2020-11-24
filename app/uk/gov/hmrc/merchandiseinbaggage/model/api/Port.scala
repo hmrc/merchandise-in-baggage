@@ -40,7 +40,6 @@ sealed trait FootPassengerOnlyPort extends Port {
 }
 
 object Ports extends Enum[Port] {
-  override val baseMessageKey: String = "placeOfArrival"
   override val values: immutable.IndexedSeq[Port] = findValues
 
   val vehiclePorts: Map[String, VehiclePort] =
