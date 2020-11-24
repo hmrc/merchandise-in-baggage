@@ -18,15 +18,20 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
 import cats.instances.future._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DeclarationService {
+trait DeclarationService extends Auditor {
 
-  def persistDeclaration(persist: Declaration => Future[Declaration], declaration: DeclarationRequest): Future[Declaration] =
-    persist(declaration.toDeclaration)
+  def persistDeclaration(persist: Declaration => Future[Declaration], declarationRequest: DeclarationRequest)
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+    for {
+      declaration <- persist(declarationRequest.toDeclaration)
+      _ <- auditDeclarationPersisted(declaration)
+    } yield declaration
 
   def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
