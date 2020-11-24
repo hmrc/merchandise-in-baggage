@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import play.api.Logger
 import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
-import uk.gov.hmrc.play.audit.http.connector.AuditResult.Failure
+import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Disabled, Failure, Success}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
@@ -29,12 +30,25 @@ import scala.util.control.NonFatal
 trait Auditor {
   val auditConnector: AuditConnector
 
-  def auditDeclarationPersisted(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] =
+  private val logger = Logger(this.getClass)
+
+  def auditDeclarationComplete(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] =
     auditConnector.sendExtendedEvent(
       ExtendedDataEvent(
         auditSource = "merchandise-in-baggage",
-        auditType = "declarationPersisted",
+        auditType = "declarationComplete",
         detail = toJson(declaration))).recover {
       case NonFatal(e) => Failure(e.getMessage)
+    }.map { status =>
+      status match {
+        case Success =>
+          logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
+        case Disabled =>
+          logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
+        case Failure(message, _) =>
+          logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+      }
+
+      status
     }
 }
