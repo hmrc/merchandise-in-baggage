@@ -24,6 +24,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
+import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
 
 import scala.collection.immutable
 
@@ -70,6 +71,8 @@ object GoodsEntries {
 
 case class Name(firstName: String, lastName: String) {
   override val toString: String = s"$firstName $lastName"
+
+  lazy val obfuscated: Name = Name(obfuscate(firstName), obfuscate(lastName))
 }
 
 object Name {
@@ -78,6 +81,8 @@ object Name {
 
 case class Eori(value: String) {
   override val toString: String = value
+
+  lazy val obfuscated: Eori = Eori(obfuscate(value))
 }
 
 object Eori {
@@ -105,18 +110,17 @@ object DeclarationGoods {
   implicit val format: OFormat[DeclarationGoods] = Json.format[DeclarationGoods]
 }
 
-case class CustomsAgent(name: String, address: Address)
+case class CustomsAgent(name: String, address: Address){
+  lazy val obfuscated: CustomsAgent = CustomsAgent(obfuscate(name), address.obfuscated)
+}
 
 object CustomsAgent {
   implicit val format: OFormat[CustomsAgent] = Json.format[CustomsAgent]
 }
 
-sealed trait YesNo extends EnumEntry {
-  val messageKey = s"${YesNo.baseMessageKey}.${entryName.toLowerCase}"
-}
+sealed trait YesNo extends EnumEntry
 
 object YesNo extends Enum[YesNo] {
-  override val baseMessageKey: String = "site"
   override val values: immutable.IndexedSeq[YesNo] = findValues
 
   def from(bool: Boolean): YesNo = if (bool) Yes else No
@@ -140,6 +144,8 @@ sealed trait JourneyDetails {
   val formattedDateOfArrival: String = DateTimeFormatter.ofPattern("dd MMM yyyy").format(dateOfArrival)
   val travellingByVehicle: YesNo = No
   val maybeRegistrationNumber: Option[String] = None
+
+  def obfuscated: JourneyDetails = this
 }
 
 case class JourneyViaFootPassengerOnlyPort(placeOfArrival: FootPassengerOnlyPort, dateOfArrival: LocalDate) extends JourneyDetails
@@ -149,6 +155,7 @@ case class JourneyOnFootViaVehiclePort(placeOfArrival: VehiclePort, dateOfArriva
 case class JourneyInSmallVehicle(placeOfArrival: VehiclePort, dateOfArrival: LocalDate, registrationNumber: String) extends JourneyDetails {
   override val travellingByVehicle: YesNo = Yes
   override val maybeRegistrationNumber: Option[String] = Some(registrationNumber)
+  override lazy val obfuscated: JourneyInSmallVehicle = this.copy(registrationNumber = obfuscate(registrationNumber))
 }
 
 object JourneyDetails {
@@ -179,7 +186,16 @@ case class Declaration(declarationId: DeclarationId,
                        journeyDetails: JourneyDetails,
                        dateOfDeclaration: LocalDateTime,
                        mibReference: MibReference,
-                      )
+                      ) {
+  lazy val obfuscated: Declaration =
+    this.copy(
+      nameOfPersonCarryingTheGoods = nameOfPersonCarryingTheGoods.obfuscated,
+      email = email.obfuscated,
+      maybeCustomsAgent = maybeCustomsAgent.map(_.obfuscated),
+      eori = eori.obfuscated,
+      journeyDetails = journeyDetails.obfuscated
+    )
+}
 
 object Declaration {
   val id = "declarationId"
@@ -196,8 +212,6 @@ object GoodsVatRate {
 }
 
 object GoodsVatRates extends Enum[GoodsVatRate] {
-  override val baseMessageKey: String = "goodsVatRate"
-
   override val values: immutable.IndexedSeq[GoodsVatRate] = findValues
 
   case object Zero extends GoodsVatRate { override val value: Int = 0 }
@@ -215,7 +229,6 @@ object GoodsDestination {
 }
 
 object GoodsDestinations extends Enum[GoodsDestination] {
-  override val baseMessageKey: String = "goodsDestination"
   override val values: immutable.IndexedSeq[GoodsDestination] = findValues
 
   case object NorthernIreland extends GoodsDestination {
@@ -229,12 +242,9 @@ object GoodsDestinations extends Enum[GoodsDestination] {
 
 import scala.collection.immutable
 
-sealed trait DeclarationType extends EnumEntry {
-  val messageKey = s"${DeclarationType.baseMessageKey}.${entryName.toLowerCase}"
-}
+sealed trait DeclarationType extends EnumEntry
 
 object DeclarationType extends Enum[DeclarationType] {
-  override val baseMessageKey: String = "declarationType"
   override val values: immutable.IndexedSeq[DeclarationType] = findValues
 
   case object Import extends DeclarationType

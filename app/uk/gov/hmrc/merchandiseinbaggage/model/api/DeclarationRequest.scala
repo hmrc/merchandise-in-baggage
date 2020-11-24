@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID
+import java.time.LocalDateTime
+import java.util.UUID.randomUUID
 
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
@@ -33,24 +33,16 @@ case class DeclarationRequest(sessionId: SessionId,
                               journeyDetails: JourneyDetails,
                               dateOfDeclaration: LocalDateTime,
                               mibReference: MibReference
-                             )
-
-case class DeclarationRequestFoo(sessionId: SessionId,
-                              declarationType: DeclarationType,
-                              goodsDestination: GoodsDestination,
-                              declarationGoods: DeclarationGoods,
-                              nameOfPersonCarryingTheGoods: Name,
-                              email: Email,
-                              maybeCustomsAgent: Option[CustomsAgent],
-                              eori: Eori,
-                              journeyDetails: JourneyDetails,
-                              dateOfDeclaration: LocalDateTime,
-                              mibReference: MibReference
-                             )
-object DeclarationRequestFoo {
-  implicit val format: Format[DeclarationRequestFoo] = Json.format
+                             ) {
+  lazy val obfuscated: DeclarationRequest =
+    this.copy(
+      nameOfPersonCarryingTheGoods = nameOfPersonCarryingTheGoods.obfuscated,
+      email = email.obfuscated,
+      maybeCustomsAgent = maybeCustomsAgent.map(_.obfuscated),
+      eori = eori.obfuscated,
+      journeyDetails = journeyDetails.obfuscated
+    )
 }
-
 
 object DeclarationRequest {
   implicit val format: Format[DeclarationRequest] = Json.format
@@ -58,8 +50,9 @@ object DeclarationRequest {
   implicit class ToDeclaration(declarationRequest: DeclarationRequest) {
     def toDeclaration: Declaration = {
       import declarationRequest._
-      Declaration(DeclarationId(UUID.randomUUID().toString), sessionId, declarationType, goodsDestination, declarationGoods,
+      Declaration(DeclarationId(randomUUID().toString), sessionId, declarationType, goodsDestination, declarationGoods,
         nameOfPersonCarryingTheGoods, email, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference)
     }
   }
+
 }

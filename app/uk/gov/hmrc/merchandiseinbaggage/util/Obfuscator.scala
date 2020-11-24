@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api
+package uk.gov.hmrc.merchandiseinbaggage.util
 
-import play.api.libs.json.{Json, OFormat}
+object Obfuscator {
+  def obfuscate(string: String): String = string.flatMap(_=> "*")
 
-case class Currency(countryName: String, currencyName: String, currencyCode: String)
-
-object Currency {
-  implicit val format: OFormat[Currency] = Json.format[Currency]
+  def maybeObfuscate(maybeString: Option[String]): Option[String] = maybeString.map(string => obfuscate(string))
 }

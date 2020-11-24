@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
 
 
-case class Email(email: String, confirmation: String)
+case class Email(email: String, confirmation: String) {
+  lazy val obfuscated: Email = Email(obfuscate(email), obfuscate(confirmation))
+}
 
 object Email {
-  implicit val format = Json.format[Email]
+  implicit val format: OFormat[Email] = Json.format[Email]
 }
