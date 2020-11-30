@@ -23,7 +23,7 @@ import play.api.libs.json.{Format, JsString}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -34,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait DeclarationRepository {
   def insertDeclaration(declaration: Declaration): Future[Declaration]
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
+  def findByMibReference(mibReference: MibReference): Future[Option[Declaration]]
   def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
   def findAll: Future[List[Declaration]]
   def deleteAll(): Future[Unit]
@@ -53,6 +54,11 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
+    find(query).map(_.headOption)
+  }
+
+  override def findByMibReference(mibReference: MibReference): Future[Option[Declaration]] = {
+    val query: (String, JsValueWrapper) = "mibReference" -> JsString(mibReference.value)
     find(query).map(_.headOption)
   }
 

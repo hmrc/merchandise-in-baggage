@@ -22,10 +22,10 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
+import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
@@ -73,6 +73,16 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+  "/payment-callback should trigger email delivery" in {
+    val declaration = aDeclaration
+    setUp(Right(declaration)) { controller =>
+      val postRequest = buildPost(routes.DeclarationController.paymentSuccessCallback(declaration.mibReference.value).url)
+      val eventualResult = controller.paymentSuccessCallback(declaration.mibReference.value)(postRequest)
+
+      status(eventualResult) mustBe 200
+    }
+  }
+
   def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent {
       override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)
@@ -92,6 +102,10 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         Future.successful(stubbedPersistedDeclaration.right.get)
 
       override def findByDeclarationId(declarationId: DeclarationId)
+                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+
+      override def findByMibReference(mibReference: MibReference)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }

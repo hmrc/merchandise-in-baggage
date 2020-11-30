@@ -57,6 +57,21 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+
+  "find a declaration by mibReference" in {
+    val declaration = aDeclaration
+
+    def insert(): Future[Declaration] = repository.insertDeclaration(declaration)
+
+    whenReady(insert()) { insertResult =>
+      insertResult mustBe declaration
+    }
+
+    whenReady(repository.findByMibReference(declaration.mibReference)) { findResult =>
+      findResult mustBe Some(declaration)
+    }
+  }
+
   "delete all declarations for testing purpose" in {
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))

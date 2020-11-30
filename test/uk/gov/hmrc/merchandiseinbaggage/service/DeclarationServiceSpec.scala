@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -58,6 +58,16 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(None))
     declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
+  }
+
+  "find a declaration by mibReference or returns not found" in {
+    val declaration: Declaration = aDeclaration
+
+    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
+    declarationService.findByMibReference(declaration.mibReference).value.futureValue mustBe Right(declaration)
+
+    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(None))
+    declarationService.findByMibReference(declaration.mibReference).value.futureValue mustBe Left(DeclarationNotFound)
   }
 
   "sendEmails must return result as expected" in {
