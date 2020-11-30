@@ -21,15 +21,15 @@ import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.{prettyPrint, toJson}
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationRequest, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
-class DeclarationController @Inject()( declarationService: DeclarationService,
-                                       mcc: MessagesControllerComponents)(implicit val ec: ExecutionContext)
+class DeclarationController @Inject()(declarationService: DeclarationService,
+                                      mcc: MessagesControllerComponents)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) {
 
   private val logger = Logger(this.getClass)
@@ -78,6 +78,29 @@ class DeclarationController @Inject()( declarationService: DeclarationService,
       emailResponseStatus => {
         Status(emailResponseStatus)
       }
+    )
+  }
+
+  def paymentSuccessCallback(mibRef: String): Action[AnyContent] = Action.async { implicit request =>
+    logger.info(s"got the payment callback for reference: $mibRef")
+
+    val result = for {
+      foundDeclaration <- declarationService.findByMibReference(MibReference(mibRef))
+      emailResponse <- declarationService.sendEmails(foundDeclaration.declarationId)
+    } yield {
+      emailResponse
+    }
+
+    result.fold(
+      {
+        case DeclarationNotFound =>
+          logger.warn(s"Declaration with MibReference [$mibRef] not found")
+          NotFound
+        case e =>
+          logger.error(s"Error for MibReference [$mibRef] - [$e]]")
+          InternalServerError("Something went wrong")
+      },
+      _ => Ok
     )
   }
 }

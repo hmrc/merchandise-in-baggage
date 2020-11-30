@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -43,6 +43,11 @@ class DeclarationService @Inject()(
   def findByDeclarationId(declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByDeclarationId(declarationId), DeclarationNotFound)
+
+
+  def findByMibReference(mibReference: MibReference)
+                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+    EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
   def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext):EitherT[Future, BusinessError, Int] = {
     findByDeclarationId(declarationId)
