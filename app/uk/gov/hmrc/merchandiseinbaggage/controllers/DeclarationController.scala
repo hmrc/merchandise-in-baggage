@@ -23,17 +23,14 @@ import play.api.libs.json.Json.{prettyPrint, toJson}
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
-class DeclarationController @Inject()(mcc: MessagesControllerComponents,
-                                      declarationRepository: DeclarationRepository,
-                                      override val auditConnector: AuditConnector)(implicit val ec: ExecutionContext)
-  extends BackendController(mcc) with DeclarationService {
+class DeclarationController @Inject()( declarationService: DeclarationService,
+                                       mcc: MessagesControllerComponents)(implicit val ec: ExecutionContext)
+  extends BackendController(mcc) {
 
   private val logger = Logger(this.getClass)
 
@@ -43,7 +40,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
 
     logger.info(s"Received declaration request [$obfuscatedLogText]")
 
-    persistDeclaration(declarationRepository.insert, declarationRequest).map { dec =>
+    declarationService.persistDeclaration(declarationRequest).map { dec =>
       logger.info(s"Persisted declaration request for session id [${declarationRequest.sessionId}]")
       Created(toJson(dec.declarationId))
     }
@@ -52,7 +49,7 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
   def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
     logger.info(s"Received retrieve request for declarationId [$declarationId]")
 
-    findByDeclarationId(declarationRepository.findByDeclarationId, DeclarationId(declarationId)).fold(
+    declarationService.findByDeclarationId(DeclarationId(declarationId)).fold(
       {
         case DeclarationNotFound =>
           logger.warn(s"DeclarationId [$declarationId] not found")
@@ -64,6 +61,22 @@ class DeclarationController @Inject()(mcc: MessagesControllerComponents,
       foundDeclaration => {
         logger.info(s"Found [${prettyPrint(toJson(foundDeclaration.obfuscated))}]")
         Ok(toJson(foundDeclaration))
+      }
+    )
+  }
+
+  def sendEmails(declarationId: String): Action[AnyContent] = Action.async { implicit request =>
+    declarationService.sendEmails(DeclarationId(declarationId)).fold(
+      {
+        case DeclarationNotFound =>
+          logger.warn(s"DeclarationId [$declarationId] not found")
+          NotFound
+        case e =>
+          logger.error(s"Error for declarationId [$declarationId] - [$e]]")
+          InternalServerError(s"${e} during sending emails")
+      },
+      emailResponseStatus => {
+        Status(emailResponseStatus)
       }
     )
   }

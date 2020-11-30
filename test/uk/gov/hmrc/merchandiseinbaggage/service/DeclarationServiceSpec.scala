@@ -16,47 +16,54 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
+import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
-class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
+class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
   private val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+  val declarationRepo = mock[DeclarationRepository]
+  val emailConnector = mock[EmailConnector]
 
-  "persist a declaration from a declaration request" in new DeclarationService {
-    override val auditConnector: AuditConnector = testAuditConnector
+  val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
 
+  "persist a declaration from a declaration request" in {
     val declarationRequest: DeclarationRequest = aDeclarationRequest
     val declaration: Declaration = declarationRequest.toDeclaration.copy(declarationId = aDeclarationId)
-    val persist: Declaration => Future[Declaration] = _ => Future.successful(declaration)
+
+    (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
     testAuditConnector.audited.isDefined mustBe false
 
-    whenReady(persistDeclaration(persist, declarationRequest)) { result =>
-      result mustBe declaration
-      testAuditConnector.audited.isDefined mustBe true
-    }
+    declarationService.persistDeclaration(declarationRequest).futureValue mustBe declaration
+    testAuditConnector.audited.isDefined mustBe true
   }
 
-  "find a declaration by id or returns not found" in new DeclarationService {
-    override val auditConnector: TestAuditConnector = testAuditConnector
-
+  "find a declaration by id or returns not found" in {
     val declaration: Declaration = aDeclaration
-    val stubbedFind: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(Some(declaration))
-    val stubbedNotFound: DeclarationId => Future[Option[Declaration]] = _ => Future.successful(None)
 
-    whenReady(findByDeclarationId(stubbedFind, declaration.declarationId).value) { result =>
-      result mustBe Right(declaration)
-    }
+    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
+    declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Right(declaration)
 
-    whenReady(findByDeclarationId(stubbedNotFound, declaration.declarationId).value) { result =>
-      result mustBe Left(DeclarationNotFound)
-    }
+    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(None))
+    declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
+  }
+
+  "sendEmails must return result as expected" in {
+    val declaration: Declaration = aDeclaration
+    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
+    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returns(Future(202))
+    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(202)
   }
 }
