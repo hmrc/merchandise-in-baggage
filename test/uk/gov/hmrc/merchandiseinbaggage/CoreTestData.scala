@@ -31,7 +31,7 @@ trait CoreTestData {
 
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
-  private val aDeclarationGoods = DeclarationGoods(Seq[Goods]())
+  private val aDeclarationGoods = DeclarationGoods(Seq[Goods](Goods(CategoryQuantityOfGoods("test", "1"), GoodsVatRates.Five, "GB", PurchaseDetails("10", Currency("UK", "GBP", "GBP")))))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
   private val anEmail = Email("someone@", "someone@")

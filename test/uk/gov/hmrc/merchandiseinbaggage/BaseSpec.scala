@@ -29,7 +29,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
 
 
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
@@ -40,6 +40,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   implicit val mat: Materializer = app.materializer
+  implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
 
   def buildPost(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(POST, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]

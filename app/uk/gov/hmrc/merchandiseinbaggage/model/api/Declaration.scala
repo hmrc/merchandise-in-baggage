@@ -22,6 +22,7 @@ import java.time.{LocalDate, LocalDateTime}
 import enumeratum.EnumEntry
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, OFormat}
+import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
@@ -34,7 +35,10 @@ object SessionId {
   implicit val format: Format[SessionId] = implicitly[Format[String]].inmap(SessionId(_), _.value)
 }
 
-case class PurchaseDetails(amount: String, currency: Currency)
+case class PurchaseDetails(amount: String, currency: Currency) {
+  override def toString: String =
+    s"$amount, ${currency.currencyName} (${currency.currencyCode})"
+}
 
 object PurchaseDetails {
   implicit val format: OFormat[PurchaseDetails] = Json.format[PurchaseDetails]
@@ -110,7 +114,7 @@ object DeclarationGoods {
   implicit val format: OFormat[DeclarationGoods] = Json.format[DeclarationGoods]
 }
 
-case class CustomsAgent(name: String, address: Address){
+case class CustomsAgent(name: String, address: Address) {
   lazy val obfuscated: CustomsAgent = CustomsAgent(obfuscate(name), address.obfuscated)
 }
 
@@ -135,7 +139,6 @@ object YesNo extends Enum[YesNo] {
   case object No extends YesNo
 
 }
-
 
 
 sealed trait JourneyDetails {
@@ -195,6 +198,45 @@ case class Declaration(declarationId: DeclarationId,
       eori = eori.obfuscated,
       journeyDetails = journeyDetails.obfuscated
     )
+
+  def toEmailInfo(bfEmail: String): DeclarationEmailInfo = {
+    val templateId = if (declarationType == DeclarationType.Import) "mods_import_declaration" else "mods_export_declaration"
+    val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
+      val (goods, idx) = goodsWithIdx
+      val countryOrDestKey =  if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
+      Map(
+        s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
+        s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
+        countryOrDestKey -> goods.countryOfPurchase,
+        s"goodsPrice_$idx" -> goods.purchaseDetails.toString,
+      )
+    }.reduce(_ ++ _)
+
+    val commonParams = Map(
+      "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
+      "declarationReference" -> mibReference.value,
+      "dateOfDeclaration" -> dateOfDeclaration.toString,
+      "eori" -> eori.value
+    )
+
+    val calculationParams = Map(
+      "customsDuty" -> "???",
+      "vat" -> "???",
+      "total" -> "???"
+    )
+
+    val allParams =
+      if (declarationType == DeclarationType.Import)
+        goodsParams ++ commonParams ++ calculationParams
+      else
+        goodsParams ++ commonParams
+
+    DeclarationEmailInfo(
+      Seq(email.email, bfEmail),
+      templateId,
+      allParams
+    )
+  }
 }
 
 object Declaration {
@@ -214,9 +256,18 @@ object GoodsVatRate {
 object GoodsVatRates extends Enum[GoodsVatRate] {
   override val values: immutable.IndexedSeq[GoodsVatRate] = findValues
 
-  case object Zero extends GoodsVatRate { override val value: Int = 0 }
-  case object Five extends GoodsVatRate { override val value: Int = 5 }
-  case object Twenty extends GoodsVatRate { override val value: Int = 20 }
+  case object Zero extends GoodsVatRate {
+    override val value: Int = 0
+  }
+
+  case object Five extends GoodsVatRate {
+    override val value: Int = 5
+  }
+
+  case object Twenty extends GoodsVatRate {
+    override val value: Int = 20
+  }
+
 }
 
 
@@ -238,6 +289,7 @@ object GoodsDestinations extends Enum[GoodsDestination] {
   case object GreatBritain extends GoodsDestination {
     override val threshold: AmountInPence = AmountInPence(150000)
   }
+
 }
 
 import scala.collection.immutable
@@ -248,5 +300,7 @@ object DeclarationType extends Enum[DeclarationType] {
   override val values: immutable.IndexedSeq[DeclarationType] = findValues
 
   case object Import extends DeclarationType
+
   case object Export extends DeclarationType
+
 }

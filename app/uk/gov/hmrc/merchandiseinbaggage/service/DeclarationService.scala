@@ -18,21 +18,36 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
 import cats.instances.future._
+import com.google.inject.Inject
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
+import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DeclarationService extends Auditor {
-  def persistDeclaration(persist: Declaration => Future[Declaration], declarationRequest: DeclarationRequest)
-                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+class DeclarationService @Inject()(
+                                    declarationRepository: DeclarationRepository,
+                                    emailConnector: EmailConnector,
+                                    val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor {
+
+  def persistDeclaration(declarationRequest: DeclarationRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
     for {
-      declaration <- persist(declarationRequest.toDeclaration)
+      declaration <- declarationRepository.insertDeclaration(declarationRequest.toDeclaration)
       _ <- auditDeclarationComplete(declaration)
     } yield declaration
 
-  def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
+  def findByDeclarationId(declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
-    EitherT.fromOptionF(findById(declarationId), DeclarationNotFound)
+    EitherT.fromOptionF(declarationRepository.findByDeclarationId(declarationId), DeclarationNotFound)
+
+  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext):EitherT[Future, BusinessError, Int] = {
+    findByDeclarationId(declarationId)
+      .map(_.toEmailInfo(appConfig.bfEmail))
+      .semiflatMap(emailConnector.sendEmails)
+    //TODO: Log and alert PagerDuty for unexpected response codes
+  }
 }

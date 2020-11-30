@@ -28,6 +28,6 @@ class QATestingController @Inject()(mcc: MessagesControllerComponents,
   extends BackendController(mcc) {
 
   def onTestDelete: Action[AnyContent] = Action(parse.default).async { _  =>
-    Future.successful(declarationRepository.removeAll()).map(_ => NoContent)
+    Future.successful(declarationRepository.deleteAll()).map(_ => NoContent)
   }
 }

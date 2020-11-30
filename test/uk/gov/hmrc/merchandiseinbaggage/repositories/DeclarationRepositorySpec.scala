@@ -32,12 +32,12 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
   private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
-  private val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+  private val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration
 
-    whenReady(repository.insert(declaration)) { result =>
+    whenReady(repository.insertDeclaration(declaration)) { result =>
       result mustBe declaration
     }
   }
@@ -46,7 +46,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
-    def insertTwo(): Future[Declaration] = repository.insert(declarationOne).flatMap(_ => repository.insert(declarationTwo))
+    def insertTwo(): Future[Declaration] = repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
 
     whenReady(insertTwo()) { insertResult =>
       insertResult mustBe declarationTwo
@@ -61,7 +61,7 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
-    def insertTwo(): Future[Declaration] = repository.insert(declarationOne).flatMap(_ => repository.insert(declarationTwo))
+    def insertTwo(): Future[Declaration] = repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
 
     val collection = for {
       _ <- repository.deleteAll()
@@ -79,15 +79,15 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declaration = aDeclaration
     val declarationTwo = aDeclaration
     val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db) {
+    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db) {
       override def latest(declarations: List[Declaration]): Declaration = declarationTwo
     }
 
     def insertThree(): Future[Declaration] =
       for {
-        _     <- repository.insert(declaration)
-        _     <- repository.insert(declarationTwo)
-        three <- repository.insert(declarationWithDifferentSessionId)
+        _     <- repository.insertDeclaration(declaration)
+        _     <- repository.insertDeclaration(declarationTwo)
+        three <- repository.insertDeclaration(declarationWithDifferentSessionId)
       } yield three
 
     insertThree().futureValue mustBe declarationWithDifferentSessionId

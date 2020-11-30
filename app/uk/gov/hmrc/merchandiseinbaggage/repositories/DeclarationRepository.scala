@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
+import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{Format, JsString}
@@ -29,29 +30,39 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[DeclarationRepositoryImpl])
+trait DeclarationRepository {
+  def insertDeclaration(declaration: Declaration): Future[Declaration]
+  def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
+  def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
+  def findAll: Future[List[Declaration]]
+  def deleteAll(): Future[Unit]
+}
+
 @Singleton
-class DeclarationRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
+class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
   extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
-    with DeclarationDateOrdering {
+    with DeclarationDateOrdering with DeclarationRepository {
 
   override def indexes: Seq[Index] = Seq(
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
-  def insert(declaration: Declaration): Future[Declaration] = super.insert(declaration).map(_ => declaration)
+  override def insertDeclaration(declaration: Declaration): Future[Declaration] =
+    super.insert(declaration).map(_ => declaration)
 
-  def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
+  override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
     find(query).map(_.headOption)
   }
 
-  def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
+  override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
     val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
     find(query).map(latest)
   }
 
-  def findAll: Future[List[Declaration]] = super.findAll()
+  override def findAll: Future[List[Declaration]] = super.findAll()
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
-  def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
+  override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 }

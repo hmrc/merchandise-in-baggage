@@ -22,10 +22,13 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.config.{AppConfig, MongoConfiguration}
+import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
+import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
+import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -60,23 +63,40 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+  "sendEmail should response as expected" in {
+    val declaration = aDeclaration
+    setUp(Right(declaration)) { controller =>
+      val postRequest = buildPost(routes.DeclarationController.sendEmails(declaration.declarationId.value).url)
+      val eventualResult = controller.sendEmails(declaration.declarationId.value)(postRequest)
+
+      status(eventualResult) mustBe 202
+    }
+  }
+
   def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
     val reactiveMongo = new ReactiveMongoComponent {
       override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)
     }
 
-    val repository = new DeclarationRepository(reactiveMongo.mongoConnector.db)
+    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
     val auditConnector = injector.instanceOf[AuditConnector]
 
-    val controller = new DeclarationController(component, repository, auditConnector) {
-      override def persistDeclaration(persist: Declaration => Future[Declaration], paymentRequest: DeclarationRequest)
+    val emailConnector = new EmailConnector {
+      override def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
+        Future.successful(202)
+    }
+
+    val declarationService = new DeclarationService(repository, emailConnector, auditConnector) {
+      override def persistDeclaration(paymentRequest: DeclarationRequest)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 
-      override def findByDeclarationId(findById: DeclarationId => Future[Option[Declaration]], declarationId: DeclarationId)
+      override def findByDeclarationId(declarationId: DeclarationId)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
+
+    val controller = new DeclarationController(declarationService, component)
 
     fn(controller)
   }
