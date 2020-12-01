@@ -32,7 +32,8 @@ case class DeclarationRequest(sessionId: SessionId,
                               eori: Eori,
                               journeyDetails: JourneyDetails,
                               dateOfDeclaration: LocalDateTime,
-                              mibReference: MibReference
+                              mibReference: MibReference,
+                              maybeTotalCalculationResult: Option[TotalCalculationResult] = None
                              ) {
   lazy val obfuscated: DeclarationRequest =
     this.copy(
@@ -51,7 +52,7 @@ object DeclarationRequest {
     def toDeclaration: Declaration = {
       import declarationRequest._
       Declaration(DeclarationId(randomUUID().toString), sessionId, declarationType, goodsDestination, declarationGoods,
-        nameOfPersonCarryingTheGoods, email, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference)
+        nameOfPersonCarryingTheGoods, email, maybeCustomsAgent, eori, journeyDetails, dateOfDeclaration, mibReference, maybeTotalCalculationResult)
     }
   }
 

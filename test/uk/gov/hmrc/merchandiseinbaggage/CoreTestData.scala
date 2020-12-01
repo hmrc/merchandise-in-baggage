@@ -37,12 +37,13 @@ trait CoreTestData {
   private val anEmail = Email("someone@", "someone@")
   private val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
+  private val totalCalculationResult = TotalCalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
   def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference, Some(totalCalculationResult))
 
   def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference)
+    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference, Some(totalCalculationResult))
 
   val aCustomsAgent: CustomsAgent =
     CustomsAgent(
