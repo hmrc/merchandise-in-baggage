@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
+import java.text.NumberFormat.getCurrencyInstance
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import java.util.Locale
+import java.util.Locale.UK
 
 import enumeratum.EnumEntry
 import play.api.libs.functional.syntax._
@@ -52,7 +54,10 @@ object CategoryQuantityOfGoods {
   implicit val format: OFormat[CategoryQuantityOfGoods] = Json.format[CategoryQuantityOfGoods]
 }
 
-case class AmountInPence(value: Long)
+case class AmountInPence(value: Long) {
+  val inPounds: BigDecimal = (BigDecimal(value) / 100).setScale(2)
+  val formattedInPounds: String = getCurrencyInstance(UK).format(inPounds)
+}
 
 object AmountInPence {
   implicit val format: Format[AmountInPence] = implicitly[Format[Long]].inmap(AmountInPence(_), _.value)
@@ -191,6 +196,7 @@ case class Declaration(declarationId: DeclarationId,
                        journeyDetails: JourneyDetails,
                        dateOfDeclaration: LocalDateTime,
                        mibReference: MibReference,
+                       totalCalculationResult: Option[TotalCalculationResult] = None
                       ) {
   lazy val obfuscated: Declaration =
     this.copy(
@@ -221,11 +227,18 @@ case class Declaration(declarationId: DeclarationId,
       "eori" -> eori.value
     )
 
-    val calculationParams = Map(
-      "customsDuty" -> "???",
-      "vat" -> "???",
-      "total" -> "???"
-    )
+    val calculationParams = {
+      totalCalculationResult match {
+        case Some(total) =>
+          Map(
+            "customsDuty" -> total.totalDutyDue.formattedInPounds,
+            "vat" -> total.totalVatDue.formattedInPounds,
+            "total" -> total.totalTaxDue.formattedInPounds
+          )
+
+        case None => Map.empty
+      }
+    }
 
     val allParams =
       if (declarationType == DeclarationType.Import)
@@ -306,4 +319,10 @@ object DeclarationType extends Enum[DeclarationType] {
 
   case object Export extends DeclarationType
 
+}
+
+case class TotalCalculationResult(totalGbpValue: AmountInPence, totalTaxDue: AmountInPence, totalDutyDue: AmountInPence, totalVatDue: AmountInPence)
+
+object TotalCalculationResult {
+  implicit val format: OFormat[TotalCalculationResult] = Json.format[TotalCalculationResult]
 }
