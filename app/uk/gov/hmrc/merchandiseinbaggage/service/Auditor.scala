@@ -36,7 +36,7 @@ trait Auditor {
     auditConnector.sendExtendedEvent(
       ExtendedDataEvent(
         auditSource = "merchandise-in-baggage",
-        auditType = "declarationComplete",
+        auditType = "DeclarationComplete",
         detail = toJson(declaration))).recover {
       case NonFatal(e) => Failure(e.getMessage)
     }.map { status =>
