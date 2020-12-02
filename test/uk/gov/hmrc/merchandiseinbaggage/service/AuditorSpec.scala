@@ -38,7 +38,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
 
         private val auditedEvent = auditConnector.audited.get
         auditedEvent.auditSource mustBe "merchandise-in-baggage"
-        auditedEvent.auditType mustBe "declarationComplete"
+        auditedEvent.auditType mustBe "DeclarationComplete"
         auditedEvent.detail mustBe toJson(declaration)
       }
     }
