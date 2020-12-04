@@ -46,13 +46,21 @@ class DeclarationService @Inject()(
 
 
   def findByMibReference(mibReference: MibReference)
-                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+                        (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
-  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext):EitherT[Future, BusinessError, Int] = {
-    findByDeclarationId(declarationId)
-      .map(_.toEmailInfo(appConfig.bfEmail))
-      .semiflatMap(emailConnector.sendEmails)
+  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] = {
+    for {
+      declaration <- findByDeclarationId(declarationId)
+      emailResult <- sendEmails(declaration)
+    } yield emailResult
+  }
+
+  private def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    val emailToBF = emailConnector.sendEmails(declaration.toEmailInfo(appConfig.bfEmail, toBorderForce = true))
+    val emailToTrader = emailConnector.sendEmails(declaration.toEmailInfo(declaration.email.email))
+    val result = Future.sequence(List(emailToBF, emailToTrader)).map[Either[BusinessError, Unit]](_ => Right(()))
+    EitherT(result)
     //TODO: Log and alert PagerDuty for unexpected response codes
   }
 }

@@ -75,8 +75,8 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
           logger.error(s"Error for declarationId [$declarationId] - [$e]]")
           InternalServerError(s"${e} during sending emails")
       },
-      emailResponseStatus => {
-        Status(emailResponseStatus)
+      _ => {
+        Status(ACCEPTED)
       }
     )
   }

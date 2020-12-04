@@ -73,7 +73,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "sendEmails must return result as expected" in {
     val declaration: Declaration = aDeclaration
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
-    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returns(Future(202))
-    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(202)
+    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
+    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
   }
 }

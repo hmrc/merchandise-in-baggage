@@ -207,7 +207,7 @@ case class Declaration(declarationId: DeclarationId,
       journeyDetails = journeyDetails.obfuscated
     )
 
-  def toEmailInfo(bfEmail: String): DeclarationEmailInfo = {
+  def toEmailInfo(to: String, toBorderForce: Boolean = false): DeclarationEmailInfo = {
     val templateId = if (declarationType == DeclarationType.Import) "mods_import_declaration" else "mods_export_declaration"
     val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
       val (goods, idx) = goodsWithIdx
@@ -221,7 +221,9 @@ case class Declaration(declarationId: DeclarationId,
     }.reduce(_ ++ _)
 
     val commonParams = Map(
+      "emailTo" -> {if(toBorderForce) "BorderForce" else "Trader"},
       "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
+      "surname" -> nameOfPersonCarryingTheGoods.lastName,
       "declarationReference" -> mibReference.value,
       "dateOfDeclaration" -> dateOfDeclaration.format(formatter),
       "eori" -> eori.value
@@ -247,7 +249,7 @@ case class Declaration(declarationId: DeclarationId,
         goodsParams ++ commonParams
 
     DeclarationEmailInfo(
-      Seq(email.email, bfEmail),
+      Seq(to),
       templateId,
       allParams
     )
