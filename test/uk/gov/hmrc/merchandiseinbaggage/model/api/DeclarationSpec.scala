@@ -17,6 +17,8 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json.{parse, toJson}
+import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration.formatter
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
 class DeclarationSpec extends BaseSpec with CoreTestData {
@@ -37,5 +39,13 @@ class DeclarationSpec extends BaseSpec with CoreTestData {
       Address(Seq("*************", "**********"), Some("*******"), Country("**", Some("**************")))
     declaration.obfuscated.eori mustBe Eori("*********")
     declaration.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
+  }
+
+  "toEmailInfo" in {
+    val declaration = aDeclaration
+    val dateOfDeclarationString = aDeclaration.dateOfDeclaration.format(formatter)
+    val params = Map("eori" -> "eori-test", "vat" -> "£1.00", "goodsPrice_0" -> "10, GBP (GBP)", "goodsQuantity_0" -> "1", "surname" -> "Crews", "total" -> "£1.00", "goodsCountry_0" -> "GB", "emailTo" -> "BorderForce", "declarationReference" -> "mib-ref-1234", "goodsCategory_0" -> "test", "nameOfPersonCarryingGoods" -> "Terry Crews", "dateOfDeclaration" -> s"$dateOfDeclarationString", "customsDuty" -> "£1.00")
+
+    declaration.toEmailInfo("foo@bar.com", toBorderForce = true) mustBe DeclarationEmailInfo(Seq("foo@bar.com"), "mods_import_declaration", params)
   }
 }
