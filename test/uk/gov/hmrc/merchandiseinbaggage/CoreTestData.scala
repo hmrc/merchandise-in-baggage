@@ -47,7 +47,7 @@ trait CoreTestData {
 
   val aCustomsAgent: CustomsAgent =
     CustomsAgent(
-      "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), Country("GB", "title.great_brighton", "GB", isEu=true, Nil)))
+      "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), AddressLookupCountry("GB", Some("UK"))))
 
   val aJourneyInASmallVehicle: JourneyInSmallVehicle = JourneyInSmallVehicle(Dover, LocalDate.now(), "licence")
 }

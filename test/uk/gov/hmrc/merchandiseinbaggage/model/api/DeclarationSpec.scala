@@ -36,7 +36,7 @@ class DeclarationSpec extends BaseSpecWithApplication with CoreTestData {
     declaration.obfuscated.email mustBe Email("********", "********")
     declaration.obfuscated.maybeCustomsAgent.get.name mustBe "**********"
     declaration.obfuscated.maybeCustomsAgent.get.address mustBe
-      Address(Seq("*************", "**********"), Some("*******"), Country("**", "********************","**", true, List()))
+      Address(Seq("*************", "**********"), Some("*******"), AddressLookupCountry("**", Some("**")))
     declaration.obfuscated.eori mustBe Eori("*********")
     declaration.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
   }

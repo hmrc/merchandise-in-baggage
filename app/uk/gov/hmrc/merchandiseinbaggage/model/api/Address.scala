@@ -27,11 +27,17 @@ object Country {
   implicit val formats: OFormat[Country] = Json.format[Country]
 }
 
-case class Address(lines: Seq[String], postcode: Option[String], country: Country) {
-  lazy val obfuscated: Address = Address(lines.map(line => obfuscate(line)), maybeObfuscate(postcode), country.obfuscated)
+case class AddressLookupCountry(code: String, name: Option[String]) {
+  lazy val obfuscated: AddressLookupCountry = AddressLookupCountry(obfuscate(code), maybeObfuscate(name))
+}
+
+case class Address(lines: Seq[String], postcode: Option[String], country: AddressLookupCountry) {
+  lazy val obfuscated: Address =
+    Address(lines.map(line => obfuscate(line)), maybeObfuscate(postcode), country.obfuscated)
 }
 
 object Address {
-  implicit val formatCountry: OFormat[Country] = Json.format[Country]
+  implicit val formatCountry: OFormat[AddressLookupCountry] = Json.format[AddressLookupCountry]
+
   implicit val formatAddressLookupAddress: OFormat[Address] = Json.format[Address]
 }
