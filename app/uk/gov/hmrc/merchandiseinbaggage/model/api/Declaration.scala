@@ -40,8 +40,11 @@ object SessionId {
 }
 
 case class PurchaseDetails(amount: String, currency: Currency) {
-  override def toString: String =
-    s"$amount, ${currency.currencyName} (${currency.currencyCode})"
+  def formatted =
+    if (currency.code == "GBP") s"£$amount" else s"$amount, ${currency.displayName}"
+
+  val numericAmount: BigDecimal = BigDecimal(amount)
+
 }
 
 object PurchaseDetails {
@@ -108,7 +111,7 @@ object JourneyDetailsEntry {
 
 case class Goods(categoryQuantityOfGoods: CategoryQuantityOfGoods,
                  goodsVatRate: GoodsVatRate,
-                 countryOfPurchase: String,
+                 countryOfPurchase: Country,
                  purchaseDetails: PurchaseDetails)
 
 object Goods {
@@ -211,17 +214,19 @@ case class Declaration(declarationId: DeclarationId,
     val templateId = if (declarationType == DeclarationType.Import) "mods_import_declaration" else "mods_export_declaration"
     val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
       val (goods, idx) = goodsWithIdx
-      val countryOrDestKey =  if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
+      val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
       Map(
         s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
         s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
-        countryOrDestKey -> goods.countryOfPurchase,
-        s"goodsPrice_$idx" -> goods.purchaseDetails.toString,
+        countryOrDestKey -> goods.countryOfPurchase.countryName,
+        s"goodsPrice_$idx" -> goods.purchaseDetails.formatted,
       )
     }.reduce(_ ++ _)
 
     val commonParams = Map(
-      "emailTo" -> {if(toBorderForce) "BorderForce" else "Trader"},
+      "emailTo" -> {
+        if (toBorderForce) "BorderForce" else "Trader"
+      },
       "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
       "surname" -> nameOfPersonCarryingTheGoods.lastName,
       "declarationReference" -> mibReference.value,

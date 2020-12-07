@@ -31,7 +31,7 @@ trait CoreTestData {
 
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
-  private val aDeclarationGoods = DeclarationGoods(Seq[Goods](Goods(CategoryQuantityOfGoods("test", "1"), GoodsVatRates.Five, "GB", PurchaseDetails("10", Currency("UK", "GBP", "GBP")))))
+  private val aDeclarationGoods = DeclarationGoods(Seq[Goods](Goods(CategoryQuantityOfGoods("test", "1"), GoodsVatRates.Five, Country("GB", "United Kingdom", "GB", isEu=true, List("England", "Scotland", "Wales", "Northern Ireland", "GB", "UK")), PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European"))))))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
   private val anEmail = Email("someone@", "someone@")
@@ -47,7 +47,7 @@ trait CoreTestData {
 
   val aCustomsAgent: CustomsAgent =
     CustomsAgent(
-      "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), Country("GB", Some("United Kingdom"))))
+      "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), Country("GB", "title.great_brighton", "GB", isEu=true, Nil)))
 
   val aJourneyInASmallVehicle: JourneyInSmallVehicle = JourneyInSmallVehicle(Dover, LocalDate.now(), "licence")
 }

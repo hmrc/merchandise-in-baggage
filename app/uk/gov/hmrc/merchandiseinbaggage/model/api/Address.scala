@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json._
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.{maybeObfuscate, obfuscate}
 
-case class Country(code: String, name: Option[String]){
-  lazy val obfuscated: Country = Country(obfuscate(code), maybeObfuscate(name))
+case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
+  lazy val obfuscated: Country = Country(obfuscate(code), obfuscate(countryName), obfuscate(alphaTwoCode), isEu, countrySynonyms.map(c => obfuscate(c)))
+}
+
+object Country {
+  implicit val formats: OFormat[Country] = Json.format[Country]
 }
 
 case class Address(lines: Seq[String], postcode: Option[String], country: Country) {

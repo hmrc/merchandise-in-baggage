@@ -43,7 +43,7 @@ class DeclarationRequestSpec extends BaseSpec with CoreTestData {
     declarationRequest.obfuscated.email mustBe Email("********", "********")
     declarationRequest.obfuscated.maybeCustomsAgent.get.name mustBe "**********"
     declarationRequest.obfuscated.maybeCustomsAgent.get.address mustBe
-      Address(Seq("*************", "**********"), Some("*******"), Country("**", Some("**************")))
+      Address(Seq("*************", "**********"), Some("*******"), Country("**", "********************", "**", true, List()))
     declarationRequest.obfuscated.eori mustBe Eori("*********")
     declarationRequest.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
   }
