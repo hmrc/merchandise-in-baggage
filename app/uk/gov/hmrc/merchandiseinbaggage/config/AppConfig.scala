@@ -36,5 +36,5 @@ trait EmailConfiguration {
 }
 
 final case class EmailConf(host: String = "localhost", port: Int = 8300, protocol: String) {
-  val url = s"$protocol://$host:$port/hmrc/email"
+  val url = s"$protocol://$host:$port/transactionengine/email"
 }
