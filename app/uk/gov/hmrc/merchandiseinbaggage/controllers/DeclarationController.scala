@@ -19,6 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 import cats.instances.future._
 import javax.inject.Inject
 import play.api.Logger
+import play.api.i18n.Messages
 import play.api.libs.json.Json.{prettyPrint, toJson}
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationRequest, MibReference}
@@ -31,6 +32,8 @@ import scala.concurrent.ExecutionContext
 class DeclarationController @Inject()(declarationService: DeclarationService,
                                       mcc: MessagesControllerComponents)(implicit val ec: ExecutionContext)
   extends BackendController(mcc) {
+
+  implicit def messages(implicit request: Request[_]): Messages = mcc.messagesApi.preferred(request)
 
   private val logger = Logger(this.getClass)
 

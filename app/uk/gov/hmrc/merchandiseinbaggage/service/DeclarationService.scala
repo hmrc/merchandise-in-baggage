@@ -19,6 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import cats.data.EitherT
 import cats.instances.future._
 import com.google.inject.Inject
+import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
@@ -49,14 +50,14 @@ class DeclarationService @Inject()(
                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
-  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] = {
+  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages): EitherT[Future, BusinessError, Unit] = {
     for {
       declaration <- findByDeclarationId(declarationId)
       emailResult <- sendEmails(declaration)
     } yield emailResult
   }
 
-  private def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  private def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages) = {
     val emailToBF = emailConnector.sendEmails(declaration.toEmailInfo(appConfig.bfEmail, toBorderForce = true))
     val emailToTrader = emailConnector.sendEmails(declaration.toEmailInfo(declaration.email.email))
     val result = Future.sequence(List(emailToBF, emailToTrader)).map[Either[BusinessError, Unit]](_ => Right(()))

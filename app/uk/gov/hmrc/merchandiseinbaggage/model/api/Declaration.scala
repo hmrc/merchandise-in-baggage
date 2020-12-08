@@ -23,6 +23,7 @@ import java.util.Locale
 import java.util.Locale.UK
 
 import enumeratum.EnumEntry
+import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
@@ -40,8 +41,8 @@ object SessionId {
 }
 
 case class PurchaseDetails(amount: String, currency: Currency) {
-  def formatted: String =
-    if (currency.code == "GBP") s"£$amount" else s"$amount, ${currency.displayName}"
+  def formatted(implicit messages: Messages): String =
+    if (currency.code == "GBP") s"£$amount" else s"$amount, ${messages(currency.displayName)}"
 
   val numericAmount: BigDecimal = BigDecimal(amount)
 
@@ -203,7 +204,7 @@ case class Declaration(declarationId: DeclarationId,
       journeyDetails = journeyDetails.obfuscated
     )
 
-  def toEmailInfo(to: String, toBorderForce: Boolean = false): DeclarationEmailInfo = {
+  def toEmailInfo(to: String, toBorderForce: Boolean = false)(implicit messages: Messages): DeclarationEmailInfo = {
     val templateId = if (declarationType == DeclarationType.Import) "mods_import_declaration" else "mods_export_declaration"
     val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
       val (goods, idx) = goodsWithIdx
@@ -211,7 +212,7 @@ case class Declaration(declarationId: DeclarationId,
       Map(
         s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
         s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
-        countryOrDestKey -> goods.countryOfPurchase.countryName,
+        countryOrDestKey -> goods.countryOfPurchase.displayName,
         s"goodsPrice_$idx" -> goods.purchaseDetails.formatted,
       )
     }.reduce(_ ++ _)
