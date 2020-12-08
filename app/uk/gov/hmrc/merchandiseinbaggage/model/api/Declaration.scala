@@ -40,7 +40,7 @@ object SessionId {
 }
 
 case class PurchaseDetails(amount: String, currency: Currency) {
-  def formatted =
+  def formatted: String =
     if (currency.code == "GBP") s"£$amount" else s"$amount, ${currency.displayName}"
 
   val numericAmount: BigDecimal = BigDecimal(amount)
@@ -150,22 +150,19 @@ object YesNo extends Enum[YesNo] {
 
 }
 
-
 sealed trait JourneyDetails {
-  val placeOfArrival: Port
-  val dateOfArrival: LocalDate
-  val formattedDateOfArrival: String = DateTimeFormatter.ofPattern("dd MMM yyyy").format(dateOfArrival)
+  val port: Port
+  val dateOfTravel: LocalDate
+  val formattedDateOfArrival: String = DateTimeFormatter.ofPattern("dd MMM yyyy").format(dateOfTravel)
   val travellingByVehicle: YesNo = No
   val maybeRegistrationNumber: Option[String] = None
 
   def obfuscated: JourneyDetails = this
 }
 
-case class JourneyViaFootPassengerOnlyPort(placeOfArrival: FootPassengerOnlyPort, dateOfArrival: LocalDate) extends JourneyDetails
+case class JourneyOnFoot(port: Port, dateOfTravel: LocalDate) extends JourneyDetails
 
-case class JourneyOnFootViaVehiclePort(placeOfArrival: VehiclePort, dateOfArrival: LocalDate) extends JourneyDetails
-
-case class JourneyInSmallVehicle(placeOfArrival: VehiclePort, dateOfArrival: LocalDate, registrationNumber: String) extends JourneyDetails {
+case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrationNumber: String) extends JourneyDetails {
   override val travellingByVehicle: YesNo = Yes
   override val maybeRegistrationNumber: Option[String] = Some(registrationNumber)
   override lazy val obfuscated: JourneyInSmallVehicle = this.copy(registrationNumber = obfuscate(registrationNumber))
@@ -175,16 +172,12 @@ object JourneyDetails {
   implicit val format: OFormat[JourneyDetails] = Json.format[JourneyDetails]
 }
 
-object JourneyViaFootPassengerOnlyPort {
-  implicit val format: OFormat[JourneyViaFootPassengerOnlyPort] = Json.format[JourneyViaFootPassengerOnlyPort]
-}
-
-object JourneyOnFootViaVehiclePort {
-  implicit val format: OFormat[JourneyOnFootViaVehiclePort] = Json.format[JourneyOnFootViaVehiclePort]
+object JourneyOnFoot {
+  implicit val format: OFormat[JourneyOnFoot] = Json.format[JourneyOnFoot]
 }
 
 object JourneyInSmallVehicle {
-  implicit val format: Format[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
+  implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
 }
 
 case class Declaration(declarationId: DeclarationId,
