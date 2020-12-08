@@ -21,7 +21,6 @@ import java.util.UUID.randomUUID
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Ports.Dover
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 
@@ -35,7 +34,7 @@ trait CoreTestData {
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
   private val anEmail = Email("someone@", "someone@")
-  private val aJourneyDetails = JourneyOnFootViaVehiclePort(Dover, LocalDate.now())
+  private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB=true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
   private val totalCalculationResult = TotalCalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
@@ -49,5 +48,5 @@ trait CoreTestData {
     CustomsAgent(
       "Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), AddressLookupCountry("GB", Some("UK"))))
 
-  val aJourneyInASmallVehicle: JourneyInSmallVehicle = JourneyInSmallVehicle(Dover, LocalDate.now(), "licence")
+  val aJourneyInASmallVehicle: JourneyInSmallVehicle = JourneyInSmallVehicle(Port("DVR", "title.dover", isGB=true, List("Port of Dover")), LocalDate.now(), "licence")
 }
