@@ -36,7 +36,8 @@ trait CoreTestData {
   private val anEmail = Email("someone@", "someone@")
   private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB=true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
-  private val totalCalculationResult = TotalCalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
+  private val paymentCalculations = PaymentCalculations(aDeclarationGoods.goods.map(good => PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100)))))
+  private val totalCalculationResult = TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
   def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
     aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference, Some(totalCalculationResult))
