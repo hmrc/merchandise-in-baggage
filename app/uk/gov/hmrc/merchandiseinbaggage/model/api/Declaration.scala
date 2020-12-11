@@ -322,7 +322,33 @@ object DeclarationType extends Enum[DeclarationType] {
 
 }
 
-case class TotalCalculationResult(totalGbpValue: AmountInPence, totalTaxDue: AmountInPence, totalDutyDue: AmountInPence, totalVatDue: AmountInPence)
+case class CalculationResult(gbpAmount: AmountInPence, duty: AmountInPence, vat: AmountInPence) {
+  def taxDue: AmountInPence = AmountInPence(
+    duty.value + vat.value
+  )
+}
+
+object CalculationResult {
+  implicit val format: OFormat[CalculationResult] = Json.format[CalculationResult]
+}
+
+case class PaymentCalculation(goods: Goods, calculationResult: CalculationResult)
+
+object PaymentCalculation {
+  implicit val format: OFormat[PaymentCalculation] = Json.format[PaymentCalculation]
+}
+
+case class PaymentCalculations(paymentCalculations: Seq[PaymentCalculation])
+
+object PaymentCalculations {
+  implicit val format: OFormat[PaymentCalculations] = Json.format[PaymentCalculations]
+}
+
+case class TotalCalculationResult(paymentCalculations: PaymentCalculations,
+                                  totalGbpValue: AmountInPence,
+                                  totalTaxDue: AmountInPence,
+                                  totalDutyDue: AmountInPence,
+                                  totalVatDue: AmountInPence)
 
 object TotalCalculationResult {
   implicit val format: OFormat[TotalCalculationResult] = Json.format[TotalCalculationResult]
