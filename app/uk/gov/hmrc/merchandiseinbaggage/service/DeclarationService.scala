@@ -44,10 +44,12 @@ class DeclarationService @Inject()(
       _ <- auditDeclarationComplete(declaration)
     } yield declaration
 
+  def upsertDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+    EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
+
   def findByDeclarationId(declarationId: DeclarationId)
                          (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByDeclarationId(declarationId), DeclarationNotFound)
-
 
   def findByMibReference(mibReference: MibReference)
                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =

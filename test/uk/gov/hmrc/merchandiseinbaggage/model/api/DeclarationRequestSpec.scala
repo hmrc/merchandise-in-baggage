@@ -32,7 +32,7 @@ class DeclarationRequestSpec extends BaseSpec with CoreTestData {
   "convert a declaration request in to a declaration" in {
     val actualDeclaration: Declaration = aDeclarationRequest.toDeclaration
 
-    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _, _, _, _) => }
+    actualDeclaration must matchPattern { case Declaration(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => }
   }
 
   "be obfuscated" in {
