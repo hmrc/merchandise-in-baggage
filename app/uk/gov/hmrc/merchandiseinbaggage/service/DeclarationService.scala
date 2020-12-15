@@ -75,7 +75,7 @@ class DeclarationService @Inject()(
               declarationRepository.upsertDeclaration(declaration.copy(emailsSent = true))
                 .map(_ => Right(()))
             case (s1, s2) =>
-              val message = s"error in sending emails, bfResponse:$s1, trResponse:$s2"
+              val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
               PagerDutyHelper.alert(Some(message))
               Future.successful(Left(EmailSentError(message)))
           }

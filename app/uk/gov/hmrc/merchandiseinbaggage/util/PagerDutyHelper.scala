@@ -24,5 +24,5 @@ object PagerDutyHelper {
   private val pdKey = "MODS_PAGER_DUTY_ALERT"
 
   def alert(message: Option[String] = None): Unit =
-    logger.warn(s"$pdKey${message.fold("")(detail => s" $detail")}")
+    logger.warn(s"$pdKey:${message.fold("")(detail => s" $detail")}")
 }
