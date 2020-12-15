@@ -73,7 +73,23 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "sendEmails must return result as expected" in {
     val declaration: Declaration = aDeclaration
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
+    (declarationRepo.upsertDeclaration(_: Declaration)).expects(declaration.copy(emailsSent = true)).returns(Future.successful(declaration))
     (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
+    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
+  }
+
+  "sendEmails must not send twice if emails are already sent" in {
+    val declaration: Declaration = aDeclaration
+    val declarationWithFlag = declaration.copy(emailsSent = true)
+    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
+
+   //triggers emails
+    (declarationRepo.upsertDeclaration(_: Declaration)).expects(declarationWithFlag).returns(Future.successful(declaration)).once()
+    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
+    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
+
+    //do not trigger emails as the flag is already set to 'true'
+    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declarationWithFlag)))
     Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
   }
 }

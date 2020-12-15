@@ -17,9 +17,8 @@
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
-import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Json.JsValueWrapper
-import play.api.libs.json.{Format, JsString}
+import play.api.libs.json.Json.{JsValueWrapper, _}
+import play.api.libs.json.{Format, JsObject, JsString, Json, OWrites}
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -28,11 +27,13 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[DeclarationRepositoryImpl])
 trait DeclarationRepository {
   def insertDeclaration(declaration: Declaration): Future[Declaration]
+  def upsertDeclaration(declaration: Declaration): Future[Declaration]
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
   def findByMibReference(mibReference: MibReference): Future[Option[Declaration]]
   def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
@@ -45,12 +46,22 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
   extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
     with DeclarationDateOrdering with DeclarationRepository {
 
+  implicit val jsObjectWriter: OWrites[JsObject] = new OWrites[JsObject] {
+    override def writes(o: JsObject): JsObject = o
+  }
+
   override def indexes: Seq[Index] = Seq(
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] =
     super.insert(declaration).map(_ => declaration)
+
+  override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
+    collection.update(ordered = false).one(
+      Json.obj(Declaration.id -> declaration.declarationId.value), declaration, upsert = true)
+      .map(_ => declaration)
+  }
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
