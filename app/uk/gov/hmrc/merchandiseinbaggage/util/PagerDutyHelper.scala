@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.core
+package uk.gov.hmrc.merchandiseinbaggage.util
 
-sealed trait BusinessError
-case object DeclarationNotFound extends BusinessError
-case class EmailSentError(msg: String) extends BusinessError
+import play.api.Logger
+
+object PagerDutyHelper {
+  val logger: Logger = Logger("PagerDutyLogger")
+
+  private val pdKey = "MODS_PAGER_DUTY_ALERT"
+
+  def alert(message: Option[String] = None): Unit =
+    logger.warn(s"$pdKey:${message.fold("")(detail => s" $detail")}")
+}

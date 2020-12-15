@@ -17,15 +17,18 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
-import cats.instances.future._
+import cats.implicits._
 import com.google.inject.Inject
+import play.api.Logging
 import play.api.i18n.Messages
+import play.mvc.Http.Status.ACCEPTED
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DeclarationService @Inject()(
                                     declarationRepository: DeclarationRepository,
                                     emailConnector: EmailConnector,
-                                    val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor {
+                                    val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor with Logging {
 
   def persistDeclaration(declarationRequest: DeclarationRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
     for {
@@ -58,10 +61,28 @@ class DeclarationService @Inject()(
   }
 
   private def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages) = {
-    val emailToBF = emailConnector.sendEmails(declaration.toEmailInfo(appConfig.bfEmail, toBorderForce = true))
-    val emailToTrader = emailConnector.sendEmails(declaration.toEmailInfo(declaration.email.email))
-    val result = Future.sequence(List(emailToBF, emailToTrader)).map[Either[BusinessError, Unit]](_ => Right(()))
+    val result: Future[Either[BusinessError, Unit]] = {
+      if (declaration.emailsSent) {
+        logger.warn(s"emails are already sent for declaration: ${declaration.mibReference.value}")
+        Future.successful(Right(()))
+      } else {
+        val emailToBF = emailConnector.sendEmails(declaration.toEmailInfo(appConfig.bfEmail, toBorderForce = true))
+        val emailToTrader = emailConnector.sendEmails(declaration.toEmailInfo(declaration.email.email))
+
+        (emailToBF, emailToTrader).mapN { (bfResponse, trResponse) =>
+          (bfResponse, trResponse) match {
+            case (ACCEPTED, ACCEPTED) =>
+              declarationRepository.upsertDeclaration(declaration.copy(emailsSent = true))
+                .map(_ => Right(()))
+            case (s1, s2) =>
+              val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
+              PagerDutyHelper.alert(Some(message))
+              Future.successful(Left(EmailSentError(message)))
+          }
+        }.flatten
+      }
+    }
+
     EitherT(result)
-    //TODO: Log and alert PagerDuty for unexpected response codes
   }
 }
