@@ -17,7 +17,6 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.instances.future._
-import javax.inject.Inject
 import play.api.Logger
 import play.api.i18n.Messages
 import play.api.libs.json.Json.{prettyPrint, toJson}
@@ -27,6 +26,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNo
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(declarationService: DeclarationService,
@@ -89,7 +89,8 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
 
     val result = for {
       foundDeclaration <- declarationService.findByMibReference(MibReference(mibRef))
-      emailResponse <- declarationService.sendEmails(foundDeclaration.declarationId)
+      updatedDeclaration <- declarationService.upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
+      emailResponse <- declarationService.sendEmails(updatedDeclaration.declarationId)
     } yield {
       emailResponse
     }

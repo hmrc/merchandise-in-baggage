@@ -194,7 +194,8 @@ case class Declaration(declarationId: DeclarationId,
                        dateOfDeclaration: LocalDateTime,
                        mibReference: MibReference,
                        totalCalculationResult: Option[TotalCalculationResult] = None,
-                       emailsSent: Boolean = false
+                       emailsSent: Boolean = false,
+                       paymentSuccess: Option[Boolean] = None
                       ) {
   lazy val obfuscated: Declaration =
     this.copy(

@@ -73,7 +73,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
-  "/payment-callback should trigger email delivery" in {
+  "/payment-callback should trigger email delivery and update paymentSuccess flag" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
       val postRequest = buildPost(routes.DeclarationController.paymentSuccessCallback(declaration.mibReference.value).url)
@@ -100,6 +100,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       override def persistDeclaration(paymentRequest: DeclarationRequest)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
+
+      override def upsertDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
       override def findByDeclarationId(declarationId: DeclarationId)
                                       (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
