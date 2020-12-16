@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
@@ -43,8 +43,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
-      val declarationRequest = aDeclarationRequest
-      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[DeclarationRequest](declarationRequest)
+      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
       val eventualResult = controller.onDeclarations()(postRequest)
 
       status(eventualResult) mustBe 201
@@ -97,7 +96,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
 
     val declarationService = new DeclarationService(repository, emailConnector, auditConnector) {
-      override def persistDeclaration(paymentRequest: DeclarationRequest)
+      override def persistDeclaration(paymentRequest: Declaration)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 
@@ -109,7 +108,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
       override def findByMibReference(mibReference: MibReference)
-                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+                                     (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
 

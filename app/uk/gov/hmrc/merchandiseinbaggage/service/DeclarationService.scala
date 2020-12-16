@@ -25,7 +25,7 @@ import play.mvc.Http.Status.ACCEPTED
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
@@ -38,9 +38,9 @@ class DeclarationService @Inject()(
                                     emailConnector: EmailConnector,
                                     val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor with Logging {
 
-  def persistDeclaration(declarationRequest: DeclarationRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
     for {
-      declaration <- declarationRepository.insertDeclaration(declarationRequest.toDeclaration)
+      declaration <- declarationRepository.insertDeclaration(declaration)
       _ <- auditDeclarationComplete(declaration)
     } yield declaration
 

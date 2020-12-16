@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationRequest, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -39,14 +39,13 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
 
   "persist a declaration from a declaration request" in {
-    val declarationRequest: DeclarationRequest = aDeclarationRequest
-    val declaration: Declaration = declarationRequest.toDeclaration.copy(declarationId = aDeclarationId)
+    val declaration = aDeclaration
 
     (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
     testAuditConnector.audited.isDefined mustBe false
 
-    declarationService.persistDeclaration(declarationRequest).futureValue mustBe declaration
+    declarationService.persistDeclaration(declaration).futureValue mustBe declaration
     testAuditConnector.audited.isDefined mustBe true
   }
 

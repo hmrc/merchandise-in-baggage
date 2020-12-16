@@ -19,9 +19,9 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 import cats.instances.future._
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.Json.{prettyPrint, toJson}
+import play.api.libs.json.Json.toJson
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationRequest, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -37,20 +37,13 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
 
   private val logger = Logger(this.getClass)
 
-  def onDeclarations(): Action[DeclarationRequest] = Action(parse.json[DeclarationRequest]).async { implicit request =>
-    val declarationRequest = request.body
-    val obfuscatedLogText = prettyPrint(toJson(declarationRequest.obfuscated))
-
-    logger.info(s"Received declaration request [$obfuscatedLogText]")
-
-    declarationService.persistDeclaration(declarationRequest).map { dec =>
-      logger.info(s"Persisted declaration request for session id [${declarationRequest.sessionId}]")
+  def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
+    declarationService.persistDeclaration(request.body).map { dec =>
       Created(toJson(dec.declarationId))
     }
   }
 
   def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
-    logger.info(s"Received retrieve request for declarationId [$declarationId]")
 
     declarationService.findByDeclarationId(DeclarationId(declarationId)).fold(
       {
@@ -62,7 +55,6 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
           InternalServerError("Something went wrong")
       },
       foundDeclaration => {
-        logger.info(s"Found [${prettyPrint(toJson(foundDeclaration.obfuscated))}]")
         Ok(toJson(foundDeclaration))
       }
     )

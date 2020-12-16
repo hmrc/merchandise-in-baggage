@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID.randomUUID
-
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
+
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID.randomUUID
 
 trait CoreTestData {
 
@@ -40,9 +40,6 @@ trait CoreTestData {
   private val totalCalculationResult = TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
   def aDeclaration: Declaration = Declaration(aDeclarationId, aSessionId, Import, aGoodDestination, aDeclarationGoods,
-    aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference, Some(totalCalculationResult))
-
-  def aDeclarationRequest: DeclarationRequest = DeclarationRequest(aSessionId, Import, aGoodDestination, aDeclarationGoods,
     aName, anEmail, None, anEori, aJourneyDetails, LocalDateTime.now, aMibReference, Some(totalCalculationResult))
 
   val aCustomsAgent: CustomsAgent =
