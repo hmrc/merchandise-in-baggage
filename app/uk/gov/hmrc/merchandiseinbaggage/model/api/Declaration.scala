@@ -260,7 +260,7 @@ case class Declaration(declarationId: DeclarationId,
 object Declaration {
   val id = "declarationId"
   val sessionId = "sessionId"
-  implicit val format: OFormat[Declaration] = Json.format[Declaration]
+  implicit val format: OFormat[Declaration] = Json.using[Json.WithDefaultValues].format[Declaration]
   val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM YYYY, h:mm a", Locale.ENGLISH)
 }
 
