@@ -25,6 +25,7 @@ import play.mvc.Http.Status.ACCEPTED
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
@@ -32,6 +33,7 @@ import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class DeclarationService @Inject()(
                                     declarationRepository: DeclarationRepository,
@@ -39,10 +41,11 @@ class DeclarationService @Inject()(
                                     val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor with Logging {
 
   def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
-    for {
-      declaration <- declarationRepository.insertDeclaration(declaration)
-      _ <- auditDeclarationComplete(declaration)
-    } yield declaration
+    declarationRepository.insertDeclaration(declaration)
+      .andThen {
+        case Success(declaration) if declaration.declarationType == Export =>
+          auditDeclarationComplete(declaration)
+      }
 
   def upsertDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
@@ -86,5 +89,16 @@ class DeclarationService @Inject()(
     }
 
     EitherT(result)
+  }
+
+  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages): EitherT[Future, BusinessError, Unit] = {
+    for {
+      foundDeclaration <- findByMibReference(mibRef)
+      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
+      emailResponse <- sendEmails(updatedDeclaration)
+      _ <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
+    } yield {
+      emailResponse
+    }
   }
 }

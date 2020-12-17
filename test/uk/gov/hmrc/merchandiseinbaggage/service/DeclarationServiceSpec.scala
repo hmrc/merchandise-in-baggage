@@ -21,6 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
@@ -38,8 +39,8 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
   val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
 
-  "persist a declaration from a declaration request" in {
-    val declaration = aDeclaration
+  "persist a declaration from a Export declaration request and trigger Audit" in {
+    val declaration = aDeclaration.copy(declarationType = Export)
 
     (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
@@ -47,6 +48,16 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
     declarationService.persistDeclaration(declaration).futureValue mustBe declaration
     testAuditConnector.audited.isDefined mustBe true
+  }
+
+  "persist a declaration from a Import declaration request and do NOT trigger Audit" in {
+    val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+    val declaration = aDeclaration
+
+    (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+
+    declarationService.persistDeclaration(declaration).futureValue mustBe declaration
+    testAuditConnector.audited.isDefined mustBe false
   }
 
   "find a declaration by id or returns not found" in {
@@ -90,5 +101,18 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     //do not trigger emails as the flag is already set to 'true'
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declarationWithFlag)))
     Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
+  }
+
+  "processPaymentCallback triggers email delivery, update paymentSuccess flag and trigger Audit" in {
+    val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+    val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
+    val declaration = aDeclaration
+
+    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
+    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration)).twice()
+    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
+
+    Await.result(declarationService.processPaymentCallback(declaration.mibReference).value, 5.seconds) mustBe Right(())
+    testAuditConnector.audited.isDefined mustBe true
   }
 }
