@@ -193,7 +193,7 @@ case class Declaration(declarationId: DeclarationId,
                        journeyDetails: JourneyDetails,
                        dateOfDeclaration: LocalDateTime,
                        mibReference: MibReference,
-                       totalCalculationResult: Option[TotalCalculationResult] = None,
+                       maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
                        emailsSent: Boolean = false,
                        paymentSuccess: Option[Boolean] = None
                       ) {
@@ -231,7 +231,7 @@ case class Declaration(declarationId: DeclarationId,
     )
 
     val calculationParams = {
-      totalCalculationResult match {
+      maybeTotalCalculationResult match {
         case Some(total) =>
           Map(
             "customsDuty" -> total.totalDutyDue.formattedInPounds,

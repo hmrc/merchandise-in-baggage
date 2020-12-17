@@ -79,15 +79,7 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
   def paymentSuccessCallback(mibRef: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"got the payment callback for reference: $mibRef")
 
-    val result = for {
-      foundDeclaration <- declarationService.findByMibReference(MibReference(mibRef))
-      updatedDeclaration <- declarationService.upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
-      emailResponse <- declarationService.sendEmails(updatedDeclaration.declarationId)
-    } yield {
-      emailResponse
-    }
-
-    result.fold(
+    declarationService.processPaymentCallback(MibReference(mibRef)).fold(
       {
         case DeclarationNotFound =>
           logger.warn(s"Declaration with MibReference [$mibRef] not found")
