@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
 import play.api.libs.json.Json.{JsValueWrapper, _}
-import play.api.libs.json.{Format, JsObject, JsString, Json, OWrites}
+import play.api.libs.json._
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -29,15 +29,22 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @ImplementedBy(classOf[DeclarationRepositoryImpl])
 trait DeclarationRepository {
   def insertDeclaration(declaration: Declaration): Future[Declaration]
+
   def upsertDeclaration(declaration: Declaration): Future[Declaration]
+
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
+
   def findByMibReference(mibReference: MibReference): Future[Option[Declaration]]
+
   def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
+
   def findAll: Future[List[Declaration]]
+
   def deleteAll(): Future[Unit]
 }
 
@@ -55,7 +62,13 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
   )
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] =
-    super.insert(declaration).map(_ => declaration)
+    super.insert(declaration)
+      .map(_ => declaration)
+      .recover {
+        case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
+          //conflict - duplicate declaration with same declarationId
+          declaration
+      }
 
   override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
     collection.update(ordered = false).one(

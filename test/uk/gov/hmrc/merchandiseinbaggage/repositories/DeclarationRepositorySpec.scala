@@ -42,6 +42,18 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+  "inserting a duplicate declaration should not trigger an error" in {
+    val declaration = aDeclaration
+
+    whenReady(repository.insertDeclaration(declaration)) { result =>
+      result mustBe declaration
+    }
+
+    whenReady(repository.insertDeclaration(declaration)) { result =>
+      result mustBe declaration
+    }
+  }
+
   "find a declaration by declaration id" in {
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
