@@ -16,12 +16,6 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import java.text.NumberFormat.getCurrencyInstance
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
-import java.util.Locale
-import java.util.Locale.UK
-
 import enumeratum.EnumEntry
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
@@ -32,6 +26,11 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
 
+import java.text.NumberFormat.getCurrencyInstance
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime}
+import java.util.Locale
+import java.util.Locale.UK
 import scala.collection.immutable
 
 case class SessionId(value: String)
@@ -195,7 +194,8 @@ case class Declaration(declarationId: DeclarationId,
                        mibReference: MibReference,
                        maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
                        emailsSent: Boolean = false,
-                       paymentSuccess: Option[Boolean] = None
+                       paymentSuccess: Option[Boolean] = None,
+                       lang: String = "en"
                       ) {
   lazy val obfuscated: Declaration =
     this.copy(
@@ -207,7 +207,10 @@ case class Declaration(declarationId: DeclarationId,
     )
 
   def toEmailInfo(to: String, toBorderForce: Boolean = false)(implicit messages: Messages): DeclarationEmailInfo = {
-    val templateId = if (declarationType == DeclarationType.Import) "mods_import_declaration" else "mods_export_declaration"
+    val importTemplate = if (lang == "en") "mods_import_declaration" else "mods_import_declaration_cy"
+    val exportTemplate = if (lang == "en") "mods_export_declaration" else "mods_export_declaration_cy"
+    val templateId = if (declarationType == DeclarationType.Import) importTemplate else exportTemplate
+
     val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
       val (goods, idx) = goodsWithIdx
       val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
