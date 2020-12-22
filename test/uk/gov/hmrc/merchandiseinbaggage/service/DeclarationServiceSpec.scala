@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import cats.data.EitherT
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
@@ -30,14 +29,14 @@ import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
   private val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
   val declarationRepo = mock[DeclarationRepository]
-  val emailConnector = mock[EmailConnector]
+  val emailService = mock[EmailService]
 
-  val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
+  val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector)
 
   "persist a declaration from a Export declaration request and trigger Audit" in {
     val declaration = aDeclaration.copy(declarationType = Export)
@@ -83,34 +82,18 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "sendEmails must return result as expected" in {
     val declaration: Declaration = aDeclaration
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(declaration.copy(emailsSent = true)).returns(Future.successful(declaration))
-    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
-    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
-  }
-
-  "sendEmails must not send twice if emails are already sent" in {
-    val declaration: Declaration = aDeclaration
-    val declarationWithFlag = declaration.copy(emailsSent = true)
-    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
-
-   //triggers emails
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(declarationWithFlag).returns(Future.successful(declaration)).once()
-    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
-    Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
-
-    //do not trigger emails as the flag is already set to 'true'
-    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declarationWithFlag)))
+    (emailService.sendEmails(_: Declaration)(_: HeaderCarrier)).expects(*, *).returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
     Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
   }
 
   "processPaymentCallback triggers email delivery, update paymentSuccess flag and trigger Audit" in {
     val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val declarationService = new DeclarationService(declarationRepo, emailConnector, testAuditConnector)
+    val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector)
     val declaration = aDeclaration
 
     (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration)).twice()
-    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).twice().returns(Future(202))
+    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+    (emailService.sendEmails(_: Declaration)(_: HeaderCarrier)).expects(*, *).returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
 
     Await.result(declarationService.processPaymentCallback(declaration.mibReference).value, 5.seconds) mustBe Right(())
     testAuditConnector.audited.isDefined mustBe true

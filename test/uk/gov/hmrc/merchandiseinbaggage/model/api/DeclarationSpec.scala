@@ -17,8 +17,6 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json.{parse, toJson}
-import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration.formatter
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 class DeclarationSpec extends BaseSpecWithApplication with CoreTestData {
@@ -39,22 +37,5 @@ class DeclarationSpec extends BaseSpecWithApplication with CoreTestData {
       Address(Seq("*************", "**********"), Some("*******"), AddressLookupCountry("**", Some("**")))
     declaration.obfuscated.eori mustBe Eori("*********")
     declaration.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
-  }
-
-  "toEmailInfo" in {
-    val declaration = aDeclaration
-    val dateOfDeclarationString = aDeclaration.dateOfDeclaration.format(formatter)
-    val params = Map("eori" -> "eori-test", "vat" -> "£1.00", "goodsPrice_0" -> "£100", "goodsQuantity_0" -> "1", "surname" -> "Crews", "total" -> "£1.00", "goodsCountry_0" -> "United Kingdom", "emailTo" -> "BorderForce", "declarationReference" -> "mib-ref-1234", "goodsCategory_0" -> "test", "nameOfPersonCarryingGoods" -> "Terry Crews", "dateOfDeclaration" -> s"$dateOfDeclarationString", "customsDuty" -> "£1.00")
-
-    declaration.toEmailInfo("foo@bar.com", toBorderForce = true) mustBe DeclarationEmailInfo(Seq("foo@bar.com"), "mods_import_declaration", params)
-  }
-
-  "toEmailInfo with Lang=cy" in {
-    val declaration = aDeclaration.copy(lang = "cy")
-    val expectedTemplate = "mods_import_declaration_cy"
-    val dateOfDeclarationString = aDeclaration.dateOfDeclaration.format(formatter)
-    val params = Map("eori" -> "eori-test", "vat" -> "£1.00", "goodsPrice_0" -> "£100", "goodsQuantity_0" -> "1", "surname" -> "Crews", "total" -> "£1.00", "goodsCountry_0" -> "United Kingdom", "emailTo" -> "BorderForce", "declarationReference" -> "mib-ref-1234", "goodsCategory_0" -> "test", "nameOfPersonCarryingGoods" -> "Terry Crews", "dateOfDeclaration" -> s"$dateOfDeclarationString", "customsDuty" -> "£1.00")
-
-    declaration.toEmailInfo("foo@bar.com", toBorderForce = true) mustBe DeclarationEmailInfo(Seq("foo@bar.com"), expectedTemplate, params)
   }
 }

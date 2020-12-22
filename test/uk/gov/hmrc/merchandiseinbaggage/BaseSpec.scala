@@ -43,7 +43,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Mon
   implicit val mat: Materializer = app.materializer
   implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
 
-  def messagesApi = app.injector.instanceOf[MessagesApi]
+  implicit val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest("", "").withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
   implicit val messages: Messages = messagesApi.preferred(fakeRequest)
