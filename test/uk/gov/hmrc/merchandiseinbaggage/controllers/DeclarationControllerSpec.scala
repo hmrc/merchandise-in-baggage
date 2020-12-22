@@ -28,7 +28,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
-import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
+import uk.gov.hmrc.merchandiseinbaggage.service.{DeclarationService, EmailService}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -95,7 +95,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         Future.successful(202)
     }
 
-    val declarationService = new DeclarationService(repository, emailConnector, auditConnector) {
+    val emailService = new EmailService(emailConnector, repository)
+
+    val declarationService = new DeclarationService(repository, emailService, auditConnector) {
       override def persistDeclaration(paymentRequest: Declaration)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)

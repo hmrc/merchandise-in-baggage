@@ -21,24 +21,20 @@ import cats.implicits._
 import com.google.inject.Inject
 import play.api.Logging
 import play.api.i18n.Messages
-import play.mvc.Http.Status.ACCEPTED
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
-import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
-import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
-class DeclarationService @Inject()(
-                                    declarationRepository: DeclarationRepository,
-                                    emailConnector: EmailConnector,
-                                    val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor with Logging {
+class DeclarationService @Inject()(declarationRepository: DeclarationRepository,
+                                   emailService: EmailService,
+                                   val auditConnector: AuditConnector)(implicit val appConfig: AppConfig) extends Auditor with Logging {
 
   def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
     declarationRepository.insertDeclaration(declaration)
@@ -58,44 +54,18 @@ class DeclarationService @Inject()(
                         (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
-  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages): EitherT[Future, BusinessError, Unit] = {
+  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] = {
     for {
       declaration <- findByDeclarationId(declarationId)
-      emailResult <- sendEmails(declaration)
+      emailResult <- emailService.sendEmails(declaration)
     } yield emailResult
-  }
-
-  private def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages) = {
-    val result: Future[Either[BusinessError, Unit]] = {
-      if (declaration.emailsSent) {
-        logger.warn(s"emails are already sent for declaration: ${declaration.mibReference.value}")
-        Future.successful(Right(()))
-      } else {
-        val emailToBF = emailConnector.sendEmails(declaration.toEmailInfo(appConfig.bfEmail, toBorderForce = true))
-        val emailToTrader = emailConnector.sendEmails(declaration.toEmailInfo(declaration.email.email))
-
-        (emailToBF, emailToTrader).mapN { (bfResponse, trResponse) =>
-          (bfResponse, trResponse) match {
-            case (ACCEPTED, ACCEPTED) =>
-              declarationRepository.upsertDeclaration(declaration.copy(emailsSent = true))
-                .map(_ => Right(()))
-            case (s1, s2) =>
-              val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
-              PagerDutyHelper.alert(Some(message))
-              Future.successful(Left(EmailSentError(message)))
-          }
-        }.flatten
-      }
-    }
-
-    EitherT(result)
   }
 
   def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages): EitherT[Future, BusinessError, Unit] = {
     for {
       foundDeclaration <- findByMibReference(mibRef)
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
-      emailResponse <- sendEmails(updatedDeclaration)
+      emailResponse <- emailService.sendEmails(updatedDeclaration)
       _ <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
     } yield {
       emailResponse

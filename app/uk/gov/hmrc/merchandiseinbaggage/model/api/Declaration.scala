@@ -205,59 +205,6 @@ case class Declaration(declarationId: DeclarationId,
       eori = eori.obfuscated,
       journeyDetails = journeyDetails.obfuscated
     )
-
-  def toEmailInfo(to: String, toBorderForce: Boolean = false)(implicit messages: Messages): DeclarationEmailInfo = {
-    val importTemplate = if (lang == "en") "mods_import_declaration" else "mods_import_declaration_cy"
-    val exportTemplate = if (lang == "en") "mods_export_declaration" else "mods_export_declaration_cy"
-    val templateId = if (declarationType == DeclarationType.Import) importTemplate else exportTemplate
-
-    val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
-      val (goods, idx) = goodsWithIdx
-      val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
-      Map(
-        s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
-        s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
-        countryOrDestKey -> goods.countryOfPurchase.displayName,
-        s"goodsPrice_$idx" -> goods.purchaseDetails.formatted,
-      )
-    }.reduce(_ ++ _)
-
-    val commonParams = Map(
-      "emailTo" -> {
-        if (toBorderForce) "BorderForce" else "Trader"
-      },
-      "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
-      "surname" -> nameOfPersonCarryingTheGoods.lastName,
-      "declarationReference" -> mibReference.value,
-      "dateOfDeclaration" -> dateOfDeclaration.format(formatter),
-      "eori" -> eori.value
-    )
-
-    val calculationParams = {
-      maybeTotalCalculationResult match {
-        case Some(total) =>
-          Map(
-            "customsDuty" -> total.totalDutyDue.formattedInPounds,
-            "vat" -> total.totalVatDue.formattedInPounds,
-            "total" -> total.totalTaxDue.formattedInPounds
-          )
-
-        case None => Map.empty
-      }
-    }
-
-    val allParams =
-      if (declarationType == DeclarationType.Import)
-        goodsParams ++ commonParams ++ calculationParams
-      else
-        goodsParams ++ commonParams
-
-    DeclarationEmailInfo(
-      Seq(to),
-      templateId,
-      allParams
-    )
-  }
 }
 
 object Declaration {
