@@ -20,8 +20,6 @@ import enumeratum.EnumEntry
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration.formatter
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
@@ -29,7 +27,6 @@ import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
 import java.text.NumberFormat.getCurrencyInstance
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
-import java.util.Locale
 import java.util.Locale.UK
 import scala.collection.immutable
 
@@ -211,7 +208,6 @@ object Declaration {
   val id = "declarationId"
   val sessionId = "sessionId"
   implicit val format: OFormat[Declaration] = Json.using[Json.WithDefaultValues].format[Declaration]
-  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM YYYY, h:mm a", Locale.ENGLISH)
 }
 
 sealed trait GoodsVatRate extends EnumEntry {
