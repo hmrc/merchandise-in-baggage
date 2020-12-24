@@ -23,11 +23,11 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class QATestingController @Inject()(mcc: MessagesControllerComponents,
-                                    declarationRepository: DeclarationRepository)(implicit val ec: ExecutionContext)
-  extends BackendController(mcc) {
+class QATestingController @Inject()(mcc: MessagesControllerComponents, declarationRepository: DeclarationRepository)(
+  implicit val ec: ExecutionContext)
+    extends BackendController(mcc) {
 
-  def onTestDelete: Action[AnyContent] = Action(parse.default).async { _  =>
+  def onTestDelete: Action[AnyContent] = Action(parse.default).async { _ =>
     Future.successful(declarationRepository.deleteAll()).map(_ => NoContent)
   }
 }

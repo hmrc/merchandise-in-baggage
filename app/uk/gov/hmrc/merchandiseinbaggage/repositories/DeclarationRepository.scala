@@ -50,7 +50,7 @@ trait DeclarationRepository {
 
 @Singleton
 class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
-  extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
+    extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
     with DeclarationDateOrdering with DeclarationRepository {
 
   implicit val jsObjectWriter: OWrites[JsObject] = new OWrites[JsObject] {
@@ -62,7 +62,8 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
   )
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] =
-    super.insert(declaration)
+    super
+      .insert(declaration)
       .map(_ => declaration)
       .recover {
         case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
@@ -70,11 +71,11 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
           declaration
       }
 
-  override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
-    collection.update(ordered = false).one(
-      Json.obj(Declaration.id -> declaration.declarationId.value), declaration, upsert = true)
+  override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
+    collection
+      .update(ordered = false)
+      .one(Json.obj(Declaration.id -> declaration.declarationId.value), declaration, upsert = true)
       .map(_ => declaration)
-  }
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)

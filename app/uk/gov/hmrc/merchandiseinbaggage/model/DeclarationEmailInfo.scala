@@ -19,12 +19,12 @@ package uk.gov.hmrc.merchandiseinbaggage.model
 import play.api.libs.json.Json
 
 case class DeclarationEmailInfo(
-                             to: Seq[String],
-                             templateId: String,
-                             parameters: Map[String, String],
-                             force: Boolean = false,
-                             eventUrl: Option[String] = None,
-                             onSendUrl: Option[String] = None)
+  to: Seq[String],
+  templateId: String,
+  parameters: Map[String, String],
+  force: Boolean = false,
+  eventUrl: Option[String] = None,
+  onSendUrl: Option[String] = None)
 
 object DeclarationEmailInfo {
   implicit val formats = Json.format[DeclarationEmailInfo]

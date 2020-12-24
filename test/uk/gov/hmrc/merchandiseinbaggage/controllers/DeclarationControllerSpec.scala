@@ -98,19 +98,19 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val emailService = new EmailService(emailConnector, repository)
 
     val declarationService = new DeclarationService(repository, emailService, auditConnector) {
-      override def persistDeclaration(paymentRequest: Declaration)
-                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+      override def persistDeclaration(paymentRequest: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 
-      override def upsertDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def upsertDeclaration(
+        declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def findByDeclarationId(declarationId: DeclarationId)
-                                      (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def findByDeclarationId(declarationId: DeclarationId)(
+        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def findByMibReference(mibReference: MibReference)
-                                     (implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def findByMibReference(mibReference: MibReference)(
+        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
 

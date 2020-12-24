@@ -33,22 +33,22 @@ trait Auditor {
   private val logger = Logger(this.getClass)
 
   def auditDeclarationComplete(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] =
-    auditConnector.sendExtendedEvent(
-      ExtendedDataEvent(
-        auditSource = "merchandise-in-baggage",
-        auditType = "DeclarationComplete",
-        detail = toJson(declaration))).recover {
-      case NonFatal(e) => Failure(e.getMessage)
-    }.map { status =>
-      status match {
-        case Success =>
-          logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
-        case Disabled =>
-          logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
-        case Failure(message, _) =>
-          logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+    auditConnector
+      .sendExtendedEvent(
+        ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = "DeclarationComplete", detail = toJson(declaration)))
+      .recover {
+        case NonFatal(e) => Failure(e.getMessage)
       }
+      .map { status =>
+        status match {
+          case Success =>
+            logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
+          case Disabled =>
+            logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
+          case Failure(message, _) =>
+            logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+        }
 
-      status
-    }
+        status
+      }
 }

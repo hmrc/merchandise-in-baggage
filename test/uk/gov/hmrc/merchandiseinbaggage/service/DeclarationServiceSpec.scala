@@ -82,7 +82,10 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "sendEmails must return result as expected" in {
     val declaration: Declaration = aDeclaration
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
-    (emailService.sendEmails(_: Declaration)(_: HeaderCarrier)).expects(*, *).returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
+    (emailService
+      .sendEmails(_: Declaration)(_: HeaderCarrier))
+      .expects(*, *)
+      .returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
     Await.result(declarationService.sendEmails(declaration.declarationId).value, 5.seconds) mustBe Right(())
   }
 
@@ -93,7 +96,10 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
     (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
     (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-    (emailService.sendEmails(_: Declaration)(_: HeaderCarrier)).expects(*, *).returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
+    (emailService
+      .sendEmails(_: Declaration)(_: HeaderCarrier))
+      .expects(*, *)
+      .returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
 
     Await.result(declarationService.processPaymentCallback(declaration.mibReference).value, 5.seconds) mustBe Right(())
     testAuditConnector.audited.isDefined mustBe true

@@ -63,12 +63,12 @@ object AmountInPence {
   implicit val format: Format[AmountInPence] = implicitly[Format[Long]].inmap(AmountInPence(_), _.value)
 }
 
-case class GoodsEntry(maybeCategoryQuantityOfGoods: Option[CategoryQuantityOfGoods] = None,
-                      maybeGoodsVatRate: Option[GoodsVatRate] = None,
-                      maybeCountryOfPurchase: Option[String] = None,
-                      maybePurchaseDetails: Option[PurchaseDetails] = None,
-                      maybeInvoiceNumber: Option[String] = None)
-
+case class GoodsEntry(
+  maybeCategoryQuantityOfGoods: Option[CategoryQuantityOfGoods] = None,
+  maybeGoodsVatRate: Option[GoodsVatRate] = None,
+  maybeCountryOfPurchase: Option[String] = None,
+  maybePurchaseDetails: Option[PurchaseDetails] = None,
+  maybeInvoiceNumber: Option[String] = None)
 
 case class GoodsEntries(entries: Seq[GoodsEntry])
 
@@ -106,10 +106,11 @@ object JourneyDetailsEntry {
   implicit val format: OFormat[JourneyDetailsEntry] = Json.format[JourneyDetailsEntry]
 }
 
-case class Goods(categoryQuantityOfGoods: CategoryQuantityOfGoods,
-                 goodsVatRate: GoodsVatRate,
-                 countryOfPurchase: Country,
-                 purchaseDetails: PurchaseDetails)
+case class Goods(
+  categoryQuantityOfGoods: CategoryQuantityOfGoods,
+  goodsVatRate: GoodsVatRate,
+  countryOfPurchase: Country,
+  purchaseDetails: PurchaseDetails)
 
 object Goods {
   implicit val format: OFormat[Goods] = Json.format[Goods]
@@ -138,7 +139,7 @@ object YesNo extends Enum[YesNo] {
 
   def to(yesNo: YesNo): Boolean = yesNo match {
     case Yes => true
-    case No => false
+    case No  => false
   }
 
   case object Yes extends YesNo
@@ -177,23 +178,23 @@ object JourneyInSmallVehicle {
   implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
 }
 
-case class Declaration(declarationId: DeclarationId,
-                       sessionId: SessionId,
-                       declarationType: DeclarationType,
-                       goodsDestination: GoodsDestination,
-                       declarationGoods: DeclarationGoods,
-                       nameOfPersonCarryingTheGoods: Name,
-                       email: Email,
-                       maybeCustomsAgent: Option[CustomsAgent],
-                       eori: Eori,
-                       journeyDetails: JourneyDetails,
-                       dateOfDeclaration: LocalDateTime,
-                       mibReference: MibReference,
-                       maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
-                       emailsSent: Boolean = false,
-                       paymentSuccess: Option[Boolean] = None,
-                       lang: String = "en"
-                      ) {
+case class Declaration(
+  declarationId: DeclarationId,
+  sessionId: SessionId,
+  declarationType: DeclarationType,
+  goodsDestination: GoodsDestination,
+  declarationGoods: DeclarationGoods,
+  nameOfPersonCarryingTheGoods: Name,
+  email: Email,
+  maybeCustomsAgent: Option[CustomsAgent],
+  eori: Eori,
+  journeyDetails: JourneyDetails,
+  dateOfDeclaration: LocalDateTime,
+  mibReference: MibReference,
+  maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
+  emailsSent: Boolean = false,
+  paymentSuccess: Option[Boolean] = None,
+  lang: String = "en") {
   lazy val obfuscated: Declaration =
     this.copy(
       nameOfPersonCarryingTheGoods = nameOfPersonCarryingTheGoods.obfuscated,
@@ -234,7 +235,6 @@ object GoodsVatRates extends Enum[GoodsVatRate] {
   }
 
 }
-
 
 sealed trait GoodsDestination extends EnumEntry {
   def threshold: AmountInPence
@@ -292,11 +292,12 @@ object PaymentCalculations {
   implicit val format: OFormat[PaymentCalculations] = Json.format[PaymentCalculations]
 }
 
-case class TotalCalculationResult(paymentCalculations: PaymentCalculations,
-                                  totalGbpValue: AmountInPence,
-                                  totalTaxDue: AmountInPence,
-                                  totalDutyDue: AmountInPence,
-                                  totalVatDue: AmountInPence)
+case class TotalCalculationResult(
+  paymentCalculations: PaymentCalculations,
+  totalGbpValue: AmountInPence,
+  totalTaxDue: AmountInPence,
+  totalDutyDue: AmountInPence,
+  totalVatDue: AmountInPence)
 
 object TotalCalculationResult {
   implicit val format: OFormat[TotalCalculationResult] = Json.format[TotalCalculationResult]

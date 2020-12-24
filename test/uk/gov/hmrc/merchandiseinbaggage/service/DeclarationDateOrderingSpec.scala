@@ -28,8 +28,7 @@ class DeclarationDateOrderingSpec extends BaseSpec with CoreTestData {
     private val newest = 20
     private val now = LocalDateTime.now
     private val declarations = (1 to newest).toList.map(idx =>
-      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx))
-    )
+      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx)))
 
     latest(declarations).dateOfDeclaration.withSecond(0) mustBe now.plusMinutes(newest).withSecond(0)
   }
