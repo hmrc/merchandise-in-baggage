@@ -29,9 +29,9 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class DeclarationController @Inject()(declarationService: DeclarationService,
-                                      mcc: MessagesControllerComponents)(implicit val ec: ExecutionContext)
-  extends BackendController(mcc) {
+class DeclarationController @Inject()(declarationService: DeclarationService, mcc: MessagesControllerComponents)(
+  implicit val ec: ExecutionContext)
+    extends BackendController(mcc) {
 
   implicit def messages(implicit request: Request[_]): Messages = mcc.messagesApi.preferred(request)
 
@@ -45,50 +45,56 @@ class DeclarationController @Inject()(declarationService: DeclarationService,
 
   def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
 
-    declarationService.findByDeclarationId(DeclarationId(declarationId)).fold(
-      {
-        case DeclarationNotFound =>
-          logger.warn(s"DeclarationId [$declarationId] not found")
-          NotFound
-        case e =>
-          logger.error(s"Error for declarationId [$declarationId] - [$e]]")
-          InternalServerError("Something went wrong")
-      },
-      foundDeclaration => {
-        Ok(toJson(foundDeclaration))
-      }
-    )
+    declarationService
+      .findByDeclarationId(DeclarationId(declarationId))
+      .fold(
+        {
+          case DeclarationNotFound =>
+            logger.warn(s"DeclarationId [$declarationId] not found")
+            NotFound
+          case e =>
+            logger.error(s"Error for declarationId [$declarationId] - [$e]]")
+            InternalServerError("Something went wrong")
+        },
+        foundDeclaration => {
+          Ok(toJson(foundDeclaration))
+        }
+      )
   }
 
   def sendEmails(declarationId: String): Action[AnyContent] = Action.async { implicit request =>
-    declarationService.sendEmails(DeclarationId(declarationId)).fold(
-      {
-        case DeclarationNotFound =>
-          logger.warn(s"DeclarationId [$declarationId] not found")
-          NotFound
-        case e =>
-          logger.error(s"Error for declarationId [$declarationId] - [$e]]")
-          InternalServerError(s"${e} during sending emails")
-      },
-      _ => {
-        Status(ACCEPTED)
-      }
-    )
+    declarationService
+      .sendEmails(DeclarationId(declarationId))
+      .fold(
+        {
+          case DeclarationNotFound =>
+            logger.warn(s"DeclarationId [$declarationId] not found")
+            NotFound
+          case e =>
+            logger.error(s"Error for declarationId [$declarationId] - [$e]]")
+            InternalServerError(s"$e during sending emails")
+        },
+        _ => {
+          Status(ACCEPTED)
+        }
+      )
   }
 
   def paymentSuccessCallback(mibRef: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"got the payment callback for reference: $mibRef")
 
-    declarationService.processPaymentCallback(MibReference(mibRef)).fold(
-      {
-        case DeclarationNotFound =>
-          logger.warn(s"Declaration with MibReference [$mibRef] not found")
-          NotFound
-        case e =>
-          logger.error(s"Error for MibReference [$mibRef] - [$e]]")
-          InternalServerError("Something went wrong")
-      },
-      _ => Ok
-    )
+    declarationService
+      .processPaymentCallback(MibReference(mibRef))
+      .fold(
+        {
+          case DeclarationNotFound =>
+            logger.warn(s"Declaration with MibReference [$mibRef] not found")
+            NotFound
+          case e =>
+            logger.error(s"Error for MibReference [$mibRef] - [$e]]")
+            InternalServerError("Something went wrong")
+        },
+        _ => Ok
+      )
   }
 }

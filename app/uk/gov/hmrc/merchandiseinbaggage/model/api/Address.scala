@@ -22,7 +22,8 @@ import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.{maybeObfuscate, obfusca
 
 case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
   def displayName(implicit messages: Messages): String = messages(countryName)
-  lazy val obfuscated: Country = Country(obfuscate(code), obfuscate(countryName), obfuscate(alphaTwoCode), isEu, countrySynonyms.map(c => obfuscate(c)))
+  lazy val obfuscated: Country =
+    Country(obfuscate(code), obfuscate(countryName), obfuscate(alphaTwoCode), isEu, countrySynonyms.map(c => obfuscate(c)))
 }
 
 object Country {

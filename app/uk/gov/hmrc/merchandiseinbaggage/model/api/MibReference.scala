@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import play.api.libs.json.Format
 import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
-
 case class MibReference(value: String)
 object MibReference {
   implicit val format: Format[MibReference] = ValueClassFormat.format(value => MibReference.apply(value))(_.value)

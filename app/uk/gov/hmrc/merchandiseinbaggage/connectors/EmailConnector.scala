@@ -29,8 +29,7 @@ trait EmailConnector {
   def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int]
 }
 
-class EmailConnectorImpl @Inject()(appConfig: AppConfig, http: HttpClient)
-  extends EmailConnector {
+class EmailConnectorImpl @Inject()(appConfig: AppConfig, http: HttpClient) extends EmailConnector {
 
   def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
     http.POST[DeclarationEmailInfo, HttpResponse](appConfig.emailConf.url, emailInformation).map(_.status)

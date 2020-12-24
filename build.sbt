@@ -28,3 +28,8 @@ lazy val microservice = Project(appName, file("."))
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
+  .settings(
+    retrieveManaged := true,
+    scalafmtOnCompile in Compile := true,
+    scalafmtOnCompile in Test := true
+  )

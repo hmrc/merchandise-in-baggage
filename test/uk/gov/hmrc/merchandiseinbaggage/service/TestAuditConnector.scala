@@ -39,8 +39,7 @@ object TestAuditConnector {
 
     override def audited: Option[ExtendedDataEvent] = auditedEvent
 
-    override def sendExtendedEvent(event: ExtendedDataEvent)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] = {
+    override def sendExtendedEvent(event: ExtendedDataEvent)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] = {
       auditedEvent = Some(event)
       result
     }

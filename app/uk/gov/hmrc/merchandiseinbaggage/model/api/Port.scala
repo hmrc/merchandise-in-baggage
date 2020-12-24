@@ -23,4 +23,3 @@ case class Port(code: String, displayName: String, isGB: Boolean, portSynonyms: 
 object Port {
   implicit val format: OFormat[Port] = Json.format[Port]
 }
-

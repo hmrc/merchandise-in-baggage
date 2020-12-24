@@ -36,12 +36,13 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
 
   val emailService = new EmailService(emailConnector, declarationRepo)
 
-
   "sendEmails must return result as expected" in {
     val declaration = aDeclaration
-    (emailConnector.sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
+    (emailConnector
+      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *)
-      .returns(Future.successful(202)).twice()
+      .returns(Future.successful(202))
+      .twice()
 
     (declarationRepo.upsertDeclaration(_: Declaration)).expects(declaration.copy(emailsSent = true)).returns(Future.successful(declaration))
 

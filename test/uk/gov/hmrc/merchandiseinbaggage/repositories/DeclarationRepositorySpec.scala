@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
-  private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)}
+  private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri) }
   private val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
 
   "insert a declaration object into MongoDB" in {
@@ -58,7 +58,8 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
-    def insertTwo(): Future[Declaration] = repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
+    def insertTwo(): Future[Declaration] =
+      repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
 
     whenReady(insertTwo()) { insertResult =>
       insertResult mustBe declarationTwo
@@ -68,7 +69,6 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
       findResult mustBe Some(declarationOne)
     }
   }
-
 
   "find a declaration by mibReference" in {
     val declaration = aDeclaration
@@ -88,12 +88,13 @@ class DeclarationRepositorySpec extends BaseSpecWithApplication with CoreTestDat
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
-    def insertTwo(): Future[Declaration] = repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
+    def insertTwo(): Future[Declaration] =
+      repository.insertDeclaration(declarationOne).flatMap(_ => repository.insertDeclaration(declarationTwo))
 
     val collection = for {
-      _ <- repository.deleteAll()
-      _ <- insertTwo()
-      _ <- repository.deleteAll()
+      _   <- repository.deleteAll()
+      _   <- insertTwo()
+      _   <- repository.deleteAll()
       all <- repository.findAll
     } yield all
 

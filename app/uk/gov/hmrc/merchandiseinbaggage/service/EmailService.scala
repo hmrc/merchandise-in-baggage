@@ -34,8 +34,11 @@ import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailService @Inject()(emailConnector: EmailConnector,
-                             declarationRepository: DeclarationRepository)(implicit val appConfig: AppConfig, messagesApi: MessagesApi, ec: ExecutionContext) extends Logging {
+class EmailService @Inject()(emailConnector: EmailConnector, declarationRepository: DeclarationRepository)(
+  implicit val appConfig: AppConfig,
+  messagesApi: MessagesApi,
+  ec: ExecutionContext)
+    extends Logging {
 
   val messagesEN: Messages = MessagesImpl(Lang("en"), messagesApi)
   val messagesCY: Messages = MessagesImpl(Lang("cy"), messagesApi)
@@ -54,7 +57,8 @@ class EmailService @Inject()(emailConnector: EmailConnector,
         (emailToBF, emailToTrader).mapN { (bfResponse, trResponse) =>
           (bfResponse, trResponse) match {
             case (ACCEPTED, ACCEPTED) =>
-              declarationRepository.upsertDeclaration(declaration.copy(emailsSent = true))
+              declarationRepository
+                .upsertDeclaration(declaration.copy(emailsSent = true))
                 .map(_ => Right(()))
             case (s1, s2) =>
               val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
@@ -68,27 +72,30 @@ class EmailService @Inject()(emailConnector: EmailConnector,
     EitherT(result)
   }
 
-  private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String)(implicit messages: Messages): DeclarationEmailInfo = {
+  private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String)(
+    implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
-    val goodsParams = declarationGoods.goods.zipWithIndex.map { goodsWithIdx =>
-      val (goods, idx) = goodsWithIdx
-      val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
-      Map(
-        s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
-        s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
-        countryOrDestKey -> goods.countryOfPurchase.displayName,
-        s"goodsPrice_$idx" -> goods.purchaseDetails.formatted,
-      )
-    }.reduce(_ ++ _)
+    val goodsParams = declarationGoods.goods.zipWithIndex
+      .map { goodsWithIdx =>
+        val (goods, idx) = goodsWithIdx
+        val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
+        Map(
+          s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
+          s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
+          countryOrDestKey      -> goods.countryOfPurchase.displayName,
+          s"goodsPrice_$idx"    -> goods.purchaseDetails.formatted,
+        )
+      }
+      .reduce(_ ++ _)
 
     val commonParams = Map(
-      "emailTo" -> emailType,
+      "emailTo"                   -> emailType,
       "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
-      "surname" -> nameOfPersonCarryingTheGoods.lastName,
-      "declarationReference" -> mibReference.value,
-      "dateOfDeclaration" -> dateOfDeclaration.formattedDate,
-      "eori" -> eori.value
+      "surname"                   -> nameOfPersonCarryingTheGoods.lastName,
+      "declarationReference"      -> mibReference.value,
+      "dateOfDeclaration"         -> dateOfDeclaration.formattedDate,
+      "eori"                      -> eori.value
     )
 
     val calculationParams = {
@@ -96,8 +103,8 @@ class EmailService @Inject()(emailConnector: EmailConnector,
         case Some(total) =>
           Map(
             "customsDuty" -> total.totalDutyDue.formattedInPounds,
-            "vat" -> total.totalVatDue.formattedInPounds,
-            "total" -> total.totalTaxDue.formattedInPounds
+            "vat"         -> total.totalVatDue.formattedInPounds,
+            "total"       -> total.totalTaxDue.formattedInPounds
           )
 
         case None => Map.empty
