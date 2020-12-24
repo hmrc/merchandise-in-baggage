@@ -26,11 +26,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration.formatter
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationType}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
+import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -87,7 +87,7 @@ class EmailService @Inject()(emailConnector: EmailConnector,
       "nameOfPersonCarryingGoods" -> nameOfPersonCarryingTheGoods.toString,
       "surname" -> nameOfPersonCarryingTheGoods.lastName,
       "declarationReference" -> mibReference.value,
-      "dateOfDeclaration" -> dateOfDeclaration.format(formatter),
+      "dateOfDeclaration" -> dateOfDeclaration.formattedDate,
       "eori" -> eori.value
     )
 
