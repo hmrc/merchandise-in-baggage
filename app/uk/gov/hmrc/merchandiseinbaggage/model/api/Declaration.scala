@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import enumeratum.EnumEntry
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, OFormat}
+import play.api.libs.json.{Format, JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
@@ -167,7 +167,23 @@ case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrati
 }
 
 object JourneyDetails {
-  implicit val format: OFormat[JourneyDetails] = Json.format[JourneyDetails]
+  implicit val format: OFormat[JourneyDetails] = new OFormat[JourneyDetails] {
+    override def reads(json: JsValue): JsResult[JourneyDetails] = {
+      val port = (json \ "port").as[Port]
+      val dateOfTravel = (json \ "dateOfTravel").as[LocalDate]
+
+      (json \ "registrationNumber").asOpt[String] match {
+        case Some(regNo) => JsSuccess(JourneyInSmallVehicle(port, dateOfTravel, regNo))
+        case None        => JsSuccess(JourneyOnFoot(port, dateOfTravel))
+      }
+    }
+
+    override def writes(o: JourneyDetails): JsObject =
+      o match {
+        case p: JourneyOnFoot         => JourneyOnFoot.format.writes(p)
+        case p: JourneyInSmallVehicle => JourneyInSmallVehicle.format.writes(p)
+      }
+  }
 }
 
 object JourneyOnFoot {
