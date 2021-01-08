@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult, Country, Currency, GoodsVatRates}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
 
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory {
 
-  val connector = mock[CurrencyConversionConnector]
+  val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
 
   val service = new CalculationService(connector)
 
@@ -48,11 +48,45 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         CalculationRequest(
           BigDecimal(100),
           Currency("USD", "USD", Some("USD"), List()),
-          Country("US", "US", "US", false, List()),
+          Country("US", "US", "US", isEu = false, List()),
           GoodsVatRates.Twenty
         )
       )
       .futureValue mustBe CalculationResult(AmountInPence(9091), AmountInPence(300), AmountInPence(1878))
+  }
+
+  "convert currency and calculate duty and vat for an item from inside the EU" in {
+    (connector
+      .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *)
+      .returns(
+        Future.successful(Seq(ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1))))
+      )
+
+    service
+      .calculate(
+        CalculationRequest(
+          BigDecimal(100),
+          Currency("EUR", "EUR", Some("EUR"), List()),
+          Country("FR", "FR", "FR", isEu = true, List()),
+          GoodsVatRates.Twenty
+        )
+      )
+      .futureValue mustBe CalculationResult(AmountInPence(9091), AmountInPence(0), AmountInPence(1818))
+  }
+
+  "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
+
+    service
+      .calculate(
+        CalculationRequest(
+          BigDecimal(100),
+          Currency("GBP", "GBP", None, List()),
+          Country("GB", "GB", "GB", isEu = true, List()),
+          GoodsVatRates.Twenty
+        )
+      )
+      .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000))
   }
 
 }
