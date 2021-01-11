@@ -63,23 +63,6 @@ object AmountInPence {
   implicit val format: Format[AmountInPence] = implicitly[Format[Long]].inmap(AmountInPence(_), _.value)
 }
 
-case class GoodsEntry(
-  maybeCategoryQuantityOfGoods: Option[CategoryQuantityOfGoods] = None,
-  maybeGoodsVatRate: Option[GoodsVatRate] = None,
-  maybeCountryOfPurchase: Option[String] = None,
-  maybePurchaseDetails: Option[PurchaseDetails] = None,
-  maybeInvoiceNumber: Option[String] = None)
-
-case class GoodsEntries(entries: Seq[GoodsEntry])
-
-object GoodsEntry {
-  implicit val format: OFormat[GoodsEntry] = Json.format[GoodsEntry]
-}
-
-object GoodsEntries {
-  implicit val format: OFormat[GoodsEntries] = Json.format[GoodsEntries]
-}
-
 case class Name(firstName: String, lastName: String) {
   override val toString: String = s"$firstName $lastName"
 
