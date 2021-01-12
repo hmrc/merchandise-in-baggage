@@ -31,7 +31,7 @@ class DeclarationSpec extends BaseSpecWithApplication with CoreTestData {
     val declaration = aDeclaration.copy(maybeCustomsAgent = Some(aCustomsAgent), journeyDetails = aJourneyInASmallVehicle)
 
     declaration.obfuscated.nameOfPersonCarryingTheGoods mustBe Name("*****", "*****")
-    declaration.obfuscated.email mustBe Email("********", "********")
+    declaration.obfuscated.email mustBe Email("********")
     declaration.obfuscated.maybeCustomsAgent.get.name mustBe "**********"
     declaration.obfuscated.maybeCustomsAgent.get.address mustBe
       Address(Seq("*************", "**********"), Some("*******"), AddressLookupCountry("**", Some("**")))
