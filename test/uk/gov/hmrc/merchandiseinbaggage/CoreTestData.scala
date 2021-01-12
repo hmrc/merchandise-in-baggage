@@ -39,7 +39,7 @@ trait CoreTestData {
     )))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
-  private val anEmail = Email("someone@", "someone@")
+  private val anEmail = Email("someone@")
   private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
   private val paymentCalculations = PaymentCalculations(aDeclarationGoods.goods.map(good =>
