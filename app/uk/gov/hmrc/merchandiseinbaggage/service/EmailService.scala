@@ -52,7 +52,10 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
         Future.successful(Right(()))
       } else {
         val emailToBF = emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce"))
-        val emailToTrader = emailConnector.sendEmails(toEmailInfo(declaration, declaration.email.email, "Trader"))
+        val emailToTrader = declaration.email match {
+          case Some(email) => emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader"))
+          case None        => Future.successful(ACCEPTED)
+        }
 
         (emailToBF, emailToTrader).mapN { (bfResponse, trResponse) =>
           (bfResponse, trResponse) match {

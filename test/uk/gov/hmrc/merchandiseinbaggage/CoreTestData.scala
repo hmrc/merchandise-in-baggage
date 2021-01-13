@@ -55,7 +55,7 @@ trait CoreTestData {
       aGoodDestination,
       aDeclarationGoods,
       aName,
-      anEmail,
+      Some(anEmail),
       None,
       anEori,
       aJourneyDetails,
