@@ -184,7 +184,7 @@ case class Declaration(
   goodsDestination: GoodsDestination,
   declarationGoods: DeclarationGoods,
   nameOfPersonCarryingTheGoods: Name,
-  email: Email,
+  email: Option[Email],
   maybeCustomsAgent: Option[CustomsAgent],
   eori: Eori,
   journeyDetails: JourneyDetails,
@@ -197,7 +197,7 @@ case class Declaration(
   lazy val obfuscated: Declaration =
     this.copy(
       nameOfPersonCarryingTheGoods = nameOfPersonCarryingTheGoods.obfuscated,
-      email = email.obfuscated,
+      email = email.map(_.obfuscated),
       maybeCustomsAgent = maybeCustomsAgent.map(_.obfuscated),
       eori = eori.obfuscated,
       journeyDetails = journeyDetails.obfuscated
