@@ -23,11 +23,13 @@ import play.api.libs.json.{Format, JsObject, JsResult, JsSuccess, JsValue, Json,
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
-
 import java.text.NumberFormat.getCurrencyInstance
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import java.util.Locale.UK
+
+import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
+
 import scala.collection.immutable
 
 case class SessionId(value: String)
@@ -269,7 +271,11 @@ object DeclarationType extends Enum[DeclarationType] {
 
 }
 
-case class CalculationResult(gbpAmount: AmountInPence, duty: AmountInPence, vat: AmountInPence) {
+case class CalculationResult(
+  gbpAmount: AmountInPence,
+  duty: AmountInPence,
+  vat: AmountInPence,
+  conversionRatePeriod: Option[ConversionRatePeriod]) {
   def taxDue: AmountInPence = AmountInPence(
     duty.value + vat.value
   )

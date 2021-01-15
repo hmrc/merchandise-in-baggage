@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDate
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
@@ -24,15 +26,15 @@ import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
-
 import java.time.LocalDate.now
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory {
 
   val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
-
+  val today = LocalDate.now()
   val service = new CalculationService(connector)
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
@@ -52,7 +54,11 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
           GoodsVatRates.Twenty
         )
       )
-      .futureValue mustBe CalculationResult(AmountInPence(9091), AmountInPence(300), AmountInPence(1878))
+      .futureValue mustBe CalculationResult(
+      AmountInPence(9091),
+      AmountInPence(300),
+      AmountInPence(1878),
+      Some(ConversionRatePeriod(today, today, "USD", 1.1)))
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
@@ -72,7 +78,11 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
           GoodsVatRates.Twenty
         )
       )
-      .futureValue mustBe CalculationResult(AmountInPence(9091), AmountInPence(0), AmountInPence(1818))
+      .futureValue mustBe CalculationResult(
+      AmountInPence(9091),
+      AmountInPence(0),
+      AmountInPence(1818),
+      Some(ConversionRatePeriod(today, today, "EUR", 1.1)))
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
@@ -85,27 +95,6 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
           GoodsVatRates.Twenty
         )
       )
-      .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000))
-  }
-
-  "will return rate for a given currency code" in {
-    val currency = Currency("EUR", "EUR", Some("EUR"), List())
-    val conversionRatePeriods = Seq(
-      ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1)),
-      ConversionRatePeriod(now(), now(), "ARS", BigDecimal(2.1)),
-    )
-    val findRate: String => Future[Seq[ConversionRatePeriod]] = _ => Future.successful(conversionRatePeriods)
-
-    service.findRate(currency)(findRate).futureValue mustBe 1.1
-    service.findRate(currency.copy(valueForConversion = Some("ARS")))(findRate).futureValue mustBe 2.1
-  }
-
-  "will return rate 1 for a given currency without valueForConversion or 0 if currency code is not found" in {
-    val currency = Currency("EUR", "EUR", None, List())
-    val conversionRatePeriods = Seq(ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1)))
-    val findRate: String => Future[Seq[ConversionRatePeriod]] = _ => Future.successful(conversionRatePeriods)
-
-    service.findRate(currency)(findRate).futureValue mustBe 1
-    service.findRate(currency.copy(valueForConversion = Some("X")))(findRate).futureValue mustBe 0
+      .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000), None)
   }
 }

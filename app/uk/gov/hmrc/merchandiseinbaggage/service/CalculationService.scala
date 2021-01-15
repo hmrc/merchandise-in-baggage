@@ -29,21 +29,25 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 @Singleton
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
-  def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] = {
+  def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
+    calculationRequest.currency.valueForConversion.fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code =>
+      findRateAndCalculate(calculationRequest, code))
+
+  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)(
+    implicit hc: HeaderCarrier): Future[CalculationResult] =
+    connector
+      .getConversionRate(code)
+      .map(
+        _.find(_.currencyCode == code)
+          .fold(calculation(calculationRequest, BigDecimal(0), None))(conversionRate =>
+            calculation(calculationRequest, conversionRate.rate, Some(conversionRate))))
+
+  private def calculation(
+    calculationRequest: CalculationRequest,
+    rate: BigDecimal,
+    conversionRatePeriod: Option[ConversionRatePeriod]): CalculationResult = {
     import calculationRequest._
-
-    val futureRate = currency.valueForConversion.fold(Future.successful(BigDecimal(1))) { code =>
-      connector.getConversionRate(code).map(_.find(_.currencyCode == code).fold(BigDecimal(0))(_.rate))
-    }
-
-    futureRate.map { rate =>
-      calculation(amount, country, calculationRequest, rate)
-    }
-  }
-
-  private def calculation(amount: BigDecimal, country: Country, calculationRequest: CalculationRequest, rate: BigDecimal) = {
     val converted: BigDecimal = (amount / rate).setScale(2, HALF_UP)
-
     val duty = calculateDuty(country, converted)
     val vatRate = BigDecimal(calculationRequest.vatRate.value / 100.0)
     val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
@@ -51,14 +55,9 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
     CalculationResult(
       AmountInPence((converted * 100).toLong),
       AmountInPence((duty * 100).toLong),
-      AmountInPence((vat * 100).toLong)
+      AmountInPence((vat * 100).toLong),
+      conversionRatePeriod
     )
-  }
-
-  def findRate(currency: Currency)(findConversionRate: String => Future[Seq[ConversionRatePeriod]])
-              (implicit hc: HeaderCarrier): Future[BigDecimal] =
-    currency.valueForConversion.fold(Future.successful(BigDecimal(1))) { code =>
-      findConversionRate(code).map(_.find(_.currencyCode == code).fold(BigDecimal(0))(_.rate))
   }
 
   private def calculateDuty(country: Country, converted: BigDecimal): BigDecimal =

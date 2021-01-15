@@ -43,7 +43,7 @@ trait CoreTestData {
   private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
   private val paymentCalculations = PaymentCalculations(aDeclarationGoods.goods.map(good =>
-    PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100)))))
+    PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
   private val totalCalculationResult =
     TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
