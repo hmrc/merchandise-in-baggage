@@ -30,11 +30,12 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
   def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
-    calculationRequest.currency.valueForConversion.fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code =>
-      findRateAndCalculate(calculationRequest, code))
+    calculationRequest.currency.valueForConversion
+      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code =>
+        findRateAndCalculate(calculationRequest, code))
 
-  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)(
-    implicit hc: HeaderCarrier): Future[CalculationResult] =
+  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)
+                                  (implicit hc: HeaderCarrier): Future[CalculationResult] =
     connector
       .getConversionRate(code)
       .map(
