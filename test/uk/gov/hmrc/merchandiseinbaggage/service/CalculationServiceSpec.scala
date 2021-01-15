@@ -76,7 +76,6 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
-
     service
       .calculate(
         CalculationRequest(
@@ -89,4 +88,24 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000))
   }
 
+  "will return rate for a given currency code" in {
+    val currency = Currency("EUR", "EUR", Some("EUR"), List())
+    val conversionRatePeriods = Seq(
+      ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1)),
+      ConversionRatePeriod(now(), now(), "ARS", BigDecimal(2.1)),
+    )
+    val findRate: String => Future[Seq[ConversionRatePeriod]] = _ => Future.successful(conversionRatePeriods)
+
+    service.findRate(currency)(findRate).futureValue mustBe 1.1
+    service.findRate(currency.copy(valueForConversion = Some("ARS")))(findRate).futureValue mustBe 2.1
+  }
+
+  "will return rate 1 for a given currency without valueForConversion or 0 if currency code is not found" in {
+    val currency = Currency("EUR", "EUR", None, List())
+    val conversionRatePeriods = Seq(ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1)))
+    val findRate: String => Future[Seq[ConversionRatePeriod]] = _ => Future.successful(conversionRatePeriods)
+
+    service.findRate(currency)(findRate).futureValue mustBe 1
+    service.findRate(currency.copy(valueForConversion = Some("X")))(findRate).futureValue mustBe 0
+  }
 }
