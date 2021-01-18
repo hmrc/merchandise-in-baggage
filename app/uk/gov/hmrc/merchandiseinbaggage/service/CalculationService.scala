@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult, Country, Currency}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult, Country}
 import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
 
@@ -31,11 +31,10 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
 
   def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
     calculationRequest.currency.valueForConversion
-      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code =>
-        findRateAndCalculate(calculationRequest, code))
+      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code))
 
-  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)
-                                  (implicit hc: HeaderCarrier): Future[CalculationResult] =
+  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)(
+    implicit hc: HeaderCarrier): Future[CalculationResult] =
     connector
       .getConversionRate(code)
       .map(
