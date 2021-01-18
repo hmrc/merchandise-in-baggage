@@ -20,6 +20,7 @@ import play.api.Logger
 import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.audit.RefundableDeclaration
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Disabled, Failure, Success}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
@@ -51,4 +52,44 @@ trait Auditor {
 
         status
       }
+
+  def auditRefundableDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val refundableDeclarations: Option[Seq[RefundableDeclaration]] =
+      declaration.maybeTotalCalculationResult.map { calc =>
+        calc.paymentCalculations.paymentCalculations.map { payment =>
+          RefundableDeclaration(
+            declaration.mibReference,
+            declaration.nameOfPersonCarryingTheGoods.toString,
+            declaration.eori.toString,
+            payment.goods.categoryQuantityOfGoods.category,
+            payment.calculationResult.gbpAmount,
+            payment.calculationResult.duty,
+            payment.calculationResult.vat,
+            payment.calculationResult.taxDue
+          )
+        }
+      }
+
+    refundableDeclarations.fold(Seq(Future.successful(()))) { declarations =>
+      declarations.map { refund =>
+        auditConnector
+          .sendExtendedEvent(
+            ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = "RefundableDeclaration", detail = toJson(refund))
+          )
+          .recover {
+            case NonFatal(e) => Failure(e.getMessage)
+          }
+          .map {
+            case Success =>
+              logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
+            case Disabled =>
+              logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
+            case Failure(message, _) =>
+              logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+          }
+      }
+    }
+
+    Future.successful(())
+  }
 }

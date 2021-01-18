@@ -69,6 +69,7 @@ class DeclarationService @Inject()(
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
       emailResponse      <- emailService.sendEmails(updatedDeclaration)
       _                  <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
     } yield {
       emailResponse
     }
