@@ -20,6 +20,7 @@ import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
 import play.api.Logging
+import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
@@ -45,7 +46,8 @@ class DeclarationService @Inject()(
           auditDeclarationComplete(declaration)
       }
 
-  def upsertDeclaration(declaration: Declaration)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  def upsertDeclaration(
+    declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
 
   def findByDeclarationId(declarationId: DeclarationId)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
@@ -60,7 +62,8 @@ class DeclarationService @Inject()(
       emailResult <- emailService.sendEmails(declaration)
     } yield emailResult
 
-  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
+  def processPaymentCallback(
+    mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages): EitherT[Future, BusinessError, Unit] =
     for {
       foundDeclaration   <- findByMibReference(mibRef)
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
