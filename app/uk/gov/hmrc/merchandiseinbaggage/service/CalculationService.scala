@@ -16,42 +16,51 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult, Country}
 import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
 
-import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 
 @Singleton
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
-  def calculate(request: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] = {
-    val futureRate = request.currency.valueForConversion.fold(Future.successful(BigDecimal(1))) { code =>
-      connector.getConversionRate(code).map(_.find(_.currencyCode == code).fold(BigDecimal(0))(_.rate))
-    }
+  def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
+    calculationRequest.currency.valueForConversion
+      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code))
 
-    futureRate.map { rate =>
-      val converted: BigDecimal = (request.amount / rate).setScale(2, HALF_UP)
+  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)(
+    implicit hc: HeaderCarrier): Future[CalculationResult] =
+    connector
+      .getConversionRate(code)
+      .map(
+        _.find(_.currencyCode == code)
+          .fold(calculation(calculationRequest, BigDecimal(0), None))(conversionRate =>
+            calculation(calculationRequest, conversionRate.rate, Some(conversionRate))))
 
-      val duty =
-        if (request.country.isEu)
-          BigDecimal(0.0)
-        else
-          (converted * 0.033).setScale(2, HALF_UP)
+  private def calculation(
+    calculationRequest: CalculationRequest,
+    rate: BigDecimal,
+    conversionRatePeriod: Option[ConversionRatePeriod]): CalculationResult = {
+    import calculationRequest._
+    val converted: BigDecimal = (amount / rate).setScale(2, HALF_UP)
+    val duty = calculateDuty(country, converted)
+    val vatRate = BigDecimal(calculationRequest.vatRate.value / 100.0)
+    val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
 
-      val vatRate = BigDecimal(request.vatRate.value / 100.0)
-
-      val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
-
-      CalculationResult(
-        AmountInPence((converted * 100).toLong),
-        AmountInPence((duty * 100).toLong),
-        AmountInPence((vat * 100).toLong)
-      )
-    }
+    CalculationResult(
+      AmountInPence((converted * 100).toLong),
+      AmountInPence((duty * 100).toLong),
+      AmountInPence((vat * 100).toLong),
+      conversionRatePeriod
+    )
   }
 
+  private def calculateDuty(country: Country, converted: BigDecimal): BigDecimal =
+    if (country.isEu) BigDecimal(0.0)
+    else (converted * 0.033).setScale(2, HALF_UP)
 }
