@@ -18,26 +18,18 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.{maybeObfuscate, obfuscate}
 
 case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
   def displayName(implicit messages: Messages): String = messages(countryName)
-  lazy val obfuscated: Country =
-    Country(obfuscate(code), obfuscate(countryName), obfuscate(alphaTwoCode), isEu, countrySynonyms.map(c => obfuscate(c)))
 }
 
 object Country {
   implicit val formats: OFormat[Country] = Json.format[Country]
 }
 
-case class AddressLookupCountry(code: String, name: Option[String]) {
-  lazy val obfuscated: AddressLookupCountry = AddressLookupCountry(obfuscate(code), maybeObfuscate(name))
-}
+case class AddressLookupCountry(code: String, name: Option[String])
 
-case class Address(lines: Seq[String], postcode: Option[String], country: AddressLookupCountry) {
-  lazy val obfuscated: Address =
-    Address(lines.map(line => obfuscate(line)), maybeObfuscate(postcode), country.obfuscated)
-}
+case class Address(lines: Seq[String], postcode: Option[String], country: AddressLookupCountry)
 
 object Address {
   implicit val formatCountry: OFormat[AddressLookupCountry] = Json.format[AddressLookupCountry]

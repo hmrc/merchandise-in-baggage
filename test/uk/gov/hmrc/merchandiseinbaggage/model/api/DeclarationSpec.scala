@@ -26,16 +26,4 @@ class DeclarationSpec extends BaseSpecWithApplication with CoreTestData {
 
     parse(toJson(declaration).toString()).validate[Declaration].get mustBe declaration
   }
-
-  "be obfuscated" in {
-    val declaration = aDeclaration.copy(maybeCustomsAgent = Some(aCustomsAgent), journeyDetails = aJourneyInASmallVehicle)
-
-    declaration.obfuscated.nameOfPersonCarryingTheGoods mustBe Name("*****", "*****")
-    declaration.obfuscated.email mustBe Some(Email("********"))
-    declaration.obfuscated.maybeCustomsAgent.get.name mustBe "**********"
-    declaration.obfuscated.maybeCustomsAgent.get.address mustBe
-      Address(Seq("*************", "**********"), Some("*******"), AddressLookupCountry("**", Some("**")))
-    declaration.obfuscated.eori mustBe Eori("*********")
-    declaration.obfuscated.journeyDetails.maybeRegistrationNumber mustBe Some("*******")
-  }
 }
