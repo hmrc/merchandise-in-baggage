@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import enumeratum.EnumEntry
-import play.api.i18n.Messages
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
-import uk.gov.hmrc.merchandiseinbaggage.util.Obfuscator.obfuscate
 import java.text.NumberFormat.getCurrencyInstance
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import java.util.Locale.UK
 
+import enumeratum.EnumEntry
+import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
 
 import scala.collection.immutable
@@ -67,8 +66,6 @@ object AmountInPence {
 
 case class Name(firstName: String, lastName: String) {
   override val toString: String = s"$firstName $lastName"
-
-  lazy val obfuscated: Name = Name(obfuscate(firstName), obfuscate(lastName))
 }
 
 object Name {
@@ -77,8 +74,6 @@ object Name {
 
 case class Eori(value: String) {
   override val toString: String = value
-
-  lazy val obfuscated: Eori = Eori(obfuscate(value))
 }
 
 object Eori {
@@ -107,9 +102,7 @@ object DeclarationGoods {
   implicit val format: OFormat[DeclarationGoods] = Json.format[DeclarationGoods]
 }
 
-case class CustomsAgent(name: String, address: Address) {
-  lazy val obfuscated: CustomsAgent = CustomsAgent(obfuscate(name), address.obfuscated)
-}
+case class CustomsAgent(name: String, address: Address)
 
 object CustomsAgent {
   implicit val format: OFormat[CustomsAgent] = Json.format[CustomsAgent]
@@ -139,8 +132,6 @@ sealed trait JourneyDetails {
   val formattedDateOfArrival: String = DateTimeFormatter.ofPattern("dd MMM yyyy").format(dateOfTravel)
   val travellingByVehicle: YesNo = No
   val maybeRegistrationNumber: Option[String] = None
-
-  def obfuscated: JourneyDetails = this
 }
 
 case class JourneyOnFoot(port: Port, dateOfTravel: LocalDate) extends JourneyDetails
@@ -148,7 +139,6 @@ case class JourneyOnFoot(port: Port, dateOfTravel: LocalDate) extends JourneyDet
 case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrationNumber: String) extends JourneyDetails {
   override val travellingByVehicle: YesNo = Yes
   override val maybeRegistrationNumber: Option[String] = Some(registrationNumber)
-  override lazy val obfuscated: JourneyInSmallVehicle = this.copy(registrationNumber = obfuscate(registrationNumber))
 }
 
 object JourneyDetails {
@@ -195,16 +185,7 @@ case class Declaration(
   maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
   emailsSent: Boolean = false,
   paymentSuccess: Option[Boolean] = None,
-  lang: String = "en") {
-  lazy val obfuscated: Declaration =
-    this.copy(
-      nameOfPersonCarryingTheGoods = nameOfPersonCarryingTheGoods.obfuscated,
-      email = email.map(_.obfuscated),
-      maybeCustomsAgent = maybeCustomsAgent.map(_.obfuscated),
-      eori = eori.obfuscated,
-      journeyDetails = journeyDetails.obfuscated
-    )
-}
+  lang: String = "en")
 
 object Declaration {
   val id = "declarationId"
