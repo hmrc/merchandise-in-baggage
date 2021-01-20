@@ -17,17 +17,23 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.audit
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.MibReference
 
 case class RefundableDeclaration(
   mibReference: MibReference,
   name: String,
   eori: String,
-  good: String,
-  gbpValue: AmountInPence,
-  customsDuty: AmountInPence,
-  vat: AmountInPence,
-  payment: AmountInPence
+  goodsCategory: String,
+  gbpValue: String,
+  customsDuty: String,
+  vat: String,
+  vatRate: String,
+  paymentAmount: String,
+  goodsQuantity: String,
+  countryOfPurchase: String,
+  purchaseAmount: String,
+  currencyCode: String,
+  exchangeRate: String
 )
 
 object RefundableDeclaration {
