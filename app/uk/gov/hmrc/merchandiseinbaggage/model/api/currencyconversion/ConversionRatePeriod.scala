@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.calculation
+package uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion
+
+import java.time.LocalDate
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Country, Currency, GoodsVatRate}
 
-case class CalculationRequest(
-  amount: BigDecimal,
-  currency: Currency,
-  country: Country,
-  vatRate: GoodsVatRate
-)
+case class ConversionRatePeriod(startDate: LocalDate, endDate: LocalDate, currencyCode: String, rate: BigDecimal)
 
-object CalculationRequest {
-  implicit val format: OFormat[CalculationRequest] = Json.format[CalculationRequest]
+object ConversionRatePeriod {
+  implicit val format: OFormat[ConversionRatePeriod] = Json.format[ConversionRatePeriod]
 }

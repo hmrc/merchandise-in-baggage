@@ -20,7 +20,7 @@ import java.time.LocalDate.now
 
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion.ConversionRatePeriod
 
 import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

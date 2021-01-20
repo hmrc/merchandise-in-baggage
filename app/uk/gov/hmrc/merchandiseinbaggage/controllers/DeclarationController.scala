@@ -21,12 +21,12 @@ import play.api.Logger
 import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationId, DeclarationNotFound}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
 import javax.inject.Inject
+
 import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(declarationService: DeclarationService, mcc: MessagesControllerComponents)(

@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import java.time.LocalDateTime
 
 import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
 
 case class Declaration(
   declarationId: DeclarationId,

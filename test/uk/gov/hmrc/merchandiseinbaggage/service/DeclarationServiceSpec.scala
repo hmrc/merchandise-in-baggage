@@ -21,7 +21,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}

@@ -18,11 +18,11 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
 import javax.inject.Inject
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationRequest
+
 import scala.concurrent.ExecutionContext
 
 class CalculationController @Inject()(

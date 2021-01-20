@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api
+package uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup
 
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
@@ -28,7 +28,6 @@ object Country {
 }
 
 case class AddressLookupCountry(code: String, name: Option[String])
-
 case class Address(lines: Seq[String], postcode: Option[String], country: AddressLookupCountry)
 
 object Address {

@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.core
+package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Currency, GoodsVatRate}
 
-case class DeclarationId(value: String)
+case class CalculationRequest(
+  amount: BigDecimal,
+  currency: Currency,
+  country: Country,
+  vatRate: GoodsVatRate
+)
 
-object DeclarationId {
-  implicit val format: Format[DeclarationId] = implicitly[Format[String]].inmap(DeclarationId.apply, _.value)
+object CalculationRequest {
+  implicit val format: OFormat[CalculationRequest] = Json.format[CalculationRequest]
 }

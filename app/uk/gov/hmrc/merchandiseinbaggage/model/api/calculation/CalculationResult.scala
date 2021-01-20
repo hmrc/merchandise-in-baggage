@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.calculation
+package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.AmountInPence

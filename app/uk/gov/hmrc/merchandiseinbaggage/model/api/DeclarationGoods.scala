@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
 
 case class Goods(
   categoryQuantityOfGoods: CategoryQuantityOfGoods,

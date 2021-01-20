@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
 import uk.gov.hmrc.merchandiseinbaggage.service.{DeclarationService, EmailService}

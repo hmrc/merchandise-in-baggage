@@ -34,7 +34,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
         private val declaration = aDeclaration
 
         override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(auditStatus), injector)
-        override val messagesApi: MessagesApi = messagesApi
+        override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
 
         auditDeclarationComplete(declaration).futureValue mustBe auditStatus
 
@@ -49,7 +49,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
       override val auditConnector: TestAuditConnector =
         TestAuditConnector(Future.failed(new RuntimeException("failed")), injector)
 
-      override val messagesApi: MessagesApi = messagesApi
+      override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
 
       auditDeclarationComplete(aDeclaration).futureValue mustBe failed
     }

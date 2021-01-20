@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion.ConversionRatePeriod
 
 case class CalculationResult(
   gbpAmount: AmountInPence,
