@@ -97,7 +97,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     val emailService = new EmailService(emailConnector, repository)
 
-    val declarationService = new DeclarationService(repository, emailService, auditConnector) {
+    val declarationService = new DeclarationService(repository, emailService, auditConnector, messagesApi) {
       override def persistDeclaration(paymentRequest: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 

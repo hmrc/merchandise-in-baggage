@@ -33,10 +33,10 @@ import scala.concurrent.{Await, Future}
 
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
   private val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-  val declarationRepo = mock[DeclarationRepository]
-  val emailService = mock[EmailService]
+  val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
+  val emailService: EmailService = mock[EmailService]
 
-  val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector)
+  val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector, messagesApi)
 
   "persist a declaration from a Export declaration request and trigger Audit" in {
     val declaration = aDeclaration.copy(declarationType = Export)
@@ -91,7 +91,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
   "processPaymentCallback triggers email delivery, update paymentSuccess flag and trigger Audit" in {
     val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector)
+    val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector, messagesApi)
     val declaration = aDeclaration
 
     (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import org.scalatest.concurrent.ScalaFutures
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Disabled, Failure, Success}
@@ -33,6 +34,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
         private val declaration = aDeclaration
 
         override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(auditStatus), injector)
+        override val messagesApi: MessagesApi = messagesApi
 
         auditDeclarationComplete(declaration).futureValue mustBe auditStatus
 
@@ -46,6 +48,8 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
     "handle auditConnector failure" in new Auditor {
       override val auditConnector: TestAuditConnector =
         TestAuditConnector(Future.failed(new RuntimeException("failed")), injector)
+
+      override val messagesApi: MessagesApi = messagesApi
 
       auditDeclarationComplete(aDeclaration).futureValue mustBe failed
     }

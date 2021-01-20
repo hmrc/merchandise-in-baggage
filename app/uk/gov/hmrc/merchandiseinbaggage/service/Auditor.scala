@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import play.api.Logger
+import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
@@ -30,6 +31,9 @@ import scala.util.control.NonFatal
 
 trait Auditor {
   val auditConnector: AuditConnector
+  val messagesApi: MessagesApi
+
+  val messagesEN: Messages = MessagesImpl(Lang("en"), messagesApi)
 
   private val logger = Logger(this.getClass)
 
@@ -62,10 +66,16 @@ trait Auditor {
             declaration.nameOfPersonCarryingTheGoods.toString,
             declaration.eori.toString,
             payment.goods.categoryQuantityOfGoods.category,
-            payment.calculationResult.gbpAmount,
-            payment.calculationResult.duty,
-            payment.calculationResult.vat,
-            payment.calculationResult.taxDue
+            payment.calculationResult.gbpAmount.formattedInPounds,
+            payment.calculationResult.duty.formattedInPounds,
+            payment.calculationResult.vat.formattedInPounds,
+            s"${payment.goods.goodsVatRate.value}%",
+            payment.calculationResult.taxDue.formattedInPounds,
+            payment.goods.categoryQuantityOfGoods.quantity,
+            messagesEN(payment.goods.countryOfPurchase.countryName),
+            payment.goods.purchaseDetails.amount,
+            payment.goods.purchaseDetails.currency.code,
+            payment.calculationResult.conversionRatePeriod.fold("1.00")(_.rate.toString)
           )
         }
       }

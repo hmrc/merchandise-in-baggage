@@ -20,6 +20,7 @@ import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.Inject
 import play.api.Logging
+import play.api.i18n.MessagesApi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
@@ -34,7 +35,8 @@ import scala.util.Success
 class DeclarationService @Inject()(
   declarationRepository: DeclarationRepository,
   emailService: EmailService,
-  val auditConnector: AuditConnector)(implicit val appConfig: AppConfig)
+  val auditConnector: AuditConnector,
+  val messagesApi: MessagesApi)(implicit val appConfig: AppConfig)
     extends Auditor with Logging {
 
   def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
