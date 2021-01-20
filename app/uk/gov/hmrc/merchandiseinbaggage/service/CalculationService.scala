@@ -19,9 +19,10 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult, Country}
-import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, CalculationResult}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP

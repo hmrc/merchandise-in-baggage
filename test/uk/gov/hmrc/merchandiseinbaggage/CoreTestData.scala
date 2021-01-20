@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID.randomUUID
+
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.core._
-
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID.randomUUID
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry, Country}
 
 trait CoreTestData {
 

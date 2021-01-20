@@ -22,12 +22,11 @@ import play.api.libs.json._
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference, SessionId}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
-
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 

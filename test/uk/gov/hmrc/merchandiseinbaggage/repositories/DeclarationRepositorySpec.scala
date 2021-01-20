@@ -20,8 +20,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, SessionId}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationId
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 

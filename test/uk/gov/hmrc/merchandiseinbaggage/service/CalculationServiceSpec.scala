@@ -24,9 +24,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.calculation.CalculationRequest
-import uk.gov.hmrc.merchandiseinbaggage.model.currencyconversion.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion.ConversionRatePeriod
 import java.time.LocalDate.now
+
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
