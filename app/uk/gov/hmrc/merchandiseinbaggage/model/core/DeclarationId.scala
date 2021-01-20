@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.core
 
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.util.ValueClassFormat
 
 case class DeclarationId(value: String)
+
 object DeclarationId {
-  implicit val format: Format[DeclarationId] = ValueClassFormat.format(value => DeclarationId.apply(value))(_.value)
+  implicit val format: Format[DeclarationId] = implicitly[Format[String]].inmap(DeclarationId.apply, _.value)
 }
