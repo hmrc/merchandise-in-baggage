@@ -23,6 +23,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry, Country}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResult
 
 trait CoreTestData {
 

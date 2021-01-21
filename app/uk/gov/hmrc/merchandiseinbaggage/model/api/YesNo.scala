@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import enumeratum.EnumEntry
+
 import scala.collection.immutable
 
 sealed trait YesNo extends EnumEntry
@@ -32,5 +33,7 @@ object YesNo extends Enum[YesNo] {
   }
 
   case object Yes extends YesNo
+
   case object No extends YesNo
+
 }

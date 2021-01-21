@@ -20,12 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Currency, GoodsVatRate}
 
-case class CalculationRequest(
-  amount: BigDecimal,
-  currency: Currency,
-  country: Country,
-  vatRate: GoodsVatRate
-)
+case class CalculationRequest(amount: BigDecimal, currency: Currency, country: Country, vatRate: GoodsVatRate)
 
 object CalculationRequest {
   implicit val format: OFormat[CalculationRequest] = Json.format[CalculationRequest]

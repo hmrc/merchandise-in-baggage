@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.time.LocalDateTime
 
-import play.api.libs.json._
+import play.api.libs.json.{Json, OFormat}
 
 case class Declaration(
   declarationId: DeclarationId,

@@ -16,19 +16,12 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
+import java.time.LocalDate
+
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.currencyconversion.ConversionRatePeriod
 
-case class CalculationResult(
-  gbpAmount: AmountInPence,
-  duty: AmountInPence,
-  vat: AmountInPence,
-  conversionRatePeriod: Option[ConversionRatePeriod]) {
-  def taxDue: AmountInPence = AmountInPence(
-    duty.value + vat.value
-  )
-}
+case class ConversionRatePeriod(startDate: LocalDate, endDate: LocalDate, currencyCode: String, rate: BigDecimal)
 
-object CalculationResult {
-  implicit val format: OFormat[CalculationResult] = Json.format[CalculationResult]
+object ConversionRatePeriod {
+  implicit val format: OFormat[ConversionRatePeriod] = Json.format[ConversionRatePeriod]
 }

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import enumeratum.EnumEntry
+
 import scala.collection.immutable
 
 sealed trait DeclarationType extends EnumEntry
@@ -25,6 +26,5 @@ object DeclarationType extends Enum[DeclarationType] {
   override val values: immutable.IndexedSeq[DeclarationType] = findValues
 
   case object Import extends DeclarationType
-
   case object Export extends DeclarationType
 }

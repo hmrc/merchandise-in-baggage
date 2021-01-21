@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Json, OFormat}
 
-case class JourneyDetailsEntry(placeOfArrival: Port, dateOfArrival: LocalDate)
+case class JourneyDetailsEntry(portCode: String, dateOfTravel: LocalDate)
 
 object JourneyDetailsEntry {
   implicit val format: OFormat[JourneyDetailsEntry] = Json.format[JourneyDetailsEntry]
