@@ -17,17 +17,22 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
-import play.api.libs.json.{JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
+import play.api.libs.json._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 
 sealed trait JourneyDetails {
   val port: Port
   val dateOfTravel: LocalDate
-  val formattedDateOfArrival: String = DateTimeFormatter.ofPattern("dd MMM yyyy").format(dateOfTravel)
   val travellingByVehicle: YesNo = No
   val maybeRegistrationNumber: Option[String] = None
+}
+
+case class JourneyOnFoot(port: Port, dateOfTravel: LocalDate) extends JourneyDetails
+
+case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrationNumber: String) extends JourneyDetails {
+  override val travellingByVehicle: YesNo = Yes
+  override val maybeRegistrationNumber: Option[String] = Some(registrationNumber)
 }
 
 object JourneyDetails {
@@ -50,15 +55,8 @@ object JourneyDetails {
   }
 }
 
-case class JourneyOnFoot(port: Port, dateOfTravel: LocalDate) extends JourneyDetails
-
 object JourneyOnFoot {
   implicit val format: OFormat[JourneyOnFoot] = Json.format[JourneyOnFoot]
-}
-
-case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrationNumber: String) extends JourneyDetails {
-  override val travellingByVehicle: YesNo = Yes
-  override val maybeRegistrationNumber: Option[String] = Some(registrationNumber)
 }
 
 object JourneyInSmallVehicle {

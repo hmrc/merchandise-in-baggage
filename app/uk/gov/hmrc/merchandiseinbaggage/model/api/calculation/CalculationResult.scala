@@ -17,13 +17,16 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.AmountInPence
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod}
 
 case class CalculationResult(
   gbpAmount: AmountInPence,
   duty: AmountInPence,
-  vat: AmountInPence
-)
+  vat: AmountInPence,
+  conversionRatePeriod: Option[ConversionRatePeriod]) {
+
+  def taxDue: AmountInPence = AmountInPence(duty.value + vat.value)
+}
 
 object CalculationResult {
   implicit val format: OFormat[CalculationResult] = Json.format[CalculationResult]

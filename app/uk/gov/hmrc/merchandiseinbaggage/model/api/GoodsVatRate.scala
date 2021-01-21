@@ -32,15 +32,7 @@ object GoodsVatRate {
 object GoodsVatRates extends Enum[GoodsVatRate] {
   override val values: immutable.IndexedSeq[GoodsVatRate] = findValues
 
-  case object Zero extends GoodsVatRate {
-    override val value: Int = 0
-  }
-
-  case object Five extends GoodsVatRate {
-    override val value: Int = 5
-  }
-
-  case object Twenty extends GoodsVatRate {
-    override val value: Int = 20
-  }
+  case object Zero extends GoodsVatRate { override val value: Int = 0 }
+  case object Five extends GoodsVatRate { override val value: Int = 5 }
+  case object Twenty extends GoodsVatRate { override val value: Int = 20 }
 }

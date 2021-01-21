@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json.Format
+import play.api.libs.functional.syntax._
 
 case class MibReference(value: String)
 

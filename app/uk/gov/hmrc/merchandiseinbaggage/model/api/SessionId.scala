@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.functional.syntax._
+import java.util.UUID.randomUUID
+
 import play.api.libs.json.Format
+import play.api.libs.functional.syntax._
 
 case class SessionId(value: String)
 
 object SessionId {
   implicit val format: Format[SessionId] = implicitly[Format[String]].inmap(SessionId(_), _.value)
+
+  def apply(): SessionId = SessionId(randomUUID().toString)
 }
