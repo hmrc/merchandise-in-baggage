@@ -24,6 +24,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry, Country}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResult
+import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
 
 trait CoreTestData {
 
@@ -70,4 +71,24 @@ trait CoreTestData {
 
   val aJourneyInASmallVehicle: JourneyInSmallVehicle =
     JourneyInSmallVehicle(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now(), "licence")
+
+  val aCheckEoriAddress = CheckEoriAddress("999 High Street", "CityName", "SS99 1AA")
+  val aCompanyDetails = CompanyDetails("Firstname LastName", aCheckEoriAddress)
+
+  val aCheckResponse = CheckResponse("GB025115110987654", true, Some(aCompanyDetails))
+
+  val aSuccessCheckResponse =
+    """{
+      |  "eori": "GB025115110987654",
+      |  "valid": true,
+      |  "companyDetails": {
+      |    "traderName": "Firstname LastName",
+      |    "address": {
+      |      "streetAndNumber": "999 High Street",
+      |      "cityName": "CityName",
+      |      "postcode": "SS99 1AA"
+      |    }
+      |  },
+      |  "processingDate": "2021-01-27T11:00:22.522Z[Europe/London]"
+      |}""".stripMargin
 }

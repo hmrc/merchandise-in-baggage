@@ -17,15 +17,18 @@
 package uk.gov.hmrc.merchandiseinbaggage.stubs
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{get, ok, urlPathEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlPathEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.config.EoriCheckConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 
-object EoriCheckStub extends EoriCheckConfiguration {
+object EoriCheckStub extends EoriCheckConfiguration with CoreTestData {
 
   def givenEoriCheck(eori: Eori)(implicit server: WireMockServer): StubMapping =
     server.stubFor(
       get(urlPathEqualTo(s"${eoriCheckConf.eoriCheckUrl}${eori.toString}"))
-        .willReturn(ok()))
+        .willReturn(aResponse()
+          .withStatus(200)
+          .withBody(aSuccessCheckResponse)))
 }

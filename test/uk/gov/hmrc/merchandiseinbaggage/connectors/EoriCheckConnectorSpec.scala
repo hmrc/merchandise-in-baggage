@@ -32,6 +32,6 @@ class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
     val eori = Eori("GB1234")
     givenEoriCheck(eori)
 
-    client.checkEori(eori).futureValue.status mustBe 200
+    client.checkEori(eori).futureValue mustBe aCheckResponse
   }
 }

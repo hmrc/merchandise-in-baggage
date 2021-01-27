@@ -21,12 +21,13 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.merchandiseinbaggage.config.EoriCheckConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
+import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EoriCheckConnector @Inject()(httpClient: HttpClient, @Named("eoriCheckBaseUrl") base: String) extends EoriCheckConfiguration {
 
-  def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    httpClient.GET[HttpResponse](s"$base${eoriCheckConf.eoriCheckUrl}${eori.toString}")
+  def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CheckResponse] =
+    httpClient.GET[CheckResponse](s"$base${eoriCheckConf.eoriCheckUrl}${eori.toString}")
 }
