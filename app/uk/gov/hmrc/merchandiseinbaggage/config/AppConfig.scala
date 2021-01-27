@@ -21,7 +21,7 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
 import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig() extends MongoConfiguration with EmailConfiguration {
+class AppConfig() extends MongoConfiguration with EmailConfiguration with EoriCheckConfiguration {
   lazy val bfEmail: String = configSource("BF.email").loadOrThrow[String]
 }
 
@@ -37,4 +37,12 @@ trait EmailConfiguration {
 
 final case class EmailConf(host: String = "localhost", port: Int = 8300, protocol: String) {
   val url = s"$protocol://$host:$port/transactionengine/email"
+}
+
+trait EoriCheckConfiguration {
+  lazy val eoriCheckConf: EoriCheckConf = configSource("microservice.services.eori-check").loadOrThrow[EoriCheckConf]
+}
+
+final case class EoriCheckConf(protocol: String, host: String = "localhost", port: Int) {
+  val eoriCheckUrl = s"/check-eori/:"
 }
