@@ -27,6 +27,8 @@ class ConfigModule(unused: Environment, configuration: Configuration) extends Ab
   def bindBaseUrl(name: String, service: String): Unit =
     bindConstant().annotatedWith(named(name)).to(servicesConfig.baseUrl(service))
 
-  override def configure(): Unit =
+  override def configure(): Unit = {
     bindBaseUrl("currencyConversionBaseUrl", "currency-conversion")
+    bindBaseUrl("eoriCheckBaseUrl", "eori-check")
+  }
 }
