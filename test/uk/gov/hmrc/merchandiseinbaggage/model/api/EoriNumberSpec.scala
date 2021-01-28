@@ -24,6 +24,6 @@ class EoriNumberSpec extends BaseSpec with CoreTestData {
 
   "serialise/deserialise from/to json as Eori" in {
 
-    Json.parse(aSuccessCheckResponse).as[CheckResponse] mustBe aCheckResponse
+    Json.parse(aSuccessCheckResponse).as[List[CheckResponse]] mustBe aCheckResponse :: Nil
   }
 }

@@ -32,14 +32,14 @@ class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
 
   "handle a valid EORI by calling the API" in {
     val eori = Eori("GB1234")
-    givenEoriCheck(eori, aCheckResponse)
+    givenEoriCheck(eori, Json.parse(aSuccessCheckResponse).as[List[CheckResponse]])
 
-    client.checkEori(eori).futureValue mustBe aCheckResponse
+    client.checkEori(eori).futureValue mustBe aCheckResponse :: Nil
   }
 
   "handle an invalid EORI by calling the API" in {
     val eori = Eori("GB1234")
-    val invalid = Json.parse("""{"eori": "GB1234","valid": false}""".stripMargin).as[CheckResponse]
+    val invalid = Json.parse("""[{"eori": "GB1234","valid": false}]""".stripMargin).as[List[CheckResponse]]
     givenEoriCheck(eori, invalid)
 
     client.checkEori(eori).futureValue mustBe invalid

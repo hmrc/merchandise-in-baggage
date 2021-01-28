@@ -78,17 +78,19 @@ trait CoreTestData {
   val aCheckResponse = CheckResponse("GB025115110987654", true, Some(aCompanyDetails))
 
   val aSuccessCheckResponse =
-    """{
-      |  "eori": "GB025115110987654",
-      |  "valid": true,
-      |  "companyDetails": {
-      |    "traderName": "Firstname LastName",
-      |    "address": {
-      |      "streetAndNumber": "999 High Street",
-      |      "cityName": "CityName",
-      |      "postcode": "SS99 1AA"
-      |    }
-      |  },
-      |  "processingDate": "2021-01-27T11:00:22.522Z[Europe/London]"
-      |}""".stripMargin
+    """[
+      |  {
+      |    "eori": "GB025115110987654",
+      |    "valid": true,
+      |    "companyDetails": {
+      |      "traderName": "Firstname LastName",
+      |      "address": {
+      |        "streetAndNumber": "999 High Street",
+      |        "cityName": "CityName",
+      |        "postcode": "SS99 1AA"
+      |      }
+      |    },
+      |    "processingDate": "2021-01-27T11:00:22.522Z[Europe/London]"
+      |  }
+      |]""".stripMargin
 }

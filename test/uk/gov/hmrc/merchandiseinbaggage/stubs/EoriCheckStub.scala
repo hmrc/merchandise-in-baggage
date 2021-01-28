@@ -27,7 +27,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 
 object EoriCheckStub extends EoriCheckConfiguration with CoreTestData {
 
-  def givenEoriCheck(eori: Eori, checkResponse: CheckResponse)(implicit server: WireMockServer): StubMapping =
+  def givenEoriCheck(eori: Eori, checkResponse: List[CheckResponse])(implicit server: WireMockServer): StubMapping =
     server.stubFor(
       get(urlPathEqualTo(s"${eoriCheckConf.eoriCheckUrl}${eori.toString}"))
         .willReturn(

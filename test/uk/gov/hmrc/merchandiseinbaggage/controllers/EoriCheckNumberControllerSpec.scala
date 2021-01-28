@@ -33,8 +33,8 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
 
   "handle a EORI check request by making a call to check number API" in {
     val connector = new EoriCheckConnector(client, "") {
-      override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CheckResponse] =
-        Future.successful(aCheckResponse)
+      override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =
+        Future.successful(aCheckResponse :: Nil)
     }
     val controller = new EoriCheckNumberController(component, connector)
     val number = "GB025115110987654"
@@ -42,12 +42,12 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
     val eventualResult = controller.checkEoriNumber(number)(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(aCheckResponse)
+    contentAsJson(eventualResult) mustBe Json.toJson(aCheckResponse :: Nil)
   }
 
   "handle a EORI check request call failure" in {
     val connector = new EoriCheckConnector(client, "") {
-      override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CheckResponse] =
+      override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =
         Future.failed(new Exception("unable to connect"))
     }
     val controller = new EoriCheckNumberController(component, connector)
