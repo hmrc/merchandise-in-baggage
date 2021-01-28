@@ -18,7 +18,6 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
 import play.api.libs.json.Json
-import play.api.mvc.MessagesControllerComponents
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,8 +36,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
-
-  private lazy val component = injector.instanceOf[MessagesControllerComponents]
 
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
