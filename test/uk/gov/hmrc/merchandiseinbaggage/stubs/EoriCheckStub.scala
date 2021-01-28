@@ -19,16 +19,19 @@ package uk.gov.hmrc.merchandiseinbaggage.stubs
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlPathEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.config.EoriCheckConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
+import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 
 object EoriCheckStub extends EoriCheckConfiguration with CoreTestData {
 
-  def givenEoriCheck(eori: Eori)(implicit server: WireMockServer): StubMapping =
+  def givenEoriCheck(eori: Eori, checkResponse: CheckResponse)(implicit server: WireMockServer): StubMapping =
     server.stubFor(
       get(urlPathEqualTo(s"${eoriCheckConf.eoriCheckUrl}${eori.toString}"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withBody(aSuccessCheckResponse)))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(Json.toJson(checkResponse).toString)))
 }

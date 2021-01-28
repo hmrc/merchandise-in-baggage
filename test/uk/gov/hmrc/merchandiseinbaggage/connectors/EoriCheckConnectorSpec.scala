@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
+import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
@@ -28,10 +30,18 @@ class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
   val client = app.injector.instanceOf[EoriCheckConnector]
   implicit val hc = HeaderCarrier()
 
-  "send a declaration to backend to be persisted" in {
+  "handle a valid EORI by calling the API" in {
     val eori = Eori("GB1234")
-    givenEoriCheck(eori)
+    givenEoriCheck(eori, aCheckResponse)
 
     client.checkEori(eori).futureValue mustBe aCheckResponse
+  }
+
+  "handle an invalid EORI by calling the API" in {
+    val eori = Eori("GB1234")
+    val invalid = Json.parse("""{"eori": "GB1234","valid": false}""".stripMargin).as[CheckResponse]
+    givenEoriCheck(eori, invalid)
+
+    client.checkEori(eori).futureValue mustBe invalid
   }
 }
