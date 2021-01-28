@@ -44,5 +44,5 @@ trait EoriCheckConfiguration {
 }
 
 final case class EoriCheckConf(protocol: String, host: String = "localhost", port: Int) {
-  val eoriCheckUrl = s"/check-eori/:"
+  val eoriCheckUrl = s"/check-eori/"
 }
