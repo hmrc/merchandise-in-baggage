@@ -1,7 +1,7 @@
 
 # merchandise-in-baggage
 
-This is a placeholder README.md for a new repository. Update it. 
+This is a placeholder README.md for a new repository. Need to Update it. 
 
 ### License
 
