@@ -45,6 +45,20 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
     contentAsJson(eventualResult) mustBe Json.toJson(aCheckResponse)
   }
 
+  "handle EORI not existing in CheckResponse" in {
+    val connector = new EoriCheckConnector(client, "") {
+      override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =
+        Future.successful(aCheckResponse.copy(eori = "GB123") :: Nil)
+    }
+
+    val controller = new EoriCheckNumberController(component, connector)
+    val number = "GB025115110987654"
+    val request = buildGet(routes.EoriCheckNumberController.checkEoriNumber(number).url)
+    val eventualResult = controller.checkEoriNumber(number)(request)
+
+    status(eventualResult) mustBe 404
+  }
+
   "handle a EORI check request call failure" in {
     val connector = new EoriCheckConnector(client, "") {
       override def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =

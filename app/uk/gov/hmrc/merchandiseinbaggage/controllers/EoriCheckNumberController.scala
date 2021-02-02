@@ -33,8 +33,9 @@ class EoriCheckNumberController @Inject()(mcc: MessagesControllerComponents, con
     connector
       .checkEori(Eori(eoriNumber))
       .map { responseList =>
-        responseList.headOption
-          .fold(NotFound(s"List[CheckResponse] for eori: $eoriNumber was empty")) { response =>
+        responseList
+          .find(_.eori == eoriNumber)
+          .fold(NotFound(s"eori: $eoriNumber was not found in response")) { response =>
             Ok(Json.toJson(response))
           }
       }
