@@ -42,7 +42,7 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
     val eventualResult = controller.checkEoriNumber(number)(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(aCheckResponse :: Nil)
+    contentAsJson(eventualResult) mustBe Json.toJson(aCheckResponse)
   }
 
   "handle a EORI check request call failure" in {
