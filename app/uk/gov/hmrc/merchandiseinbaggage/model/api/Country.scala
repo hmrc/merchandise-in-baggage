@@ -16,17 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
+import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResult
 
-case class PaymentCalculation(goods: ImportGoods, calculationResult: CalculationResult)
-
-object PaymentCalculation {
-  implicit val format: OFormat[PaymentCalculation] = Json.format[PaymentCalculation]
+case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
+  def displayName(implicit messages: Messages): String = messages(countryName)
 }
 
-case class PaymentCalculations(paymentCalculations: Seq[PaymentCalculation])
-
-object PaymentCalculations {
-  implicit val format: OFormat[PaymentCalculations] = Json.format[PaymentCalculations]
+object Country {
+  implicit val formats: OFormat[Country] = Json.format[Country]
 }

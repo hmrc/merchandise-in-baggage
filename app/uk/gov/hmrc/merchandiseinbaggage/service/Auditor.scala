@@ -72,7 +72,7 @@ trait Auditor {
             s"${payment.goods.goodsVatRate.value}%",
             payment.calculationResult.taxDue.formattedInPounds,
             payment.goods.categoryQuantityOfGoods.quantity,
-            messagesEN(payment.goods.countryOfPurchase.countryName),
+            payment.goods.producedInEu.entryName,
             payment.goods.purchaseDetails.amount,
             payment.goods.purchaseDetails.currency.code,
             payment.calculationResult.conversionRatePeriod.fold("1.00")(_.rate.toString)

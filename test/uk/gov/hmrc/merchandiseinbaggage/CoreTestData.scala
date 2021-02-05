@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID.randomUUID
-
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry, Country}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResult
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
+
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID.randomUUID
 
 trait CoreTestData {
 
@@ -33,19 +33,22 @@ trait CoreTestData {
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
   private val aDeclarationGoods = DeclarationGoods(
-    Seq[Goods](Goods(
-      CategoryQuantityOfGoods("test", "1"),
-      GoodsVatRates.Five,
-      Country("GB", "United Kingdom", "GB", isEu = true, List("England", "Scotland", "Wales", "Northern Ireland", "GB", "UK")),
-      PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
-    )))
+    Seq(
+      ImportGoods(
+        CategoryQuantityOfGoods("test", "1"),
+        GoodsVatRates.Five,
+        YesNoDontKnow.Yes,
+        PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
+      )))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
   private val anEmail = Email("someone@")
   private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
-  private val paymentCalculations = PaymentCalculations(aDeclarationGoods.goods.map(good =>
-    PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
+  private val paymentCalculations = PaymentCalculations(
+    aDeclarationGoods.goods
+      .asInstanceOf[Seq[ImportGoods]]
+      .map(good => PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
   private val totalCalculationResult =
     TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 

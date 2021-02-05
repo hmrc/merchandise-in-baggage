@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup
+package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.i18n.Messages
-import play.api.libs.json.{Json, OFormat}
+import enumeratum.EnumEntry
+import play.api.libs.json.Format
 
-case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
-  def displayName(implicit messages: Messages): String = messages(countryName)
+import scala.collection.immutable
+
+sealed trait YesNoDontKnow extends EnumEntry {
+  val messageKey = s"yndk.$entryName"
 }
 
-object Country {
-  implicit val formats: OFormat[Country] = Json.format[Country]
+object YesNoDontKnow extends Enum[YesNoDontKnow] {
+  implicit val format: Format[YesNoDontKnow] = EnumFormat(YesNoDontKnow)
+
+  override val values: immutable.IndexedSeq[YesNoDontKnow] = findValues
+
+  case object Yes extends YesNoDontKnow
+  case object No extends YesNoDontKnow
+  case object DontKnow extends YesNoDontKnow
+
 }

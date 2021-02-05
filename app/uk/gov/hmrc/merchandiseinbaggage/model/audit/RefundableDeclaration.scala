@@ -30,7 +30,7 @@ case class RefundableDeclaration(
   vatRate: String,
   paymentAmount: String,
   goodsQuantity: String,
-  countryOfPurchase: String,
+  producedInEu: String,
   purchaseAmount: String,
   currencyCode: String,
   exchangeRate: String

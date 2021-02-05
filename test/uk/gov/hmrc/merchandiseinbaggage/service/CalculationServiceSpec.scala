@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDate
-import java.time.LocalDate.now
-
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, _}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, _}
 
+import java.time.LocalDate
+import java.time.LocalDate.now
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory {
 
   val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
-  val today = LocalDate.now()
+  private val today = LocalDate.now()
   val service = new CalculationService(connector)
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
@@ -50,7 +48,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         CalculationRequest(
           BigDecimal(100),
           Currency("USD", "USD", Some("USD"), List()),
-          Country("US", "US", "US", isEu = false, List()),
+          YesNoDontKnow.No,
           GoodsVatRates.Twenty
         )
       )
@@ -74,7 +72,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         CalculationRequest(
           BigDecimal(100),
           Currency("EUR", "EUR", Some("EUR"), List()),
-          Country("FR", "FR", "FR", isEu = true, List()),
+          YesNoDontKnow.Yes,
           GoodsVatRates.Twenty
         )
       )
@@ -91,7 +89,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         CalculationRequest(
           BigDecimal(100),
           Currency("GBP", "GBP", None, List()),
-          Country("GB", "GB", "GB", isEu = true, List()),
+          YesNoDontKnow.Yes,
           GoodsVatRates.Twenty
         )
       )

@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationType}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationType, ExportGoods, ImportGoods}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
@@ -82,13 +82,22 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
     val goodsParams = declarationGoods.goods.zipWithIndex
       .map { goodsWithIdx =>
         val (goods, idx) = goodsWithIdx
-        val countryOrDestKey = if (declarationType == DeclarationType.Import) s"goodsCountry_$idx" else s"goodsDestination_$idx"
-        Map(
-          s"goodsCategory_$idx" -> goods.categoryQuantityOfGoods.category,
-          s"goodsQuantity_$idx" -> goods.categoryQuantityOfGoods.quantity,
-          countryOrDestKey      -> goods.countryOfPurchase.displayName,
-          s"goodsPrice_$idx"    -> goods.purchaseDetails.formatted,
-        )
+        goods match {
+          case ig: ImportGoods =>
+            Map(
+              s"goodsCategory_$idx"     -> ig.categoryQuantityOfGoods.category,
+              s"goodsQuantity_$idx"     -> ig.categoryQuantityOfGoods.quantity,
+              s"goodsProducedInEu_$idx" -> messages(ig.producedInEu.messageKey),
+              s"goodsPrice_$idx"        -> ig.purchaseDetails.formatted
+            )
+          case eg: ExportGoods =>
+            Map(
+              s"goodsCategory_$idx"    -> eg.categoryQuantityOfGoods.category,
+              s"goodsQuantity_$idx"    -> eg.categoryQuantityOfGoods.quantity,
+              s"goodsDestination_$idx" -> eg.destination.displayName,
+              s"goodsPrice_$idx"       -> eg.purchaseDetails.formatted
+            )
+        }
       }
       .reduce(_ ++ _)
 
