@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Country
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 
@@ -48,7 +47,7 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
     conversionRatePeriod: Option[ConversionRatePeriod]): CalculationResult = {
     import calculationRequest._
     val converted: BigDecimal = (amount / rate).setScale(2, HALF_UP)
-    val duty = calculateDuty(country, converted)
+    val duty = calculateDuty(producedInEu, converted)
     val vatRate = BigDecimal(calculationRequest.vatRate.value / 100.0)
     val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
 
@@ -60,7 +59,9 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
     )
   }
 
-  private def calculateDuty(country: Country, converted: BigDecimal): BigDecimal =
-    if (country.isEu) BigDecimal(0.0)
-    else (converted * 0.033).setScale(2, HALF_UP)
+  private def calculateDuty(producedInEu: YesNoDontKnow, converted: BigDecimal): BigDecimal =
+    producedInEu match {
+      case YesNoDontKnow.Yes => BigDecimal(0.0)
+      case _                 => (converted * 0.033).setScale(2, HALF_UP)
+    }
 }
