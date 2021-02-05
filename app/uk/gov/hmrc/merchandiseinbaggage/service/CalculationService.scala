@@ -52,6 +52,7 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
     val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
 
     CalculationResult(
+      calculationRequest.goods,
       AmountInPence((converted * 100).toLong),
       AmountInPence((duty * 100).toLong),
       AmountInPence((vat * 100).toLong),
