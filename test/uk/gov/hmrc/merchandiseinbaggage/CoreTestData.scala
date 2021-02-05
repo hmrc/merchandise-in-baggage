@@ -20,9 +20,8 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResult
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
-
 import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID.randomUUID
 
@@ -30,16 +29,16 @@ trait CoreTestData {
 
   def aDeclarationId: DeclarationId = DeclarationId(randomUUID().toString)
 
+  private val today = LocalDate.now
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
-  private val aDeclarationGoods = DeclarationGoods(
-    Seq(
-      ImportGoods(
-        CategoryQuantityOfGoods("test", "1"),
-        GoodsVatRates.Five,
-        YesNoDontKnow.Yes,
-        PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
-      )))
+  val aImportGoods: ImportGoods = ImportGoods(
+    CategoryQuantityOfGoods("test", "1"),
+    GoodsVatRates.Five,
+    YesNoDontKnow.Yes,
+    PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
+  )
+  private val aDeclarationGoods = DeclarationGoods(Seq(aImportGoods))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
   private val anEmail = Email("someone@")
@@ -48,7 +47,7 @@ trait CoreTestData {
   private val paymentCalculations = PaymentCalculations(
     aDeclarationGoods.goods
       .asInstanceOf[Seq[ImportGoods]]
-      .map(good => PaymentCalculation(good, CalculationResult(AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
+      .map(good => PaymentCalculation(good, CalculationResult(good, AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
   private val totalCalculationResult =
     TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
@@ -96,4 +95,22 @@ trait CoreTestData {
       |    "processingDate": "2021-01-27T11:00:22.522Z[Europe/London]"
       |  }
       |]""".stripMargin
+
+  def aCalculationRequest(amount: Int, currency: String, producedInEU: YesNoDontKnow = YesNoDontKnow.Yes) = CalculationRequest(
+    aImportGoods,
+    BigDecimal(amount),
+    Currency(currency, currency, Some(currency), Nil),
+    producedInEU,
+    GoodsVatRates.Twenty
+  )
+
+  def aCalculationResult(gbp: Int, duty: Int, vat: Int, currency: Option[String] = None, conversion: Option[Double] = None) =
+    conversion.fold(CalculationResult(aImportGoods, AmountInPence(gbp), AmountInPence(duty), AmountInPence(vat), None))(
+      conv =>
+        CalculationResult(
+          aImportGoods,
+          AmountInPence(gbp),
+          AmountInPence(duty),
+          AmountInPence(vat),
+          Some(ConversionRatePeriod(today, today, currency.getOrElse(""), conv))))
 }

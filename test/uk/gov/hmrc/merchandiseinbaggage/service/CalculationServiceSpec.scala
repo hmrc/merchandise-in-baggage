@@ -16,23 +16,22 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDate.now
+
+import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, _}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
-import java.time.LocalDate
-import java.time.LocalDate.now
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory {
+class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory with CoreTestData {
 
   val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
-  private val today = LocalDate.now()
   val service = new CalculationService(connector)
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
@@ -44,19 +43,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       )
 
     service
-      .calculate(
-        CalculationRequest(
-          BigDecimal(100),
-          Currency("USD", "USD", Some("USD"), List()),
-          YesNoDontKnow.No,
-          GoodsVatRates.Twenty
-        )
-      )
-      .futureValue mustBe CalculationResult(
-      AmountInPence(9091),
-      AmountInPence(300),
-      AmountInPence(1878),
-      Some(ConversionRatePeriod(today, today, "USD", 1.1)))
+      .calculate(aCalculationRequest(100, "USD", YesNoDontKnow.No))
+      .futureValue mustBe aCalculationResult(9091, 300, 1878, Some("USD"), Some(1.1))
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
@@ -68,31 +56,16 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       )
 
     service
-      .calculate(
-        CalculationRequest(
-          BigDecimal(100),
-          Currency("EUR", "EUR", Some("EUR"), List()),
-          YesNoDontKnow.Yes,
-          GoodsVatRates.Twenty
-        )
-      )
-      .futureValue mustBe CalculationResult(
-      AmountInPence(9091),
-      AmountInPence(0),
-      AmountInPence(1818),
-      Some(ConversionRatePeriod(today, today, "EUR", 1.1)))
+      .calculate(aCalculationRequest(100, "EUR"))
+      .futureValue mustBe aCalculationResult(9091, 0, 1818, Some("EUR"), Some(1.1))
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
     service
       .calculate(
-        CalculationRequest(
-          BigDecimal(100),
-          Currency("GBP", "GBP", None, List()),
-          YesNoDontKnow.Yes,
-          GoodsVatRates.Twenty
-        )
-      )
-      .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000), None)
+        aCalculationRequest(100, "GBP")
+          .modify(_.currency.valueForConversion)
+          .setTo(Option.empty))
+      .futureValue mustBe aCalculationResult(10000, 0, 2000)
   }
 }
