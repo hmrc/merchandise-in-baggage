@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDate
+import java.time.LocalDate.now
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, _}
+import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
-import java.time.LocalDate
-import java.time.LocalDate.now
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory {
+class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory with CoreTestData {
 
   val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
   private val today = LocalDate.now()
@@ -46,6 +47,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     service
       .calculate(
         CalculationRequest(
+          aImportGoods,
           BigDecimal(100),
           Currency("USD", "USD", Some("USD"), List()),
           YesNoDontKnow.No,
@@ -53,6 +55,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         )
       )
       .futureValue mustBe CalculationResult(
+      aImportGoods,
       AmountInPence(9091),
       AmountInPence(300),
       AmountInPence(1878),
@@ -70,6 +73,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     service
       .calculate(
         CalculationRequest(
+          aImportGoods,
           BigDecimal(100),
           Currency("EUR", "EUR", Some("EUR"), List()),
           YesNoDontKnow.Yes,
@@ -77,6 +81,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         )
       )
       .futureValue mustBe CalculationResult(
+      aImportGoods,
       AmountInPence(9091),
       AmountInPence(0),
       AmountInPence(1818),
@@ -87,12 +92,13 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     service
       .calculate(
         CalculationRequest(
+          aImportGoods,
           BigDecimal(100),
           Currency("GBP", "GBP", None, List()),
           YesNoDontKnow.Yes,
           GoodsVatRates.Twenty
         )
       )
-      .futureValue mustBe CalculationResult(AmountInPence(10000), AmountInPence(0), AmountInPence(2000), None)
+      .futureValue mustBe CalculationResult(aImportGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(2000), None)
   }
 }
