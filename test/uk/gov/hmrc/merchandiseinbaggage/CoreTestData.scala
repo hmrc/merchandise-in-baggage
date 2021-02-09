@@ -16,14 +16,16 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID.randomUUID
+
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID.randomUUID
+import com.softwaremill.quicklens._
 
 trait CoreTestData {
 
@@ -44,12 +46,14 @@ trait CoreTestData {
   private val anEmail = Email("someone@")
   private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
   private val aMibReference = MibReference("mib-ref-1234")
-  private val paymentCalculations = PaymentCalculations(
-    aDeclarationGoods.goods
-      .asInstanceOf[Seq[ImportGoods]]
-      .map(good => PaymentCalculation(good, CalculationResult(good, AmountInPence(100), AmountInPence(100), AmountInPence(100), None))))
-  private val totalCalculationResult =
-    TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
+  private val aCalculationResult = CalculationResult(aImportGoods, AmountInPence(100), AmountInPence(100), AmountInPence(100), None)
+  private val aTotalCalculationResult =
+    TotalCalculationResult(
+      CalculationResults(Seq(aCalculationResult)),
+      AmountInPence(100),
+      AmountInPence(100),
+      AmountInPence(100),
+      AmountInPence(100))
 
   def aDeclaration: Declaration =
     Declaration(
@@ -65,7 +69,7 @@ trait CoreTestData {
       aJourneyDetails,
       LocalDateTime.now,
       aMibReference,
-      Some(totalCalculationResult)
+      Some(aTotalCalculationResult)
     )
 
   val aCustomsAgent: CustomsAgent =
@@ -96,21 +100,58 @@ trait CoreTestData {
       |  }
       |]""".stripMargin
 
-  def aCalculationRequest(amount: Int, currency: String, producedInEU: YesNoDontKnow = YesNoDontKnow.Yes) = CalculationRequest(
-    aImportGoods,
-    BigDecimal(amount),
-    Currency(currency, currency, Some(currency), Nil),
-    producedInEU,
-    GoodsVatRates.Twenty
+  def aCalculationRequest(
+    amount: Int,
+    currency: String,
+    valueForConversion: Option[String],
+    producedInEU: YesNoDontKnow = YesNoDontKnow.Yes) = CalculationRequest(
+    modifyPurchaseDetails(aImportGoods, amount, currency, producedInEU, valueForConversion)
   )
 
-  def aCalculationResult(gbp: Int, duty: Int, vat: Int, currency: Option[String] = None, conversion: Option[Double] = None) =
-    conversion.fold(CalculationResult(aImportGoods, AmountInPence(gbp), AmountInPence(duty), AmountInPence(vat), None))(
+  def aCalculationResult(
+    gbp: Int,
+    duty: Int,
+    vat: Int,
+    currency: String,
+    producedInEU: YesNoDontKnow,
+    valueForConversion: Option[String],
+    conversion: Option[BigDecimal] = None) =
+    conversion.fold(
+      CalculationResult(
+//        modifyPurchaseDetails(aImportGoods, gbp, currency, producedInEU, valueForConversion),
+        aImportGoods,
+        AmountInPence(gbp),
+        AmountInPence(duty),
+        AmountInPence(vat),
+        None
+      ).modify(_.conversionRatePeriod.each)
+        .setTo(ConversionRatePeriod(today, today, currency, conversion.getOrElse(1))))(
       conv =>
         CalculationResult(
+//        modifyPurchaseDetails(aImportGoods, gbp, currency, producedInEU, valueForConversion),
           aImportGoods,
           AmountInPence(gbp),
           AmountInPence(duty),
           AmountInPence(vat),
-          Some(ConversionRatePeriod(today, today, currency.getOrElse(""), conv))))
+          Some(ConversionRatePeriod(today, today, currency, conv))
+      ))
+
+  private def modifyPurchaseDetails(
+    importGoods: ImportGoods,
+    gbp: Int,
+    currency: String,
+    producedInEU: YesNoDontKnow,
+    valueForConversion: Option[String]): ImportGoods =
+    importGoods
+      .modify(_.purchaseDetails.amount)
+      .setTo(gbp.toString)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo(currency)
+      .modify(_.purchaseDetails.currency.valueForConversion)
+      .setTo(valueForConversion)
+      .modify(_.purchaseDetails.currency.displayName)
+      .setTo(currency)
+      .modify(_.producedInEu)
+      .setTo(producedInEU)
+
 }
