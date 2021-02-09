@@ -23,7 +23,8 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{ConversionRatePeriod, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,37 +36,82 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   val service = new CalculationService(connector)
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
+    val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
     (connector
       .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *)
       .returns(
-        Future.successful(Seq(ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))))
+        Future.successful(Seq(period))
       )
 
-    service
-      .calculate(aCalculationRequest(100, "USD", YesNoDontKnow.No))
-      .futureValue mustBe aCalculationResult(9091, 300, 1878, Some("USD"), Some(1.1))
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.No)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("USD")
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("USD")
+
+    val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
+
+    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
+  }
+
+  "convert currency and calculate duty and vat for an item where origin is unknown" in {
+    val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
+    (connector
+      .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *)
+      .returns(
+        Future.successful(Seq(period))
+      )
+
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.DontKnow)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("USD")
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("USD")
+
+    val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
+
+    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
+    val period = ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1))
     (connector
       .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *)
       .returns(
-        Future.successful(Seq(ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1))))
+        Future.successful(Seq(period))
       )
 
-    service
-      .calculate(aCalculationRequest(100, "EUR"))
-      .futureValue mustBe aCalculationResult(9091, 0, 1818, Some("EUR"), Some(1.1))
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.Yes)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("EUR")
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("EUR")
+
+    val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(0), AmountInPence(455), Some(period))
+
+    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
-    service
-      .calculate(
-        aCalculationRequest(100, "GBP")
-          .modify(_.currency.valueForConversion)
-          .setTo(Option.empty))
-      .futureValue mustBe aCalculationResult(10000, 0, 2000)
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.Yes)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("EUR")
+      .modify(_.purchaseDetails.currency.valueForConversion)
+      .setTo(Option.empty)
+
+    val calculationResult = CalculationResult(importGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(500), None)
+
+    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
   }
 }

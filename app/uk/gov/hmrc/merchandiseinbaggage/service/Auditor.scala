@@ -60,22 +60,22 @@ trait Auditor {
   def auditRefundableDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val refundableDeclarations: Option[Seq[RefundableDeclaration]] =
       declaration.maybeTotalCalculationResult.map { calc =>
-        calc.paymentCalculations.paymentCalculations.map { payment =>
+        calc.calculationResults.calculationResults.map { calculationResult =>
           RefundableDeclaration(
             declaration.mibReference,
             declaration.nameOfPersonCarryingTheGoods.toString,
             declaration.eori.toString,
-            payment.goods.categoryQuantityOfGoods.category,
-            payment.calculationResult.gbpAmount.formattedInPounds,
-            payment.calculationResult.duty.formattedInPounds,
-            payment.calculationResult.vat.formattedInPounds,
-            s"${payment.goods.goodsVatRate.value}%",
-            payment.calculationResult.taxDue.formattedInPounds,
-            payment.goods.categoryQuantityOfGoods.quantity,
-            payment.goods.producedInEu.entryName,
-            payment.goods.purchaseDetails.amount,
-            payment.goods.purchaseDetails.currency.code,
-            payment.calculationResult.conversionRatePeriod.fold("1.00")(_.rate.toString)
+            calculationResult.goods.categoryQuantityOfGoods.category,
+            calculationResult.gbpAmount.formattedInPounds,
+            calculationResult.duty.formattedInPounds,
+            calculationResult.vat.formattedInPounds,
+            s"${calculationResult.goods.goodsVatRate.value}%",
+            calculationResult.taxDue.formattedInPounds,
+            calculationResult.goods.categoryQuantityOfGoods.quantity,
+            calculationResult.goods.producedInEu.entryName,
+            calculationResult.goods.purchaseDetails.amount,
+            calculationResult.goods.purchaseDetails.currency.code,
+            calculationResult.conversionRatePeriod.fold("1.00")(_.rate.toString)
           )
         }
       }
