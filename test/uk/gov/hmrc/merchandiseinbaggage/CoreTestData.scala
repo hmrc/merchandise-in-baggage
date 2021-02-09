@@ -23,9 +23,8 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult, CalculationResults}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
-import com.softwaremill.quicklens._
 
 trait CoreTestData {
 
@@ -100,58 +99,7 @@ trait CoreTestData {
       |  }
       |]""".stripMargin
 
-  def aCalculationRequest(
-    amount: Int,
-    currency: String,
-    valueForConversion: Option[String],
-    producedInEU: YesNoDontKnow = YesNoDontKnow.Yes) = CalculationRequest(
-    modifyPurchaseDetails(aImportGoods, amount, currency, producedInEU, valueForConversion)
-  )
-
-  def aCalculationResult(
-    gbp: Int,
-    duty: Int,
-    vat: Int,
-    currency: String,
-    producedInEU: YesNoDontKnow,
-    valueForConversion: Option[String],
-    conversion: Option[BigDecimal] = None) =
-    conversion.fold(
-      CalculationResult(
-//        modifyPurchaseDetails(aImportGoods, gbp, currency, producedInEU, valueForConversion),
-        aImportGoods,
-        AmountInPence(gbp),
-        AmountInPence(duty),
-        AmountInPence(vat),
-        None
-      ).modify(_.conversionRatePeriod.each)
-        .setTo(ConversionRatePeriod(today, today, currency, conversion.getOrElse(1))))(
-      conv =>
-        CalculationResult(
-//        modifyPurchaseDetails(aImportGoods, gbp, currency, producedInEU, valueForConversion),
-          aImportGoods,
-          AmountInPence(gbp),
-          AmountInPence(duty),
-          AmountInPence(vat),
-          Some(ConversionRatePeriod(today, today, currency, conv))
-      ))
-
-  private def modifyPurchaseDetails(
-    importGoods: ImportGoods,
-    gbp: Int,
-    currency: String,
-    producedInEU: YesNoDontKnow,
-    valueForConversion: Option[String]): ImportGoods =
-    importGoods
-      .modify(_.purchaseDetails.amount)
-      .setTo(gbp.toString)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo(currency)
-      .modify(_.purchaseDetails.currency.valueForConversion)
-      .setTo(valueForConversion)
-      .modify(_.purchaseDetails.currency.displayName)
-      .setTo(currency)
-      .modify(_.producedInEu)
-      .setTo(producedInEU)
-
+  implicit class ToAmountInPence(amount: Int) {
+    def toAmountInPence: AmountInPence = AmountInPence(amount)
+  }
 }

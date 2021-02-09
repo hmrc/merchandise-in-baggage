@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNoDontKnow
+import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -33,7 +33,8 @@ import scala.concurrent.Future
 class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData {
 
   val today = LocalDate.now
-  val expectedResult = aCalculationResult(10000, 0, 2000, "EUR", YesNoDontKnow.Yes, Some("EUR"))
+  val period = ConversionRatePeriod(today, today, "EUR", BigDecimal(1.1))
+  val expectedResult = CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
   val connector = injector.instanceOf[CurrencyConversionConnector]
   val service = new CalculationService(connector) {
     override def calculate(calculationRequests: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
@@ -42,7 +43,7 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
   "handle multiple calculation requests" in {
     val controller = new CalculationController(service, component)
-    val calculationRequests = Seq(aCalculationRequest(100, "EUR", expectedResult.goods.purchaseDetails.currency.valueForConversion))
+    val calculationRequests = Seq(CalculationRequest(aImportGoods))
 
     val request = buildPost(routes.CalculationController.handleCalculation().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
