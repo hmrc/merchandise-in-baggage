@@ -551,3 +551,7 @@ title.september = Medi
 title.october = Hydref
 title.november = Tachwedd
 title.december = Rhagfyr
+
+yndk.Yes = Iawn
+yndk.No = Na
+yndk.DontKnow = I do not know
