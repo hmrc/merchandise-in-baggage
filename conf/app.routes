@@ -6,7 +6,6 @@ GET         /declarations/:id                   uk.gov.hmrc.merchandiseinbaggage
 
 POST        /declarations/sendEmails/:id        uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.sendEmails(id: String)
 
-POST        /calculation                        uk.gov.hmrc.merchandiseinbaggage.controllers.CalculationController.handleCalculation()
 POST        /calculations                       uk.gov.hmrc.merchandiseinbaggage.controllers.CalculationController.handleCalculations()
 
 GET         /payment-callback/:mibRef           uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.paymentSuccessCallback(mibRef: String)
