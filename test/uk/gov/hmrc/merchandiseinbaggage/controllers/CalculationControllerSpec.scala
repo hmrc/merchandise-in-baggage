@@ -45,7 +45,7 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val controller = new CalculationController(service, component)
     val calculationRequests = Seq(CalculationRequest(aImportGoods))
 
-    val request = buildPost(routes.CalculationController.handleCalculation().url)
+    val request = buildPost(routes.CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
     val eventualResult = controller.handleCalculations(request)
 

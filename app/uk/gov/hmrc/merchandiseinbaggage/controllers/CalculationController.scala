@@ -31,13 +31,6 @@ class CalculationController @Inject()(
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  @deprecated("to be remove after changes to both FE services")
-  def handleCalculation: Action[CalculationRequest] = Action(parse.json[CalculationRequest]).async { implicit request =>
-    calculationService.calculate(request.body).map { calculationResult =>
-      Ok(Json.toJson(calculationResult))
-    }
-  }
-
   def handleCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
     Future
       .traverse(request.body) { req =>

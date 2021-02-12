@@ -30,7 +30,6 @@ trait CoreTestData {
 
   def aDeclarationId: DeclarationId = DeclarationId(randomUUID().toString)
 
-  private val today = LocalDate.now
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
   val aImportGoods: ImportGoods = ImportGoods(
