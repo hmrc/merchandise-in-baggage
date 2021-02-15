@@ -36,7 +36,8 @@ case class Declaration(
   maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
   emailsSent: Boolean = false,
   paymentSuccess: Option[Boolean] = None,
-  lang: String = "en")
+  lang: String = "en",
+  source: Option[String] = None)
 
 object Declaration {
   val id = "declarationId"
