@@ -67,7 +67,8 @@ trait CoreTestData {
       aJourneyDetails,
       LocalDateTime.now,
       aMibReference,
-      Some(aTotalCalculationResult)
+      Some(aTotalCalculationResult),
+      source = Some("Digital")
     )
 
   val aCustomsAgent: CustomsAgent =

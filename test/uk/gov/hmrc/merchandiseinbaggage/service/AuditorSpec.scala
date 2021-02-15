@@ -42,6 +42,8 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
         auditedEvent.auditSource mustBe "merchandise-in-baggage"
         auditedEvent.auditType mustBe "DeclarationComplete"
         auditedEvent.detail mustBe toJson(declaration)
+
+        (auditedEvent.detail \ "source").as[String] mustBe "Digital"
       }
     }
 
