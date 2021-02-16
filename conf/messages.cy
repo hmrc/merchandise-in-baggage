@@ -554,4 +554,4 @@ title.december = Rhagfyr
 
 yndk.Yes = Iawn
 yndk.No = Na
-yndk.DontKnow = I do not know
+yndk.DontKnow = Nid wyf yn gwybod
