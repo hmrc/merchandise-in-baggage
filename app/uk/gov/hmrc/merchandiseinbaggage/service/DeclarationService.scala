@@ -48,9 +48,10 @@ class DeclarationService @Inject()(
           emailService.sendEmails(declaration)
 
         case Success(declaration) if importWithNoPayment(declaration) =>
-          upsertDeclaration(declaration.copy(paymentStatus = Some(NotRequired))).map { _ =>
-            auditDeclarationComplete(declaration)
-            emailService.sendEmails(declaration)
+          val updatedDeclaration = declaration.copy(paymentStatus = Some(NotRequired))
+          upsertDeclaration(updatedDeclaration).map { _ =>
+            auditDeclarationComplete(updatedDeclaration)
+            emailService.sendEmails(updatedDeclaration)
           }
       }
 
