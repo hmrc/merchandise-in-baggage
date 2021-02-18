@@ -59,16 +59,6 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
-  "sendEmail should response as expected" in {
-    val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val postRequest = buildPost(routes.DeclarationController.sendEmails(declaration.declarationId.value).url)
-      val eventualResult = controller.sendEmails(declaration.declarationId.value)(postRequest)
-
-      status(eventualResult) mustBe 202
-    }
-  }
-
   "/payment-callback should trigger email delivery and update paymentSuccess flag" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>

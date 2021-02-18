@@ -23,8 +23,8 @@ import play.api.Logging
 import play.api.i18n.MessagesApi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference, NotRequired, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -39,13 +39,31 @@ class DeclarationService @Inject()(
   val messagesApi: MessagesApi)(implicit val appConfig: AppConfig)
     extends Auditor with Logging {
 
-  def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] = {
+
+    def triggerEmailsAndAudit(declaration: Declaration) =
+      emailService
+        .sendEmails(declaration)
+        .fold(
+          _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
+          _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
+        )
+
     declarationRepository
       .insertDeclaration(declaration)
       .andThen {
         case Success(declaration) if declaration.declarationType == Export =>
-          auditDeclarationComplete(declaration)
+          triggerEmailsAndAudit(declaration)
+
+        case Success(declaration) if importWithNoPayment(declaration) =>
+          val updatedDeclaration = declaration.copy(paymentStatus = Some(NotRequired))
+          upsertDeclaration(updatedDeclaration).map { _ =>
+            triggerEmailsAndAudit(updatedDeclaration)
+          }
       }
+  }
+  private def importWithNoPayment(declaration: Declaration) =
+    declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
 
   def upsertDeclaration(declaration: Declaration)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
@@ -56,19 +74,13 @@ class DeclarationService @Inject()(
   def findByMibReference(mibReference: MibReference)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
-  def sendEmails(declarationId: DeclarationId)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
-    for {
-      declaration <- findByDeclarationId(declarationId)
-      emailResult <- emailService.sendEmails(declaration)
-    } yield emailResult
-
   def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
     for {
       foundDeclaration   <- findByMibReference(mibRef)
-      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
+      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
       emailResponse      <- emailService.sendEmails(updatedDeclaration)
-      _                  <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
-      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditDeclarationComplete(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
     } yield {
       emailResponse
     }

@@ -53,6 +53,14 @@ trait CoreTestData {
       AmountInPence(100),
       AmountInPence(100))
 
+  val zeroTotalCalculationResult =
+    TotalCalculationResult(
+      CalculationResults(Seq(aCalculationResult)),
+      AmountInPence(0),
+      AmountInPence(0),
+      AmountInPence(0),
+      AmountInPence(0))
+
   def aDeclaration: Declaration =
     Declaration(
       aDeclarationId,
@@ -68,6 +76,7 @@ trait CoreTestData {
       LocalDateTime.now,
       aMibReference,
       Some(aTotalCalculationResult),
+      paymentStatus = Some(Paid),
       source = Some("Digital")
     )
 
