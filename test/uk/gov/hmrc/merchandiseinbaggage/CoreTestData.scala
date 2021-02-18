@@ -49,6 +49,9 @@ trait CoreTestData {
   private val totalCalculationResult =
     TotalCalculationResult(paymentCalculations, AmountInPence(100), AmountInPence(100), AmountInPence(100), AmountInPence(100))
 
+  val zeroTotalCalculationResult =
+    TotalCalculationResult(paymentCalculations, AmountInPence(0), AmountInPence(0), AmountInPence(0), AmountInPence(0))
+
   def aDeclaration: Declaration =
     Declaration(
       aDeclarationId,
@@ -63,7 +66,8 @@ trait CoreTestData {
       aJourneyDetails,
       LocalDateTime.now,
       aMibReference,
-      Some(totalCalculationResult)
+      Some(totalCalculationResult),
+      paymentStatus = Some(Paid)
     )
 
   val aCustomsAgent: CustomsAgent =

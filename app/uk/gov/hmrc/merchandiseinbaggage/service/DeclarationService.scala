@@ -23,8 +23,8 @@ import play.api.Logging
 import play.api.i18n.MessagesApi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
-import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference, NotRequired, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -45,7 +45,17 @@ class DeclarationService @Inject()(
       .andThen {
         case Success(declaration) if declaration.declarationType == Export =>
           auditDeclarationComplete(declaration)
+          emailService.sendEmails(declaration)
+
+        case Success(declaration) if importWithNoPayment(declaration) =>
+          upsertDeclaration(declaration.copy(paymentStatus = Some(NotRequired))).map { _ =>
+            auditDeclarationComplete(declaration)
+            emailService.sendEmails(declaration)
+          }
       }
+
+  private def importWithNoPayment(declaration: Declaration) =
+    declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
 
   def upsertDeclaration(declaration: Declaration)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
@@ -65,7 +75,7 @@ class DeclarationService @Inject()(
   def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
     for {
       foundDeclaration   <- findByMibReference(mibRef)
-      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentSuccess = Some(true)))
+      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
       emailResponse      <- emailService.sendEmails(updatedDeclaration)
       _                  <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
       _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
