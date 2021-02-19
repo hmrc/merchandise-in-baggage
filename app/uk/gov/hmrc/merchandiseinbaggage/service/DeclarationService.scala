@@ -85,8 +85,8 @@ class DeclarationService @Inject()(
       foundDeclaration   <- findByMibReference(mibRef)
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
       emailResponse      <- emailService.sendEmails(updatedDeclaration)
-      _                  <- EitherT(auditDeclarationComplete(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
-      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditDeclarationComplete(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
     } yield {
       emailResponse
     }
