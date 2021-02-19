@@ -62,24 +62,6 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
       )
   }
 
-  def sendEmails(declarationId: String): Action[AnyContent] = Action.async { implicit request =>
-    declarationService
-      .sendEmails(DeclarationId(declarationId))
-      .fold(
-        {
-          case DeclarationNotFound =>
-            logger.warn(s"DeclarationId [$declarationId] not found")
-            NotFound
-          case e =>
-            logger.error(s"Error for declarationId [$declarationId] - [$e]]")
-            InternalServerError(s"$e during sending emails")
-        },
-        _ => {
-          Status(ACCEPTED)
-        }
-      )
-  }
-
   def paymentSuccessCallback(mibRef: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"got the payment callback for reference: $mibRef")
 

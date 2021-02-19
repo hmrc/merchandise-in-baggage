@@ -4,8 +4,6 @@ POST        /declarations                       uk.gov.hmrc.merchandiseinbaggage
 
 GET         /declarations/:id                   uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onRetrieve(id: String)
 
-POST        /declarations/sendEmails/:id        uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.sendEmails(id: String)
-
 POST        /calculations                       uk.gov.hmrc.merchandiseinbaggage.controllers.CalculationController.handleCalculations()
 
 GET         /payment-callback/:mibRef           uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.paymentSuccessCallback(mibRef: String)
