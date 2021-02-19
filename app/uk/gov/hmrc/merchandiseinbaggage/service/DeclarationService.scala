@@ -39,21 +39,28 @@ class DeclarationService @Inject()(
   val messagesApi: MessagesApi)(implicit val appConfig: AppConfig)
     extends Auditor with Logging {
 
-  def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
+  def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] = {
+    def triggerEmailsAndAudit(declaration: Declaration) =
+      emailService
+        .sendEmails(declaration)
+        .fold(
+          _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
+          _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
+        )
+
     declarationRepository
       .insertDeclaration(declaration)
       .andThen {
         case Success(declaration) if declaration.declarationType == Export =>
-          auditDeclarationComplete(declaration)
-          emailService.sendEmails(declaration)
+          triggerEmailsAndAudit(declaration)
 
         case Success(declaration) if importWithNoPayment(declaration) =>
           val updatedDeclaration = declaration.copy(paymentStatus = Some(NotRequired))
           upsertDeclaration(updatedDeclaration).map { _ =>
-            auditDeclarationComplete(updatedDeclaration)
-            emailService.sendEmails(updatedDeclaration)
+            triggerEmailsAndAudit(updatedDeclaration)
           }
       }
+  }
 
   private def importWithNoPayment(declaration: Declaration) =
     declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
