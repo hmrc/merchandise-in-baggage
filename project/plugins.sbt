@@ -17,3 +17,4 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.7.5")
 
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.16")
 
+addSbtPlugin("com.itv" % "sbt-scalapact" % "3.2.0")
