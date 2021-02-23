@@ -2,6 +2,21 @@
 
 chmod a+x checkincheck.sh
 
-printf "#####################\nRunning test including pact contract verifier tests... \n#####################\n"
+PACT="../merchandise-in-baggage-frontend/pact/"
 
-sbt "test; testOnly *VerifyContractSpec;"
+contractsList() {
+  for file in "$PACT"*; do
+    printf "%s\n" "$file" | cut -d"/" -f4
+  done
+}
+
+
+if [ -d $PACT ] && [ "$(ls -A $PACT)" ]; then
+  printf "#####################\nContracts found in $PACT \n"
+  contractsList
+  printf "Running tests including pact contract verifier... \n#####################\n"
+else
+  printf "#####################\nThere are not contract tests in $PACT. Running any other tests... \n#####################\n"
+fi
+
+sbt "test;"

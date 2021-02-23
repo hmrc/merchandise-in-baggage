@@ -35,3 +35,9 @@ lazy val microservice = Project(appName, file("."))
   ).settings(
   routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
 )
+  .settings(Test / testOptions := Seq(Tests.Filter {
+    name =>
+      val noContracts = new File("../merchandise-in-baggage-frontend/pact").listFiles().isEmpty
+      if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
+  }
+  )) //TODO make it work on pipeline.
