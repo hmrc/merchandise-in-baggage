@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -86,16 +86,31 @@ class DeclarationRepositorySpec
   }
 
   "find a declaration by mibReference & Eori" in {
-    val declaration = aDeclaration
+    val declarationOne = aDeclaration
+    val declarationTwo = declarationOne
+      .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
 
-    def insert(): Future[Declaration] = repository.insertDeclaration(declaration)
+    def insertTwo(): Future[(Declaration, Declaration)] =
+      for {
+        resultOne <- repository.insertDeclaration(declarationOne)
+        resultTwo <- repository.insertDeclaration(declarationTwo)
+      } yield (resultOne, resultTwo)
 
-    whenReady(insert()) { insertResult =>
-      insertResult mustBe declaration
+    whenReady(insertTwo()) { result =>
+      result mustBe (declarationOne, declarationTwo)
     }
 
-    whenReady(repository.findBy(declaration.mibReference, declaration.eori)) { findResult =>
-      findResult mustBe Some(declaration)
+    whenReady(repository.findBy(declarationOne.mibReference, declarationOne.eori)) { findResult =>
+      findResult mustBe Some(declarationOne)
+    }
+
+    whenReady(repository.findBy(declarationTwo.mibReference, declarationTwo.eori)) { findResult =>
+      findResult mustBe Some(declarationTwo)
+    }
+
+    //invalid combinations of (mibRef, eori)
+    whenReady(repository.findBy(declarationOne.mibReference, declarationTwo.eori)) { findResult =>
+      findResult mustBe None
     }
   }
 
