@@ -22,11 +22,11 @@ import play.api.libs.json._
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
@@ -39,6 +39,8 @@ trait DeclarationRepository {
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
 
   def findByMibReference(mibReference: MibReference): Future[Option[Declaration]]
+
+  def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]]
 
   def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
 
@@ -95,4 +97,9 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
+
+  override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
+    val query: Seq[(String, JsValueWrapper)] = Seq(("mibReference", JsString(mibReference.value)), ("eori.value", JsString(eori.value)))
+    find(query: _*).map(_.headOption)
+  }
 }

@@ -32,4 +32,6 @@ lazy val microservice = Project(appName, file("."))
     retrieveManaged := true,
     scalafmtOnCompile in Compile := true,
     scalafmtOnCompile in Test := true
-  )
+  ).settings(
+  routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
+)

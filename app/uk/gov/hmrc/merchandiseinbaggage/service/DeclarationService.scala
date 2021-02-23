@@ -24,7 +24,7 @@ import play.api.i18n.MessagesApi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference, NotRequired, Paid}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -62,6 +62,7 @@ class DeclarationService @Inject()(
           }
       }
   }
+
   private def importWithNoPayment(declaration: Declaration) =
     declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
 
@@ -73,6 +74,9 @@ class DeclarationService @Inject()(
 
   def findByMibReference(mibReference: MibReference)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
+
+  def findBy(mibReference: MibReference, eori: Eori)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+    EitherT.fromOptionF(declarationRepository.findBy(mibReference, eori), DeclarationNotFound)
 
   def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
     for {

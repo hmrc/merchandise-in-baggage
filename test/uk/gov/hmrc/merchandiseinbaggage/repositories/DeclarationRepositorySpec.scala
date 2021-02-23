@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference, SessionId}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -82,6 +82,35 @@ class DeclarationRepositorySpec
 
     whenReady(repository.findByMibReference(declaration.mibReference)) { findResult =>
       findResult mustBe Some(declaration)
+    }
+  }
+
+  "find a declaration by mibReference & Eori" in {
+    val declarationOne = aDeclaration
+    val declarationTwo = declarationOne
+      .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
+
+    def insertTwo(): Future[(Declaration, Declaration)] =
+      for {
+        resultOne <- repository.insertDeclaration(declarationOne)
+        resultTwo <- repository.insertDeclaration(declarationTwo)
+      } yield (resultOne, resultTwo)
+
+    whenReady(insertTwo()) { result =>
+      result mustBe (declarationOne, declarationTwo)
+    }
+
+    whenReady(repository.findBy(declarationOne.mibReference, declarationOne.eori)) { findResult =>
+      findResult mustBe Some(declarationOne)
+    }
+
+    whenReady(repository.findBy(declarationTwo.mibReference, declarationTwo.eori)) { findResult =>
+      findResult mustBe Some(declarationTwo)
+    }
+
+    //invalid combinations of (mibRef, eori)
+    whenReady(repository.findBy(declarationOne.mibReference, declarationTwo.eori)) { findResult =>
+      findResult mustBe None
     }
   }
 
