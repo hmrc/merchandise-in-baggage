@@ -38,6 +38,7 @@ lazy val microservice = Project(appName, file("."))
   routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
   )
   .settings(Test / testOptions := Seq(Tests.Filter(name => !name.endsWith("VerifyContractSpec"))))
+  .disablePlugins(JUnitXmlReportPlugin)
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
 
