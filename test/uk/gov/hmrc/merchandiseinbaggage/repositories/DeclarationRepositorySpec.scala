@@ -85,6 +85,20 @@ class DeclarationRepositorySpec
     }
   }
 
+  "find a declaration by mibReference & Eori" in {
+    val declaration = aDeclaration
+
+    def insert(): Future[Declaration] = repository.insertDeclaration(declaration)
+
+    whenReady(insert()) { insertResult =>
+      insertResult mustBe declaration
+    }
+
+    whenReady(repository.findBy(declaration.mibReference, declaration.eori)) { findResult =>
+      findResult mustBe Some(declaration)
+    }
+  }
+
   "delete all declarations for testing purpose" in {
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))

@@ -24,7 +24,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
 import uk.gov.hmrc.merchandiseinbaggage.service.{DeclarationService, EmailService}
@@ -51,11 +51,33 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "on retrieve will return declaration for a given id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>
-      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId.value).url)
-      val eventualResult = controller.onRetrieve(declaration.declarationId.value)(getRequest)
+      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+      val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
 
       status(eventualResult) mustBe 200
       contentAsJson(eventualResult) mustBe Json.toJson(declaration)
+    }
+  }
+
+  "findBy MibRef and Eori" should {
+    "return a success response" in {
+      val declaration = aDeclaration
+      setUp(Right(declaration)) { controller =>
+        val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+        val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+
+        status(eventualResult) mustBe 200
+        contentAsJson(eventualResult) mustBe Json.toJson(FindByResponse(declaration.declarationId))
+      }
+    }
+    "return 404 if not found for a given mibRef and Eori" in {
+      val declaration = aDeclaration
+      setUp(Left(DeclarationNotFound)) { controller =>
+        val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+        val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+
+        status(eventualResult) mustBe 404
+      }
     }
   }
 
@@ -96,6 +118,10 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
       override def findByMibReference(mibReference: MibReference)(
+        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
+
+      override def findBy(mibReference: MibReference, eori: Eori)(
         implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }

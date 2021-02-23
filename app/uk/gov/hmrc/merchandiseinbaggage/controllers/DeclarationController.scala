@@ -21,12 +21,12 @@ import play.api.Logger
 import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationNotFound
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, FindByResponse}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import javax.inject.Inject
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject()(declarationService: DeclarationService, mcc: MessagesControllerComponents)(
@@ -43,21 +43,39 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
     }
   }
 
-  def onRetrieve(declarationId: String): Action[AnyContent] = Action.async {
+  def onRetrieve(declarationId: DeclarationId): Action[AnyContent] = Action.async {
 
     declarationService
-      .findByDeclarationId(DeclarationId(declarationId))
+      .findByDeclarationId(declarationId)
       .fold(
         {
           case DeclarationNotFound =>
-            logger.warn(s"DeclarationId [$declarationId] not found")
+            logger.warn(s"$declarationId not found")
             NotFound
           case e =>
-            logger.error(s"Error for declarationId [$declarationId] - [$e]]")
+            logger.error(s"Error for $declarationId - [$e]]")
             InternalServerError("Something went wrong")
         },
         foundDeclaration => {
           Ok(toJson(foundDeclaration))
+        }
+      )
+  }
+
+  def findBy(mibReference: MibReference, eori: Eori): Action[AnyContent] = Action.async {
+    declarationService
+      .findBy(mibReference, eori)
+      .fold(
+        {
+          case DeclarationNotFound =>
+            logger.warn(s"Declaration not found for params: $mibReference, $eori")
+            NotFound
+          case e =>
+            logger.error(s"Error during findBy query - $e - params: $mibReference, $eori")
+            InternalServerError("Something went wrong")
+        },
+        foundDeclaration => {
+          Ok(toJson(FindByResponse(foundDeclaration.declarationId)))
         }
       )
   }
