@@ -97,7 +97,7 @@ class DeclarationRepositorySpec
       } yield (resultOne, resultTwo)
 
     whenReady(insertTwo()) { result =>
-      result mustBe (declarationOne, declarationTwo)
+      result mustBe ((declarationOne, declarationTwo))
     }
 
     whenReady(repository.findBy(declarationOne.mibReference, declarationOne.eori)) { findResult =>
