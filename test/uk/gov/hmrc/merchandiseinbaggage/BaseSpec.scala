@@ -22,7 +22,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Second, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
@@ -36,9 +36,10 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
 
-trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with ScalaFutures {
-  def injector: Injector = app.injector
+trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with ScalaFutures {
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1L, Second)))
+
+  lazy val testServerPort = port
 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   implicit val mat: Materializer = app.materializer
@@ -46,6 +47,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneAppPerSuite with Sca
   lazy val component = injector.instanceOf[MessagesControllerComponents]
 
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
+  lazy val injector: Injector = app.injector
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()

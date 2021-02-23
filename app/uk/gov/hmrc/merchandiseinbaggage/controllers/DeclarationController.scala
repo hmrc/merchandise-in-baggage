@@ -39,7 +39,7 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
 
   def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.persistDeclaration(request.body).map { dec =>
-      Created(toJson(dec.declarationId))
+      Created(dec.declarationId.value)
     }
   }
 

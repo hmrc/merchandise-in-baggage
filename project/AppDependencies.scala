@@ -5,6 +5,8 @@ import sbt._
 
 object AppDependencies {
 
+  private val pactVersion = "3.2.0"
+
   val compile = Seq(
     "uk.gov.hmrc"                %% "bootstrap-backend-play-27"  % "3.0.0",
     "uk.gov.hmrc"                %% "simple-reactivemongo"       % "7.30.0-play-27",
@@ -22,6 +24,12 @@ object AppDependencies {
     "org.scalatestplus.play"  %% "scalatestplus-play"       % "4.0.3"   % "test, it",
     "de.bwaldvogel"           %  "mongo-java-server"        % "1.34.0"  % Test,
     "org.scalamock"           %% "scalamock"                % "4.4.0"   % Test,
-    "com.github.tomakehurst"  %  "wiremock-standalone"      % "2.27.1"  % Test
+    "com.github.tomakehurst"  %  "wiremock-standalone"      % "2.27.1"  % Test,
+
+    "com.itv"                  %% "scalapact-circe-0-13"    % pactVersion    % Test,
+    "com.itv"                  %% "scalapact-http4s-0-21"   % pactVersion    % Test,
+    "com.itv"                  %% "scalapact-scalatest"     % pactVersion    % Test,
+    "org.scalaj"               %% "scalaj-http"             % "2.4.2"    % Test,
+    "org.json4s"               %% "json4s-native"           % "3.6.9"    % Test
   )
 }
