@@ -19,4 +19,4 @@ else
   printf "#####################\nThere are not contract tests in $PACT. Running any other tests... \n#####################\n"
 fi
 
-sbt "test;"
+sbt "test; contractVerifier;"

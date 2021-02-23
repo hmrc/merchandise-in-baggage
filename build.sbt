@@ -7,6 +7,8 @@ val appName = "merchandise-in-baggage"
 
 val silencerVersion = "1.7.0"
 
+val contractVerifier = taskKey[Unit]("Launch contract tests")
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory, ScalaPactPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
@@ -34,10 +36,7 @@ lazy val microservice = Project(appName, file("."))
     scalafmtOnCompile in Test := true
   ).settings(
   routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
-)
-  .settings(Test / testOptions := Seq(Tests.Filter {
-    name =>
-      val noContracts = new File("../merchandise-in-baggage-frontend/pact").listFiles().isEmpty
-      if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
-  }
-  )) //TODO make it work on pipeline.
+  )
+
+contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
+
