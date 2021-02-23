@@ -37,8 +37,7 @@ lazy val microservice = Project(appName, file("."))
 )
   .settings(Test / testOptions := Seq(Tests.Filter {
     name =>
-      val pactDir = new File("../merchandise-in-baggage-frontend/pact")
-      val noContracts = pactDir.exists() && pactDir.listFiles().isEmpty
+      val noContracts = new File("../merchandise-in-baggage-frontend/pact").listFiles().isEmpty
       if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }
   )) //TODO make it work on pipeline.
