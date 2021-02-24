@@ -36,8 +36,13 @@ lazy val microservice = Project(appName, file("."))
     scalafmtOnCompile in Test := true
   ).settings(
   routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
-  )
-  .settings(Test / testOptions := Seq(Tests.Filter(name => !name.endsWith("VerifyContractSpec"))))
+)
+  .settings(Test / testOptions := Seq(Tests.Filter {
+    name =>
+      val pactDir = new File("../merchandise-in-baggage-frontend/pact")
+      val noContracts = !pactDir.exists() || pactDir.listFiles().isEmpty
+      if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
+  })) //TODO make it work on pipeline.
   .disablePlugins(JUnitXmlReportPlugin)
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value

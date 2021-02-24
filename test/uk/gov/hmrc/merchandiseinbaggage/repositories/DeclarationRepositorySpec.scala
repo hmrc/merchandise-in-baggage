@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference, SessionId}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -33,7 +33,7 @@ class DeclarationRepositorySpec
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
   private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri) }
-  private val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
+  override lazy val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration
@@ -90,14 +90,15 @@ class DeclarationRepositorySpec
     val declarationTwo = declarationOne
       .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
 
-    def insertTwo(): Future[(Declaration, Declaration)] =
+    def insertTwo(): Future[List[Declaration]] =
       for {
-        resultOne <- repository.insertDeclaration(declarationOne)
-        resultTwo <- repository.insertDeclaration(declarationTwo)
-      } yield (resultOne, resultTwo)
+        _   <- repository.insertDeclaration(declarationOne)
+        _   <- repository.insertDeclaration(declarationTwo)
+        all <- repository.findAll
+      } yield all
 
     whenReady(insertTwo()) { result =>
-      result mustBe (declarationOne, declarationTwo)
+      result mustBe List(declarationOne, declarationTwo)
     }
 
     whenReady(repository.findBy(declarationOne.mibReference, declarationOne.eori)) { findResult =>
