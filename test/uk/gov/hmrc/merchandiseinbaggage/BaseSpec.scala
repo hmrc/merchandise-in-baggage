@@ -33,6 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
+import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
 
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
 
@@ -45,6 +46,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with 
   implicit val mat: Materializer = app.materializer
   implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
   lazy val component = injector.instanceOf[MessagesControllerComponents]
+  lazy val repository = injector.instanceOf[DeclarationRepositoryImpl]
 
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val injector: Injector = app.injector

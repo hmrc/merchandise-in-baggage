@@ -19,8 +19,11 @@ package uk.gov.hmrc.merchandiseinbaggage.pact
 import java.io.File
 
 import com.itv.scalapact.shared.ProviderStateResult
+import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
@@ -38,10 +41,18 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
         .setupProviderState("given") {
           case "persistDeclarationTest" =>
             ProviderStateResult(true, req => req)
+          case state: String if state.split("XXX").head == "id1234" =>
+            val declarationString = state.split("XXX").toList.drop(1).mkString
+            val declaration = Json.parse(declarationString).as[Declaration]
+            repository.insert(declaration).futureValue
+            ProviderStateResult(true, req => req)
         }
         .runVerificationAgainst("localhost", testServerPort, 10.seconds)
     }
   }
 
-  override def beforeEach(): Unit = super.beforeEach()
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    repository.deleteAll()
+  }
 }
