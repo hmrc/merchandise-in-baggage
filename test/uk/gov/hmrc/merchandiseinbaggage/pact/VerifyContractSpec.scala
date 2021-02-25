@@ -22,7 +22,7 @@ import com.itv.scalapact.shared.ProviderStateResult
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,6 +53,10 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
           case "checkEoriNumberTest" =>
             EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
+            ProviderStateResult(true, req => req)
+          case state: String if state.split("XXX").head == "findByTest" =>
+            val values = state.split("XXX")
+            repository.insert(aDeclaration.copy(mibReference = MibReference(values(1)), eori = Eori(values(2)))).futureValue
             ProviderStateResult(true, req => req)
         }
         .runVerificationAgainst("localhost", testServerPort, 10.seconds)
