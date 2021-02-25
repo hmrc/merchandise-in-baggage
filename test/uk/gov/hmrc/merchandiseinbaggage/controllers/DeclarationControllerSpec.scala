@@ -44,7 +44,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       val eventualResult = controller.onDeclarations()(postRequest)
 
       status(eventualResult) mustBe 201
-      contentAsString(eventualResult) mustBe declaration.declarationId.value
+      contentAsString(eventualResult) mustBe Json.toJson(declaration.declarationId)
     }
   }
 
