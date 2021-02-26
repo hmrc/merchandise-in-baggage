@@ -23,7 +23,7 @@ object PathBinders {
 
   implicit object DeclarationIdBinder extends SimpleObjectBinder[DeclarationId](DeclarationId.apply, _.value)
 
-  implicit def mibRefQueryBinder(implicit mibRefBinder: QueryStringBindable[String]): QueryStringBindable[MibReference] =
+  implicit def mibRefQueryBinder: QueryStringBindable[MibReference] =
     new QueryStringBindable[MibReference] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, MibReference]] =
         params.get("mibReference") match {
@@ -34,7 +34,7 @@ object PathBinders {
       override def unbind(key: String, value: MibReference): String = value.value
     }
 
-  implicit def eoriQueryBinder(implicit eoriBinder: QueryStringBindable[String]): QueryStringBindable[Eori] =
+  implicit def eoriQueryBinder: QueryStringBindable[Eori] =
     new QueryStringBindable[Eori] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Eori]] =
         params.get("eori") match {
