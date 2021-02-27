@@ -110,19 +110,16 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       override def persistDeclaration(paymentRequest: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
         Future.successful(stubbedPersistedDeclaration.right.get)
 
-      override def upsertDeclaration(declaration: Declaration)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def upsertDeclaration(declaration: Declaration): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def findByDeclarationId(declarationId: DeclarationId)(
-        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def findByDeclarationId(declarationId: DeclarationId): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def findByMibReference(mibReference: MibReference)(
-        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def findByMibReference(mibReference: MibReference): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
 
-      override def findBy(mibReference: MibReference, eori: Eori)(
-        implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+      override def findBy(mibReference: MibReference, eori: Eori): EitherT[Future, BusinessError, Declaration] =
         EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
     }
 

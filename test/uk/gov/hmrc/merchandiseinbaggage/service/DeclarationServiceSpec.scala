@@ -79,7 +79,6 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
       val declaration = aDeclaration.copy(declarationType = Import, maybeTotalCalculationResult = Some(zeroTotalCalculationResult))
 
       (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
       mockEmails()
 
       val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
