@@ -44,12 +44,12 @@ class DeclarationService @Inject()(
     declarationRepository
       .insertDeclaration(updatedDeclaration)
       .andThen {
-        case Success(result) if canSendEmailsAndAudit(result) =>
+        case Success(result) if canTriggerEmailsAndAudit(result) =>
           triggerEmailsAndAudit(result)
       }
   }
 
-  private def canSendEmailsAndAudit(declaration: Declaration): Boolean =
+  private def canTriggerEmailsAndAudit(declaration: Declaration): Boolean =
     declaration.declarationType == Export || importWithNoPayment(declaration)
 
   private def updatePaymentStatusIfNeeded(declaration: Declaration) =
