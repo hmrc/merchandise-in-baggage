@@ -36,49 +36,53 @@ class DeclarationService @Inject()(
   declarationRepository: DeclarationRepository,
   emailService: EmailService,
   val auditConnector: AuditConnector,
-  val messagesApi: MessagesApi)(implicit val appConfig: AppConfig)
+  val messagesApi: MessagesApi)(implicit val appConfig: AppConfig, ec: ExecutionContext)
     extends Auditor with Logging {
 
   def persistDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] = {
-
-    def triggerEmailsAndAudit(declaration: Declaration) =
-      emailService
-        .sendEmails(declaration)
-        .fold(
-          _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
-          _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
-        )
-
+    val updatedDeclaration = updatePaymentStatusIfNeeded(declaration)
     declarationRepository
-      .insertDeclaration(declaration)
+      .insertDeclaration(updatedDeclaration)
       .andThen {
-        case Success(declaration) if declaration.declarationType == Export =>
-          triggerEmailsAndAudit(declaration)
-
-        case Success(declaration) if importWithNoPayment(declaration) =>
-          val updatedDeclaration = declaration.copy(paymentStatus = Some(NotRequired))
-          upsertDeclaration(updatedDeclaration).map { _ =>
-            triggerEmailsAndAudit(updatedDeclaration)
-          }
+        case Success(result) if canTriggerEmailsAndAudit(result) =>
+          triggerEmailsAndAudit(result)
       }
   }
+
+  private def canTriggerEmailsAndAudit(declaration: Declaration): Boolean =
+    declaration.declarationType == Export || importWithNoPayment(declaration)
+
+  private def updatePaymentStatusIfNeeded(declaration: Declaration) =
+    declaration match {
+      case d if importWithNoPayment(d) =>
+        d.copy(paymentStatus = Some(NotRequired))
+      case _ => declaration
+    }
 
   private def importWithNoPayment(declaration: Declaration) =
     declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
 
-  def upsertDeclaration(declaration: Declaration)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  private def triggerEmailsAndAudit(declaration: Declaration)(implicit hc: HeaderCarrier) =
+    emailService
+      .sendEmails(declaration)
+      .fold(
+        _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
+        _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
+      )
+
+  def upsertDeclaration(declaration: Declaration): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))
 
-  def findByDeclarationId(declarationId: DeclarationId)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  def findByDeclarationId(declarationId: DeclarationId): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByDeclarationId(declarationId), DeclarationNotFound)
 
-  def findByMibReference(mibReference: MibReference)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  def findByMibReference(mibReference: MibReference): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
 
-  def findBy(mibReference: MibReference, eori: Eori)(implicit ec: ExecutionContext): EitherT[Future, BusinessError, Declaration] =
+  def findBy(mibReference: MibReference, eori: Eori): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findBy(mibReference, eori), DeclarationNotFound)
 
-  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier, ec: ExecutionContext): EitherT[Future, BusinessError, Unit] =
+  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Unit] =
     for {
       foundDeclaration   <- findByMibReference(mibRef)
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
