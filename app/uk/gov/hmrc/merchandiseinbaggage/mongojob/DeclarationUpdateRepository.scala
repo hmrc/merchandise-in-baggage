@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-import com.google.inject.{AbstractModule, Provides}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import uk.gov.hmrc.merchandiseinbaggage.mongojob.DeclarationUpdateScheduler
+package uk.gov.hmrc.merchandiseinbaggage.mongojob
 
-import javax.inject.Singleton
+import com.google.inject.{Inject, Singleton}
 
-class Module extends AbstractModule {
+import scala.concurrent.Future
 
-  @Provides
-  @Singleton
-  def mongoDB(reactiveMongoComponent: ReactiveMongoComponent): () => DB = reactiveMongoComponent.mongoConnector.db
+@Singleton
+class DeclarationUpdateRepository @Inject()() {
 
-  override def configure(): Unit =
-    bind(classOf[DeclarationUpdateScheduler]).asEagerSingleton()
+  //query only a handful, lets say 10 at a time and update as needed
+  def findAndUpdate(): Future[String] = Future.successful("success")
+
 }
