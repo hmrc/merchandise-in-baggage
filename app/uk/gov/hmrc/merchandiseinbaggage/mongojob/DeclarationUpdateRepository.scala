@@ -27,8 +27,8 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Impor
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.ExecutionContext
-import scala.util.control.NonFatal
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
@@ -38,9 +38,9 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
       domainFormat = implicitly[Format[JsObject]],
       idFormat = implicitly[Format[String]]) {
 
-  val log = Logger(getClass)
+  private val log = Logger(getClass)
 
-  def transformDeclarations() = {
+  def transformDeclarations(): Future[Unit] = {
     log.warn("inside transformDeclarations")
     val query =
       Json.obj("source" -> Json.parse("""{"$exists": false}"""), "declarationType" -> Json.parse("""{"$exists": true}"""))
@@ -49,29 +49,35 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect(maxDocs = 10, FailOnError[List[JsObject]]())
       .map { list =>
-        log.warn(s"list size: ${list.size}")
-        list.map { record =>
-          val declarationId = (record \ "declarationId").as[String]
-          log.warn(s"Starting transformation for declarationId: $declarationId")
-          record.transform(transformJson(record)) match {
-            case JsSuccess(updated, _) =>
-              collection
-                .update(ordered = false)
-                .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
-                .map { _ =>
-                  log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
-                  updated
-                }
-            case JsError(errors) =>
-              log.warn(s"Failed to transform declaration, declarationId: $declarationId errors: $errors")
-              record
-          }
+        list.foreach { record =>
+          transformDeclaration(record, (record \ "declarationId").as[String])
         }
       }
-      .recover {
-        case NonFatal(ex) =>
-          log.warn(s"Failed to transform declaration, error: ${ex.getMessage}")
-      }
+  }
+
+  private def transformDeclaration(record: JsObject, declarationId: String) = {
+    log.warn(s"Starting transformation for declarationId: $declarationId")
+    Try {
+      record.transform(transformJson(record))
+    } match {
+      case Success(JsSuccess(updated, _)) =>
+        log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
+        collection
+          .update(ordered = false)
+          .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
+          .map { _ =>
+            log.warn(s"Successfully upserted declaration, declarationId: $declarationId")
+            updated
+          }
+
+      case Success(JsError(errors)) =>
+        log.warn(s"Failed to transform declaration, declarationId: $declarationId errors: $errors")
+        record
+
+      case Failure(ex) =>
+        log.warn(s"Failed to transform declaration, declarationId: $declarationId, with exception: ${ex.getMessage}")
+        record
+    }
   }
 
   private def transformJson(in: JsObject): Reads[JsObject] = {

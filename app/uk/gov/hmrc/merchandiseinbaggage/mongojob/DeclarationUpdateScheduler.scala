@@ -87,6 +87,5 @@ class TaskActor(
             Future.successful(())
           }
       }
-      ()
   }
 }
