@@ -41,7 +41,8 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
 
   def transformDeclarations() = {
     log.warn("inside transformDeclarations")
-    val query = Json.obj("source" -> Json.parse("""{"$exists": false}"""))
+    val query =
+      Json.obj("source" -> Json.parse("""{"$exists": false}"""), "declarationType" -> Json.parse("""{"$exists": true}"""))
     collection
       .find(query)
       .cursor[JsObject](ReadPreference.primaryPreferred)
@@ -50,6 +51,7 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
         log.warn(s"list size: ${list.size}")
         list.map { record =>
           val declarationId = (record \ "declarationId").as[String]
+          log.warn(s"Starting transformation for declarationId: $declarationId")
           record.transform(transformJson(record)) match {
             case JsSuccess(updated, _) =>
               collection
