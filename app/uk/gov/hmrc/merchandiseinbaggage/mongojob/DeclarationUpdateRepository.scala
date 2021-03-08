@@ -28,6 +28,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 @Singleton
 class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
@@ -66,6 +67,10 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
               record
           }
         }
+      }
+      .recover {
+        case NonFatal(ex) =>
+          log.warn(s"Failed to transform declaration, error: ${ex.getMessage}")
       }
   }
 
