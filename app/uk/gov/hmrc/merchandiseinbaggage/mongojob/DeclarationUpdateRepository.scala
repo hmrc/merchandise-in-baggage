@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.mongojob
 
 import com.google.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.libs.json.Reads.of
 import play.api.libs.json._
 import reactivemongo.api.Cursor.FailOnError
@@ -36,13 +37,17 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
       domainFormat = implicitly[Format[JsObject]],
       idFormat = implicitly[Format[String]]) {
 
+  val log = Logger(getClass)
+
   def transformDeclarations() = {
+    log.warn("inside transformDeclarations")
     val query = Json.obj("source" -> Json.parse("""{"$exists": false}"""))
     collection
       .find(query)
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect(maxDocs = 10, FailOnError[List[JsObject]]())
       .map { list =>
+        log.warn(s"list size: ${list.size}")
         list.map { record =>
           val declarationId = (record \ "declarationId").as[String]
           record.transform(transformJson(record)) match {
@@ -51,11 +56,11 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
                 .update(ordered = false)
                 .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
                 .map { _ =>
-                  logger.warn(s"Successfully transformed declaration, declarationId: $declarationId")
+                  log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
                   updated
                 }
             case JsError(errors) =>
-              logger.warn(s"Failed to transform declaration, declarationId: $declarationId errors: $errors")
+              log.warn(s"Failed to transform declaration, declarationId: $declarationId errors: $errors")
               record
           }
         }
