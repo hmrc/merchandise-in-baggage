@@ -17,17 +17,16 @@
 package uk.gov.hmrc.merchandiseinbaggage.mongojob
 
 import com.google.inject.{Inject, Singleton}
-import play.api.Logging
 import play.api.libs.json.Reads.of
 import play.api.libs.json._
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.{DB, ReadPreference}
-import uk.gov.hmrc.mongo.ReactiveRepository
 import reactivemongo.play.json._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{CategoryQuantityOfGoods, Country, DeclarationType, ExportGoods, GoodsVatRate, ImportGoods, NotRequired, Paid, PaymentStatus, PurchaseDetails, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)

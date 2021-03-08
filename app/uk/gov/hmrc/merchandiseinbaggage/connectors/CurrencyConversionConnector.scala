@@ -16,15 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
-import java.time.LocalDate.now
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 
-import javax.inject.{Inject, Named, Singleton}
-import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
-
 import java.time.LocalDate
+import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

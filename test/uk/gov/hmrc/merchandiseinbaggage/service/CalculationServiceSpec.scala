@@ -17,7 +17,6 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDate.now
-
 import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
@@ -27,6 +26,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationReques
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,8 +38,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   "convert currency and calculate duty and vat for an item from outside the EU" in {
     val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
     (connector
-      .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *)
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
       .returns(
         Future.successful(Seq(period))
       )
@@ -60,8 +60,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   "convert currency and calculate duty and vat for an item where origin is unknown" in {
     val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
     (connector
-      .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *)
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
       .returns(
         Future.successful(Seq(period))
       )
@@ -82,8 +82,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   "convert currency and calculate duty and vat for an item from inside the EU" in {
     val period = ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1))
     (connector
-      .getConversionRate(_: String)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *)
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
       .returns(
         Future.successful(Seq(period))
       )

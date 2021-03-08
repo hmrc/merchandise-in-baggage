@@ -61,7 +61,7 @@ class MongoScheduleRepository @Inject()(mongoComponent: ReactiveMongoComponent)
         val record = ScheduleRecord(UUID.randomUUID().toString, LocalDateTime.now())
         insert(record).map(_ => record).recoverWith {
           case NonFatal(error) =>
-            logger.warn(s"Creating RecoveryRecord failed: ${error.getMessage}")
+            logger.warn(s"Creating ScheduleRecord failed: ${error.getMessage}")
             Future.failed(error)
         }
     })
