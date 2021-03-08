@@ -21,7 +21,9 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
 import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig() extends MongoConfiguration with EmailConfiguration with EoriCheckConfiguration with CurrencyConversionConfiguration {
+class AppConfig()
+    extends MongoConfiguration with EmailConfiguration with EoriCheckConfiguration with CurrencyConversionConfiguration
+    with DeclarationUpdateConfigLoader {
   lazy val bfEmail: String = configSource("BF.email").loadOrThrow[String]
 }
 
@@ -55,3 +57,10 @@ trait CurrencyConversionConfiguration {
 final case class CurrencyConversionConf(protocol: String, host: String = "localhost", port: Int) {
   val currencyConversionUrl = s"/currency-conversion/rates/"
 }
+
+trait DeclarationUpdateConfigLoader {
+  lazy val declarationUpdateConf: DeclarationUpdateConfig = configSource("declaration-update")
+    .loadOrThrow[DeclarationUpdateConfig]
+}
+
+final case class DeclarationUpdateConfig(interval: Int, enabled: Boolean)
