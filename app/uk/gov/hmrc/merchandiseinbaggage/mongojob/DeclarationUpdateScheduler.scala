@@ -78,7 +78,7 @@ class TaskActor(
               .map(_ => {
                 context.system.scheduler.scheduleOnce(delay.seconds, self, newUid)
                 logger.warn(s"Starting DeclarationUpdateScheduler job, next job is scheduled at $nextRunAt")
-                declarationUpdateRepository.findAndUpdate()
+                declarationUpdateRepository.transformDeclarations()
               })
           } else {
             val nextRunAt = if (runAt.isBefore(now)) now else runAt
