@@ -127,10 +127,14 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
       case Export =>
         (result \ "declarationGoods" \ "goods").as[JsArray].value.map { json =>
           val categoryQuantity = (json \ "categoryQuantityOfGoods").as[CategoryQuantityOfGoods]
-          val country = (json \ "countryOfPurchase").as[Country]
           val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
+          val destination =
+            ((json \ "destination").asOpt[Country], (json \ "countryOfPurchase").asOpt[Country]) match {
+              case (Some(destination), _) => destination
+              case (None, Some(cop))      => cop
+            }
 
-          Json.toJson(ExportGoods(categoryQuantity, country, purchaseDetails))
+          Json.toJson(ExportGoods(categoryQuantity, destination, purchaseDetails))
         }
     }
 
