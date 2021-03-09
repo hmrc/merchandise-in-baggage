@@ -48,6 +48,7 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
         "declarationType"   -> Json.parse("""{"$exists": true}"""),
         "dateOfDeclaration" -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}""")
       )
+
     collection
       .find(query)
       .cursor[JsObject](ReadPreference.primaryPreferred)
@@ -61,38 +62,30 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
 
   private def transformDeclaration(record: JsObject, declarationId: String) = {
     log.warn(s"Starting transformation for declarationId: $declarationId")
-    Try {
-      record.transform(transformJson(record))
-    } match {
-      case Success(JsSuccess(updated, _)) =>
-        log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
-        collection
-          .update(ordered = false)
-          .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
-          .map { _ =>
-            log.warn(s"Successfully upserted declaration, declarationId: $declarationId")
-            updated
-          }
-
-      case Success(JsError(errors)) =>
-        log.warn(s"Failed to transform declaration, declarationId: $declarationId errors: $errors")
-        record
-
-      case Failure(ex) =>
-        log.warn(s"Failed to transform declaration, declarationId: $declarationId, with exception: ${ex.getMessage}")
-        record
-    }
+    val updated = transformJson(record)
+    log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
+    collection
+      .update(ordered = false)
+      .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
+      .map { _ =>
+        log.warn(s"Successfully upserted declaration, declarationId: $declarationId")
+        updated
+      }
   }
 
-  private def transformJson(in: JsObject): Reads[JsObject] = {
-    val typeAndEmail =
-      (__ \ "journeyDetails" \ "_type").json.prune andThen (__ \ "email" \ "confirmation").json.prune
+  private def transformJson(in: JsObject): JsObject = {
 
-    val removeTotalCalculationResult =
-      (__ \ "maybeTotalCalculationResult").json.prune
+    val journeyType = (__ \ "journeyDetails" \ "_type").json.prune
+    val email = (__ \ "email" \ "confirmation").json.prune
 
-    val declarationType = (in \ "declarationType").as[DeclarationType]
-    val paymentSuccess = (in \ "paymentSuccess").asOpt[Boolean]
+    var result = tryTransform(journeyType, in)
+    result = tryTransform(email, result)
+
+    val removeTotalCalculationResult = (__ \ "maybeTotalCalculationResult").json.prune
+    result = tryTransform(removeTotalCalculationResult, result)
+
+    val declarationType = (result \ "declarationType").as[DeclarationType]
+    val paymentSuccess = (result \ "paymentSuccess").asOpt[Boolean]
 
     val paymentStatus: Option[PaymentStatus] = (declarationType, paymentSuccess) match {
       case (Import, Some(true))  => Some(Paid)
@@ -102,13 +95,18 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
     }
 
     val updatePaymentStatus = {
-      __.json.update((__ \ "paymentStatus").json.put(Json.toJson(paymentStatus))) andThen
-        (__ \ "paymentSuccess").json.prune
+      __.json.update((__ \ "paymentStatus").json.put(Json.toJson(paymentStatus)))
     }
+    result = tryTransform(updatePaymentStatus, result)
+
+    val paymentSuccessPrune = (__ \ "paymentSuccess").json.prune
+    result = tryTransform(paymentSuccessPrune, result)
 
     val setSource = {
       __.json.update((__ \ "source").json.put(JsString("Digital")))
     }
+
+    result = tryTransform(setSource, result)
 
     val goods: IndexedSeq[JsValue] = declarationType match {
       case Import =>
@@ -133,8 +131,22 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
     }
 
     val updateGoods = (__ \ "declarationGoods" \ "goods").json.update(of[JsArray].map(_ => JsArray(goods)))
-
-    typeAndEmail andThen removeTotalCalculationResult andThen updatePaymentStatus andThen setSource andThen updateGoods
+    result = tryTransform(updateGoods, result)
+    result
   }
 
+  private def tryTransform(reads: Reads[JsObject], in: JsObject) =
+    Try {
+      in.transform(reads) match {
+        case JsSuccess(updated, _) => updated
+        case JsError(errors) =>
+          log.warn(s"ignoring the failed transformation, errors: $errors")
+          in
+      }
+    } match {
+      case Success(value) => value
+      case Failure(ex) =>
+        log.warn(s"ignoring the failed transformation with exception: ${ex.getMessage}")
+        in
+    }
 }
