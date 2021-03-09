@@ -24,7 +24,7 @@ import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.{DB, ReadPreference}
 import reactivemongo.play.json._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{YesNoDontKnow, _}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -110,18 +110,22 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
 
     val goods: IndexedSeq[JsValue] = declarationType match {
       case Import =>
-        (in \ "declarationGoods" \ "goods").as[JsArray].value.map { json =>
+        (result \ "declarationGoods" \ "goods").as[JsArray].value.map { json =>
           val categoryQuantity = (json \ "categoryQuantityOfGoods").as[CategoryQuantityOfGoods]
           val goodsVatRate = (json \ "goodsVatRate").as[GoodsVatRate]
-          val country = (json \ "countryOfPurchase").as[Country]
           val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
 
-          val producedInEu = if (country.isEu) YesNoDontKnow.Yes else YesNoDontKnow.No
+          val producedInEu =
+            ((json \ "producedInEu").asOpt[YesNoDontKnow], (json \ "countryOfPurchase").asOpt[Country]) match {
+              case (Some(pInEu), _)              => pInEu
+              case (None, Some(cop)) if cop.isEu => YesNoDontKnow.Yes
+              case (None, _)                     => YesNoDontKnow.No
+            }
 
           Json.toJson(ImportGoods(categoryQuantity, goodsVatRate, producedInEu, purchaseDetails))
         }
       case Export =>
-        (in \ "declarationGoods" \ "goods").as[JsArray].value.map { json =>
+        (result \ "declarationGoods" \ "goods").as[JsArray].value.map { json =>
           val categoryQuantity = (json \ "categoryQuantityOfGoods").as[CategoryQuantityOfGoods]
           val country = (json \ "countryOfPurchase").as[Country]
           val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
