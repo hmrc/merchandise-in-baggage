@@ -62,15 +62,21 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
 
   private def transformDeclaration(record: JsObject, declarationId: String) = {
     log.warn(s"Starting transformation for declarationId: $declarationId")
-    val updated = transformJson(record)
-    log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
-    collection
-      .update(ordered = false)
-      .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
-      .map { _ =>
-        log.warn(s"Successfully upserted declaration, declarationId: $declarationId")
-        updated
-      }
+    Try {
+      transformJson(record)
+    } match {
+      case Success(updated) =>
+        log.warn(s"Successfully transformed declaration, declarationId: $declarationId")
+        collection
+          .update(ordered = false)
+          .one(Json.obj("declarationId" -> declarationId), updated, upsert = true)
+          .map { _ =>
+            log.warn(s"Successfully upserted declaration, declarationId: $declarationId")
+            updated
+          }
+      case Failure(ex) =>
+        log.warn(s"error during transformJson for declaration: $declarationId, error: ${ex.getMessage}")
+    }
   }
 
   private def transformJson(in: JsObject): JsObject = {
@@ -148,13 +154,13 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
       in.transform(reads) match {
         case JsSuccess(updated, _) => updated
         case JsError(errors) =>
-          log.warn(s"ignoring the failed transformation, errors: $errors")
+          log.warn(s"ignoring the failed transformation during tryTransform, errors: $errors")
           in
       }
     } match {
       case Success(value) => value
       case Failure(ex) =>
-        log.warn(s"ignoring the failed transformation with exception: ${ex.getMessage}")
+        log.warn(s"ignoring the failed transformation during tryTransform with exception: ${ex.getMessage}")
         in
     }
 }
