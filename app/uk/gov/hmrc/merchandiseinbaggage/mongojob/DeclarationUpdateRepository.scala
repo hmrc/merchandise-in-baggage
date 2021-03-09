@@ -43,7 +43,11 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB)(implicit ec: Execut
   def transformDeclarations(): Future[Unit] = {
     log.warn("inside transformDeclarations")
     val query =
-      Json.obj("source" -> Json.parse("""{"$exists": false}"""), "declarationType" -> Json.parse("""{"$exists": true}"""))
+      Json.obj(
+        "source"            -> Json.parse("""{"$exists": false}"""),
+        "declarationType"   -> Json.parse("""{"$exists": true}"""),
+        "dateOfDeclaration" -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}""")
+      )
     collection
       .find(query)
       .cursor[JsObject](ReadPreference.primaryPreferred)
