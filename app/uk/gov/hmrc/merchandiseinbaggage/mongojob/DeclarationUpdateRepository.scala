@@ -30,6 +30,7 @@ import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class DeclarationUpdateRepository @Inject()(mongo: () => DB, calculationService: CalculationService, repo: DeclarationRepository)(
@@ -46,22 +47,30 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB, calculationService:
     log.warn("inside transformDeclarations")
     val query =
       Json.obj(
-        "declarationType"   -> "Import",
-        "dateOfDeclaration" -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}""")
+        "declarationType"             -> "Import",
+        "dateOfDeclaration"           -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}"""),
+        "maybeTotalCalculationResult" -> Json.parse("""{"$exists": false}""")
       )
 
     collection
       .find(query)
       .cursor[JsObject](ReadPreference.primaryPreferred)
-      .collect(maxDocs = 10, FailOnError[List[JsObject]]())
+      .collect(maxDocs = 5, FailOnError[List[JsObject]]())
       .map { list =>
         list.foreach { record =>
           record.asOpt[Declaration] match {
-            case Some(declaration) => transformDeclaration(declaration)
-            case _ => {
+            case Some(declaration) =>
+              Try {
+                transformDeclaration(declaration)
+              } match {
+                case Success(value) => value
+                case Failure(ex) =>
+                  log.warn(s"Failed to trasnform the declaration, error: ${ex.getMessage}")
+              }
+
+            case _ =>
               val declarationId = (record \ "declarationId").as[String]
               log.warn(s"Failed to deserialize for declarationId: $declarationId")
-            }
           }
         }
       }
