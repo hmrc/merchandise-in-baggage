@@ -37,7 +37,8 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   val expectedResult = CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
   val connector = injector.instanceOf[CurrencyConversionConnector]
   val service = new CalculationService(connector) {
-    override def calculate(calculationRequests: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
+    override def calculate(calculationRequests: CalculationRequest, date: LocalDate = LocalDate.now())(
+      implicit hc: HeaderCarrier): Future[CalculationResult] =
       Future.successful(expectedResult)
   }
 
