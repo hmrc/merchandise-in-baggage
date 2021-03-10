@@ -20,8 +20,9 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
 import javax.inject.Inject
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationRequest
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,6 +37,6 @@ class CalculationController @Inject()(
       .traverse(request.body) { req =>
         calculationService.calculate(req)
       }
-      .map(results => Ok(Json.toJson(results)))
+      .map((results: Seq[CalculationResult]) => Ok(Json.toJson(results)))
   }
 }

@@ -21,6 +21,7 @@ import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
@@ -28,14 +29,15 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 @Singleton
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
-  def calculate(calculationRequest: CalculationRequest)(implicit hc: HeaderCarrier): Future[CalculationResult] =
+  def calculate(calculationRequest: CalculationRequest, date: LocalDate = LocalDate.now())(
+    implicit hc: HeaderCarrier): Future[CalculationResult] =
     calculationRequest.goods.purchaseDetails.currency.valueForConversion
-      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code))
+      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code, date))
 
-  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String)(
+  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String, date: LocalDate)(
     implicit hc: HeaderCarrier): Future[CalculationResult] =
     connector
-      .getConversionRate(code)
+      .getConversionRate(code, date)
       .map(
         _.find(_.currencyCode == code)
           .fold(calculation(calculationRequest, BigDecimal(0), None))(conversionRate =>
