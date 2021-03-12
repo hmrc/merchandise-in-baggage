@@ -55,8 +55,9 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
           case state: String if state.split("XXX").head == "findByTest" =>
-            val values = state.split("XXX")
-            repository.insert(aDeclaration.copy(mibReference = MibReference(values(1)), eori = Eori(values(2)))).futureValue
+            val declarationString = state.split("XXX")(3)
+            val declaration = Json.parse(declarationString).as[Declaration]
+            repository.insert(declaration).futureValue
             ProviderStateResult(true, req => req)
         }
         .runVerificationAgainst("localhost", testServerPort, 10.seconds)
