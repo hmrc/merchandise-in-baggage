@@ -22,7 +22,7 @@ import com.itv.scalapact.shared.ProviderStateResult
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori}
 import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,7 +55,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
           case state: String if state.split("XXX").head == "findByTest" =>
-            val declarationString = state.split("XXX")(3)
+            val declarationString = state.split("XXX")(1)
             val declaration = Json.parse(declarationString).as[Declaration]
             repository.insert(declaration).futureValue
             ProviderStateResult(true, req => req)
@@ -67,6 +67,6 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
   override def beforeEach(): Unit = {
     super.beforeEach()
     repository.deleteAll()
-    
+
   }
 }
