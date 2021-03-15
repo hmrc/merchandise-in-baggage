@@ -67,5 +67,6 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
   override def beforeEach(): Unit = {
     super.beforeEach()
     repository.deleteAll()
+    
   }
 }
