@@ -67,7 +67,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
 
         status(eventualResult) mustBe 200
-        contentAsJson(eventualResult) mustBe Json.toJson(FindByResponse(declaration.declarationId))
+        contentAsJson(eventualResult) mustBe Json.toJson(declaration)
       }
     }
     "return 404 if not found for a given mibRef and Eori" in {

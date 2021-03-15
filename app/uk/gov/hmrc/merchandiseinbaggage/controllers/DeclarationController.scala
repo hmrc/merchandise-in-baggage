@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, FindByResponse}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationNotFound
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -75,7 +75,7 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
             InternalServerError("Something went wrong")
         },
         foundDeclaration => {
-          Ok(toJson(FindByResponse(foundDeclaration.declarationId)))
+          Ok(toJson(foundDeclaration))
         }
       )
   }
