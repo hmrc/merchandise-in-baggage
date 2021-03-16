@@ -111,4 +111,42 @@ trait CoreTestData {
   implicit class ToAmountInPence(amount: Int) {
     def toAmountInPence: AmountInPence = AmountInPence(amount)
   }
+
+  val aAmendment = Amendment(
+    1,
+    LocalDateTime.now,
+    aDeclarationGoods,
+    Some(aTotalCalculationResult),
+    None,
+    Some("Digital")
+  )
+
+  val aAmendmentWithNoTax = Amendment(
+    1,
+    LocalDateTime.now,
+    aDeclarationGoods,
+    Some(zeroTotalCalculationResult),
+    None,
+    Some("Digital")
+  )
+
+  def aDeclarationWithAmendment: Declaration =
+    Declaration(
+      aDeclarationId,
+      aSessionId,
+      Import,
+      aGoodDestination,
+      aDeclarationGoods,
+      aName,
+      Some(anEmail),
+      None,
+      anEori,
+      aJourneyDetails,
+      LocalDateTime.now,
+      aMibReference,
+      Some(aTotalCalculationResult),
+      paymentStatus = Some(Paid),
+      source = Some("Digital"),
+      amendments = Seq(aAmendment)
+    )
 }

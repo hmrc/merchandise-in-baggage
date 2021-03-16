@@ -49,18 +49,34 @@ class DeclarationService @Inject()(
       }
   }
 
+  def amendDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] = {
+    val updatedDeclaration = updatePaymentStatusIfNeeded(declaration)
+    declarationRepository
+      .upsertDeclaration(updatedDeclaration)
+      .andThen {
+        case Success(result) if canTriggerEmailsAndAudit(result) =>
+          triggerEmailsAndAudit(result)
+      }
+  }
+
   private def canTriggerEmailsAndAudit(declaration: Declaration): Boolean =
     declaration.declarationType == Export || importWithNoPayment(declaration)
 
   private def updatePaymentStatusIfNeeded(declaration: Declaration) =
-    declaration match {
-      case d if importWithNoPayment(d) =>
-        d.copy(paymentStatus = Some(NotRequired))
+    declaration.declarationType match {
+      case Import if newDeclarationWithNoTaxDue(declaration) || amendDeclarationWithNoTaxDue(declaration) =>
+        declaration.copy(paymentStatus = Some(NotRequired))
       case _ => declaration
     }
 
+  private def newDeclarationWithNoTaxDue(declaration: Declaration) =
+    declaration.amendments.isEmpty && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
+
+  private def amendDeclarationWithNoTaxDue(declaration: Declaration) =
+    declaration.amendments.nonEmpty && declaration.amendments.last.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
+
   private def importWithNoPayment(declaration: Declaration) =
-    declaration.declarationType == Import && declaration.maybeTotalCalculationResult.exists(_.totalTaxDue.value == 0)
+    declaration.declarationType == Import && (newDeclarationWithNoTaxDue(declaration) || amendDeclarationWithNoTaxDue((declaration)))
 
   private def triggerEmailsAndAudit(declaration: Declaration)(implicit hc: HeaderCarrier) =
     emailService
@@ -69,6 +85,7 @@ class DeclarationService @Inject()(
         _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
         _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
       )
+      .flatten
 
   def upsertDeclaration(declaration: Declaration): EitherT[Future, BusinessError, Declaration] =
     EitherT(declarationRepository.upsertDeclaration(declaration).map[Either[BusinessError, Declaration]](Right(_)))

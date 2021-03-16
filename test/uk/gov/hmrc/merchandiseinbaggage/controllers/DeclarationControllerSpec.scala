@@ -48,6 +48,17 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
+  "amendDeclaration will persist the declaration returning 201 + declaration id" in {
+    val declaration = aDeclarationWithAmendment
+    setUp(Right(declaration)) { controller =>
+      val postRequest = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
+      val eventualResult = controller.amendDeclaration()(postRequest)
+
+      status(eventualResult) mustBe 201
+      contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
+    }
+  }
+
   "on retrieve will return declaration for a given id" in {
     val declaration = aDeclaration
     setUp(Right(declaration)) { controller =>

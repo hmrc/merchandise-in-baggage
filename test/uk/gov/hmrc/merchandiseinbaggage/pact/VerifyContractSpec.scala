@@ -43,22 +43,30 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
         .setupProviderState("given") {
           case "persistDeclarationTest" =>
             ProviderStateResult(true, req => req)
+
+          case "amendDeclarationTest" =>
+            ProviderStateResult(true, req => req)
+
           case state: String if state.split("XXX").head == "id1234" =>
             val declarationString = state.split("XXX").toList.drop(1).mkString
             val declaration = Json.parse(declarationString).as[Declaration]
             repository.insert(declaration).futureValue
             ProviderStateResult(true, req => req)
+
           case "calculatePaymentsTest" =>
             CurrencyConversionStub.givenCurrencyConversion()
             ProviderStateResult(true, req => req)
+
           case "checkEoriNumberTest" =>
             EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
+
           case state: String if state.split("XXX").head == "findByTest" =>
             val declarationString = state.split("XXX")(1)
             val declaration = Json.parse(declarationString).as[Declaration]
             repository.insert(declaration).futureValue
             ProviderStateResult(true, req => req)
+
         }
         .runVerificationAgainst("localhost", testServerPort, 10.seconds)
     }

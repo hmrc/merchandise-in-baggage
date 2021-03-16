@@ -2,6 +2,8 @@
 
 POST        /declarations                       uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onDeclarations()
 
+PUT         /declarations                       uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.amendDeclaration()
+
 GET         /declarations/:id                   uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.onRetrieve(id: DeclarationId)
 
 GET         /declarations                       uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.findBy(mibReference: MibReference, eori: Eori)
