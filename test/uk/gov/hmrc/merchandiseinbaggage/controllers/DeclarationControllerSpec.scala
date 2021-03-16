@@ -54,7 +54,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       val postRequest = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
       val eventualResult = controller.amendDeclaration()(postRequest)
 
-      status(eventualResult) mustBe 201
+      status(eventualResult) mustBe 200
       contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
     }
   }
