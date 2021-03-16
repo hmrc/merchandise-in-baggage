@@ -45,7 +45,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   def declarationService(auditConnector: AuditConnector) =
     new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
-  "persist a declaration from a Export declaration request and trigger Audit" in {
+  "persist a new Export declaration and trigger Audit" in {
     val declaration = aDeclaration.copy(declarationType = Export)
 
     (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
@@ -60,7 +60,22 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     testAuditConnector.audited.isDefined mustBe true
   }
 
-  "persist an Import declaration" should {
+  "persist a Amend Export declaration and trigger Audit" in {
+    val declaration = aDeclarationWithAmendment.copy(declarationType = Export)
+
+    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+    mockEmails()
+
+    val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+    val service = declarationService(testAuditConnector)
+
+    testAuditConnector.audited.isDefined mustBe false
+
+    service.amendDeclaration(declaration).futureValue mustBe declaration
+    testAuditConnector.audited.isDefined mustBe true
+  }
+
+  "persist a new Import declaration" should {
     "NOT trigger Audit and Emails for non zero payments" in {
       val declaration = aDeclaration
 
@@ -86,6 +101,36 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
       testAuditConnector.audited.isDefined mustBe false
 
       service.persistDeclaration(declaration).futureValue mustBe declaration
+      testAuditConnector.audited.isDefined mustBe true
+    }
+  }
+
+  "Persist an Amend declaration" should {
+    "NOT trigger Audit and Emails for non zero amendment payments" in {
+      val declaration = aDeclarationWithAmendment
+
+      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+
+      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+      val service = declarationService(testAuditConnector)
+
+      testAuditConnector.audited.isDefined mustBe false
+
+      service.amendDeclaration(declaration).futureValue mustBe declaration
+      testAuditConnector.audited.isDefined mustBe false
+    }
+
+    "trigger Audit and Emails for zero payments" in {
+      val declaration = aDeclarationWithAmendment.copy(amendments = Seq(aAmendmentWithNoTax))
+
+      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      mockEmails()
+
+      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
+      val service = declarationService(testAuditConnector)
+      testAuditConnector.audited.isDefined mustBe false
+
+      service.amendDeclaration(declaration).futureValue mustBe declaration
       testAuditConnector.audited.isDefined mustBe true
     }
   }

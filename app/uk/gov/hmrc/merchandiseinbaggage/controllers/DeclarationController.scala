@@ -43,6 +43,12 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
     }
   }
 
+  def amendDeclaration(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
+    declarationService.amendDeclaration(request.body).map { dec =>
+      Ok(toJson(dec.declarationId))
+    }
+  }
+
   def onRetrieve(declarationId: DeclarationId): Action[AnyContent] = Action.async {
 
     declarationService
