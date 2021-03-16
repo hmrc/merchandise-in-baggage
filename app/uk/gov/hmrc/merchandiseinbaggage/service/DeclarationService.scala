@@ -64,8 +64,12 @@ class DeclarationService @Inject()(
 
   private def updatePaymentStatusIfNeeded(declaration: Declaration) =
     declaration.declarationType match {
-      case Import if newDeclarationWithNoTaxDue(declaration) || amendDeclarationWithNoTaxDue(declaration) =>
+      case Import if newDeclarationWithNoTaxDue(declaration) =>
         declaration.copy(paymentStatus = Some(NotRequired))
+      case Import if amendDeclarationWithNoTaxDue(declaration) =>
+        val updatedAmendment = declaration.amendments.last.copy(paymentStatus = Some(NotRequired))
+        val amendments = declaration.amendments.dropRight(1) :+ updatedAmendment
+        declaration.copy(amendments = amendments)
       case _ => declaration
     }
 
