@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.DeclarationNotFound
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -98,6 +98,25 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
             NotFound
           case e =>
             logger.error(s"Error for MibReference [$mibRef] - [$e]]")
+            InternalServerError("Something went wrong")
+        },
+        _ => Ok
+      )
+  }
+
+  def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async { implicit request =>
+    val callbackRequest = request.body
+    logger.info(s"got the payment callback with request: $callbackRequest")
+
+    declarationService
+      .processPaymentCallback(callbackRequest)
+      .fold(
+        {
+          case DeclarationNotFound =>
+            logger.warn(s"Declaration with params [$callbackRequest] not found")
+            NotFound
+          case e =>
+            logger.error(s"Error for Declaration with params [$callbackRequest] - [$e]]")
             InternalServerError("Something went wrong")
         },
         _ => Ok

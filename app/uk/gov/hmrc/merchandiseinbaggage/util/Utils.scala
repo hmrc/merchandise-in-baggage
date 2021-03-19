@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api
+package uk.gov.hmrc.merchandiseinbaggage.util
 
-import play.api.libs.json.{Json, OFormat}
+import scala.concurrent.Future
 
-import java.time.LocalDateTime
-
-case class Amendment(
-  reference: Int,
-  dateOfAmendment: LocalDateTime,
-  goods: DeclarationGoods,
-  maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
-  paymentStatus: Option[PaymentStatus] = None,
-  source: Option[String] = Some("Digital"),
-  emailsSent: Boolean = false
-)
-
-object Amendment {
-  implicit val format: OFormat[Amendment] = Json.using[Json.WithDefaultValues].format[Amendment]
+object Utils {
+  implicit class FutureOps[T](obj: T) {
+    def asFuture: Future[T] = Future.successful(obj)
+  }
 }

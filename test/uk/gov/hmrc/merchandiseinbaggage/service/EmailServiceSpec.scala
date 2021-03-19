@@ -26,8 +26,7 @@ import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
 
@@ -36,22 +35,50 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
 
   val emailService = new EmailService(emailConnector, declarationRepo)
 
-  "sendEmails must return result as expected" in {
+  "sendEmails" when {
+    "sending emails to new declarations" should {
+      "send" in {}
+    }
+  }
+
+  "sendEmails should handle New declarations" in {
     val declaration = aDeclaration
+    val declarationWithEmailSent = declaration.copy(emailsSent = true)
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *)
       .returns(Future.successful(202))
       .twice()
 
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(declaration.copy(emailsSent = true)).returns(Future.successful(declaration))
+    (declarationRepo
+      .upsertDeclaration(_: Declaration))
+      .expects(declarationWithEmailSent)
+      .returns(Future.successful(declarationWithEmailSent))
 
-    Await.result(emailService.sendEmails(declaration).value, 5.seconds) mustBe Right(())
+    emailService.sendEmails(declaration).value.futureValue mustBe Right(declarationWithEmailSent)
+  }
+
+  "sendEmails should handle Amended declarations" in {
+    val declaration = aDeclarationWithAmendment
+    val updatedAmendment = aAmendment.copy(emailsSent = true)
+    val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
+    (emailConnector
+      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *)
+      .returns(Future.successful(202))
+      .twice()
+
+    (declarationRepo
+      .upsertDeclaration(_: Declaration))
+      .expects(amendedDeclarationWithEmailSent)
+      .returns(Future.successful(amendedDeclarationWithEmailSent))
+
+    emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
   }
 
   "should not send emails if they are already sent" in {
     val declaration = aDeclaration.copy(emailsSent = true)
-    Await.result(emailService.sendEmails(declaration).value, 5.seconds) mustBe Right(())
+    emailService.sendEmails(declaration).value.futureValue mustBe Right(declaration)
   }
 
 }

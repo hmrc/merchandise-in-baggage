@@ -24,154 +24,144 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Impor
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
+import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
-  val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
-  val emailService: EmailService = mock[EmailService]
+  trait Fixture {
+    val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
+    val emailService: EmailService = mock[EmailService]
+    val auditConnector: AuditConnector = mock[AuditConnector]
 
-  private def mockEmails() =
-    (emailService
-      .sendEmails(_: Declaration)(_: HeaderCarrier))
-      .expects(*, *)
-      .returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
+    val declarationService = new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
-  def declarationService(auditConnector: AuditConnector) =
-    new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
+    def mockEmails(declaration: Declaration) =
+      (emailService
+        .sendEmails(_: Declaration, _: Option[Int])(_: HeaderCarrier))
+        .expects(*, *, *)
+        .returns(EitherT[Future, BusinessError, Declaration](Future.successful(Right(declaration))))
 
-  "persist a new Export declaration and trigger Audit" in {
-    val declaration = aDeclaration.copy(declarationType = Export)
+    def mockAudit() =
+      (auditConnector
+        .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(*, *, *)
+        .returning(Success.asFuture)
+        .atLeastOnce()
 
-    (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-    mockEmails()
+    def mockDeclarationInsert(declaration: Declaration) =
+      (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
-    val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val service = declarationService(testAuditConnector)
-
-    testAuditConnector.audited.isDefined mustBe false
-
-    service.persistDeclaration(declaration).futureValue mustBe declaration
-    testAuditConnector.audited.isDefined mustBe true
+    def mockFindBy(declaration: Option[Declaration], mibReference: MibReference, amendmentReference: Option[Int] = None) =
+      (declarationRepo
+        .findBy(_: MibReference, _: Option[Int]))
+        .expects(mibReference, amendmentReference)
+        .returns(Future.successful(declaration))
   }
 
-  "persist a Amend Export declaration and trigger Audit" in {
-    val declaration = aDeclarationWithAmendment.copy(declarationType = Export)
+  "persistDeclaration" should {
+    "persist an Export and trigger email and audit" in new Fixture {
+      val declaration = aDeclaration.copy(declarationType = Export)
 
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-    mockEmails()
+      mockDeclarationInsert(declaration)
+      mockEmails(declaration)
+      mockAudit()
 
-    val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val service = declarationService(testAuditConnector)
+      declarationService.persistDeclaration(declaration).futureValue mustBe declaration
+    }
 
-    testAuditConnector.audited.isDefined mustBe false
-
-    service.amendDeclaration(declaration).futureValue mustBe declaration
-    testAuditConnector.audited.isDefined mustBe true
-  }
-
-  "persist a new Import declaration" should {
-    "NOT trigger Audit and Emails for non zero payments" in {
+    "persist an Import and NOT trigger Audit and Emails for non zero payments" in new Fixture {
       val declaration = aDeclaration
 
-      (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-
-      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      val service = declarationService(testAuditConnector)
-
-      testAuditConnector.audited.isDefined mustBe false
-
-      service.persistDeclaration(declaration).futureValue mustBe declaration
-      testAuditConnector.audited.isDefined mustBe false
+      mockDeclarationInsert(declaration)
+      declarationService.persistDeclaration(declaration).futureValue mustBe declaration
     }
 
-    "trigger Audit and Emails for zero payments" in {
+    "persist an Import and trigger Audit and Emails for zero payments" in new Fixture {
       val declaration = aDeclaration.copy(declarationType = Import, maybeTotalCalculationResult = Some(zeroTotalCalculationResult))
 
-      (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-      mockEmails()
-
-      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      val service = declarationService(testAuditConnector)
-      testAuditConnector.audited.isDefined mustBe false
-
-      service.persistDeclaration(declaration).futureValue mustBe declaration
-      testAuditConnector.audited.isDefined mustBe true
+      mockDeclarationInsert(declaration)
+      mockEmails(declaration)
+      mockAudit()
+      declarationService.persistDeclaration(declaration).futureValue mustBe declaration
     }
   }
 
-  "Persist an Amend declaration" should {
-    "NOT trigger Audit and Emails for non zero amendment payments" in {
-      val declaration = aDeclarationWithAmendment
+  "AmendDeclaration" should {
+    "persist an Export and trigger email and audit" in new Fixture {
+      val declaration = aDeclarationWithAmendment.copy(declarationType = Export)
 
       (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      mockEmails(declaration)
 
-      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      val service = declarationService(testAuditConnector)
-
-      testAuditConnector.audited.isDefined mustBe false
-
-      service.amendDeclaration(declaration).futureValue mustBe declaration
-      testAuditConnector.audited.isDefined mustBe false
+      declarationService.amendDeclaration(declaration).futureValue mustBe declaration
     }
 
-    "trigger Audit and Emails for zero payments" in {
+    "NOT trigger Audit and Emails for non zero amendment payments" in new Fixture {
+      val declaration = aDeclarationWithAmendment
+      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      declarationService.amendDeclaration(declaration).futureValue mustBe declaration
+    }
+
+    "trigger Audit and Emails for zero payments" in new Fixture {
       val declaration = aDeclarationWithAmendment.copy(amendments = Seq(aAmendmentWithNoTax))
 
       (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-      mockEmails()
-
-      val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      val service = declarationService(testAuditConnector)
-      testAuditConnector.audited.isDefined mustBe false
-
-      service.amendDeclaration(declaration).futureValue mustBe declaration
-      testAuditConnector.audited.isDefined mustBe true
+      mockEmails(declaration)
+      declarationService.amendDeclaration(declaration).futureValue mustBe declaration
     }
   }
 
-  "find a declaration by id or returns not found" in {
+  "find a declaration by id or returns not found" in new Fixture {
     val declaration: Declaration = aDeclaration
-    val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val service = declarationService(testAuditConnector)
 
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
-    service.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Right(declaration)
+    declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Right(declaration)
 
     (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(None))
-    service.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
+    declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
   }
 
-  "find a declaration by mibReference or returns not found" in {
+  "find a declaration by mibReference or returns not found" in new Fixture {
     val declaration: Declaration = aDeclaration
-    val testAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val service = declarationService(testAuditConnector)
+    mockFindBy(Some(declaration), declaration.mibReference, None)
+    declarationService.findBy(declaration.mibReference).value.futureValue mustBe Right(declaration)
 
-    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
-    service.findByMibReference(declaration.mibReference).value.futureValue mustBe Right(declaration)
-
-    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(None))
-    service.findByMibReference(declaration.mibReference).value.futureValue mustBe Left(DeclarationNotFound)
+    mockFindBy(None, declaration.mibReference, None)
+    declarationService.findBy(declaration.mibReference).value.futureValue mustBe Left(DeclarationNotFound)
   }
 
-  "processPaymentCallback triggers email delivery, update paymentSuccess flag and trigger Audit" in {
-    val testAuditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-    val declarationService = new DeclarationService(declarationRepo, emailService, testAuditConnector, messagesApi)
-    val declaration = aDeclaration
+  "processPaymentCallback for new declarations " should {
+    "triggers email delivery, update paymentSuccess flag and trigger Audit" in new Fixture {
+      val declaration = aDeclaration
 
-    (declarationRepo.findByMibReference(_: MibReference)).expects(declaration.mibReference).returns(Future.successful(Some(declaration)))
-    (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
-    (emailService
-      .sendEmails(_: Declaration)(_: HeaderCarrier))
-      .expects(*, *)
-      .returns(EitherT[Future, BusinessError, Unit](Future.successful(Right(()))))
+      mockFindBy(Some(declaration), declaration.mibReference, None)
+      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      mockEmails(declaration)
+      mockAudit()
 
-    Await.result(declarationService.processPaymentCallback(declaration.mibReference).value, 5.seconds) mustBe Right(())
-    testAuditConnector.audited.isDefined mustBe true
+      declarationService.processPaymentCallback(declaration.mibReference).value.futureValue mustBe Right(declaration)
+    }
+  }
+
+  "processPaymentCallback for amend declarations " should {
+    "triggers email delivery, update paymentSuccess flag and trigger Audit" in new Fixture {
+      val declaration = aDeclarationWithAmendment
+
+      mockFindBy(Some(declaration), declaration.mibReference, Some(1))
+      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      mockEmails(declaration)
+      mockAudit()
+
+      declarationService
+        .processPaymentCallback(PaymentCallbackRequest(declaration.mibReference.value, Some(1)))
+        .value
+        .futureValue mustBe Right(declaration)
+    }
   }
 }

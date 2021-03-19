@@ -32,13 +32,14 @@ import scala.util.control.NonFatal
 
 @ImplementedBy(classOf[DeclarationRepositoryImpl])
 trait DeclarationRepository {
+
   def insertDeclaration(declaration: Declaration): Future[Declaration]
 
   def upsertDeclaration(declaration: Declaration): Future[Declaration]
 
   def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]]
 
-  def findByMibReference(mibReference: MibReference): Future[Option[Declaration]]
+  def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]]
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]]
 
@@ -83,9 +84,18 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
     find(query).map(_.headOption)
   }
 
-  override def findByMibReference(mibReference: MibReference): Future[Option[Declaration]] = {
-    val query: (String, JsValueWrapper) = "mibReference" -> JsString(mibReference.value)
-    find(query).map(_.headOption)
+  override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] = {
+    val query =
+      amendmentReference match {
+        case Some(reference) =>
+          Json.obj(
+            "mibReference" -> mibReference.value,
+            "amendments"   -> Json.obj("$elemMatch" -> Json.parse(s"""{"reference": $reference}"""))
+          )
+        case None => Json.obj("mibReference" -> mibReference.value)
+      }
+
+    collection.find(query, None).one[Declaration]
   }
 
   override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {

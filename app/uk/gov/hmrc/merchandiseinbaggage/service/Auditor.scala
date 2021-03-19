@@ -20,7 +20,7 @@ import play.api.Logger
 import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.api.libs.json.Json.toJson
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, Declaration}
 import uk.gov.hmrc.merchandiseinbaggage.model.audit.RefundableDeclaration
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Disabled, Failure, Success}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -37,10 +37,10 @@ trait Auditor {
 
   private val logger = Logger(this.getClass)
 
-  def auditDeclarationComplete(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] =
+  def auditDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val eventType = if (declaration.amendments.isEmpty) "DeclarationComplete" else "DeclarationAmended"
     auditConnector
-      .sendExtendedEvent(
-        ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = "DeclarationComplete", detail = toJson(declaration)))
+      .sendExtendedEvent(ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = eventType, detail = toJson(declaration)))
       .recover {
         case NonFatal(e) => Failure(e.getMessage)
       }
@@ -53,14 +53,21 @@ trait Auditor {
           case Failure(message, _) =>
             logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
         }
-
-        status
+        ()
       }
+  }
 
-  def auditRefundableDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    val refundableDeclarations: Option[Seq[RefundableDeclaration]] =
-      declaration.maybeTotalCalculationResult.map { calc =>
-        calc.calculationResults.calculationResults.map { calculationResult =>
+  def auditRefundableDeclaration(declaration: Declaration, amendment: Option[Amendment] = None)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] = {
+    val refundableDeclarations: Option[Seq[RefundableDeclaration]] = {
+      val maybeCalculationResults =
+        amendment
+          .flatMap(_.maybeTotalCalculationResult.map(_.calculationResults.calculationResults))
+          .orElse(declaration.maybeTotalCalculationResult.map(_.calculationResults.calculationResults))
+
+      maybeCalculationResults.map { calculationResults =>
+        calculationResults.map { calculationResult =>
           RefundableDeclaration(
             declaration.mibReference,
             declaration.nameOfPersonCarryingTheGoods.toString,
@@ -79,6 +86,7 @@ trait Auditor {
           )
         }
       }
+    }
 
     refundableDeclarations.fold(Seq(Future.successful(()))) { declarations =>
       declarations.map { refund =>
