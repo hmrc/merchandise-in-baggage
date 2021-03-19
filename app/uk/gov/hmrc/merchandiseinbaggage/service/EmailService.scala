@@ -26,11 +26,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationType, ExportGoods, ImportGoods}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
-import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils._
+import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
+import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,43 +44,71 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
   val messagesEN: Messages = MessagesImpl(Lang("en"), messagesApi)
   val messagesCY: Messages = MessagesImpl(Lang("cy"), messagesApi)
 
-  def sendEmails(declaration: Declaration)(implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Unit] = {
+  def sendEmails(declaration: Declaration, amendmentReference: Option[Int] = None)(
+    implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] = {
+
     implicit val messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
 
-    val result: Future[Either[BusinessError, Unit]] = {
-      if (declaration.emailsSent) {
+    EitherT(
+      if (emailsSent(declaration, amendmentReference)) {
         logger.warn(s"emails are already sent for declaration: ${declaration.mibReference.value}")
-        Future.successful(Right(()))
+        declaration.asRight.asFuture
       } else {
         val emailToBF = emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce"))
         val emailToTrader = declaration.email match {
           case Some(email) => emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader"))
-          case None        => Future.successful(ACCEPTED)
+          case None        => ACCEPTED.asFuture
         }
 
         (emailToBF, emailToTrader).mapN { (bfResponse, trResponse) =>
           (bfResponse, trResponse) match {
             case (ACCEPTED, ACCEPTED) =>
-              declarationRepository
-                .upsertDeclaration(declaration.copy(emailsSent = true))
-                .map(_ => Right(()))
+              updateDeclarationWithEmailSent(declaration, amendmentReference).map(_.asRight)
             case (s1, s2) =>
               val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
               PagerDutyHelper.alert(Some(message))
-              Future.successful(Left(EmailSentError(message)))
+              EmailSentError(message).asLeft.asFuture
           }
         }.flatten
       }
+    )
+  }
+
+  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int] = None): Future[Declaration] = {
+    val updatedDeclaration = amendmentReference match {
+      case Some(reference) =>
+        val updatedAmendments = declaration.amendments.map { amendment =>
+          amendment.reference match {
+            case r if r == reference => amendment.copy(emailsSent = true)
+            case _                   => amendment
+          }
+        }
+        declaration.copy(amendments = updatedAmendments)
+
+      case None => declaration.copy(emailsSent = true)
     }
 
-    EitherT(result)
+    declarationRepository.upsertDeclaration(updatedDeclaration)
   }
+
+  private def emailsSent(declaration: Declaration, amendmentReference: Option[Int]): Boolean =
+    amendmentReference match {
+      case Some(reference) =>
+        declaration.amendments.find(_.reference == reference) match {
+          case Some(amendment) => amendment.emailsSent
+          case None            => true //no amendment found for given amendmentReference, do not trigger emails
+        }
+      case None => declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
+    }
 
   private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String)(
     implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
-    val goodsParams = declarationGoods.goods.zipWithIndex
+    val paidAmendmentGoods = amendments.filter(_.paymentStatus.contains(Paid)).flatMap(_.goods.goods)
+    val allGoods = declarationGoods.goods ++ paidAmendmentGoods
+
+    val goodsParams = allGoods.zipWithIndex
       .map { goodsWithIdx =>
         val (goods, idx) = goodsWithIdx
         goods match {

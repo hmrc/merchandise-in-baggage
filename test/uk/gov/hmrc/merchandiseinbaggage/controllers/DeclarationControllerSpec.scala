@@ -17,125 +17,129 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
+import cats.implicits._
+import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
-import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
-import uk.gov.hmrc.merchandiseinbaggage.service.{DeclarationService, EmailService}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, PaymentCallbackRequest}
+import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
+import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
 
-class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration {
+class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration with MockFactory {
+
+  private val declarationService = mock[DeclarationService]
+
+  val controller = new DeclarationController(declarationService, component)
 
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
-      val eventualResult = controller.onDeclarations()(postRequest)
+    (declarationService
+      .persistDeclaration(_: Declaration)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *)
+      .returning(declaration.asFuture)
 
-      status(eventualResult) mustBe 201
-      contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
-    }
+    val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
+    val eventualResult = controller.onDeclarations()(postRequest)
+
+    status(eventualResult) mustBe 201
+    contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
   }
 
-  "amendDeclaration will persist the declaration returning 201 + declaration id" in {
+  "amendDeclaration will persist the declaration returning 200 + declaration id" in {
     val declaration = aDeclarationWithAmendment
-    setUp(Right(declaration)) { controller =>
-      val postRequest = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
-      val eventualResult = controller.amendDeclaration()(postRequest)
+    (declarationService
+      .amendDeclaration(_: Declaration)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *)
+      .returning(declaration.asFuture)
 
-      status(eventualResult) mustBe 200
-      contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
-    }
+    val postRequest = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
+    val eventualResult = controller.amendDeclaration()(postRequest)
+
+    status(eventualResult) mustBe 200
+    contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
   }
 
   "on retrieve will return declaration for a given id" in {
     val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
-      val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
+    (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(declaration.asRight.asFuture))
 
-      status(eventualResult) mustBe 200
-      contentAsJson(eventualResult) mustBe Json.toJson(declaration)
-    }
+    val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+    val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
+
+    status(eventualResult) mustBe 200
+    contentAsJson(eventualResult) mustBe Json.toJson(declaration)
   }
 
   "findBy MibRef and Eori" should {
     "return a success response" in {
       val declaration = aDeclaration
-      setUp(Right(declaration)) { controller =>
-        val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
-        val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+      (declarationService.findBy(_: MibReference, _: Eori)).expects(*, *).returning(EitherT(declaration.asRight.asFuture))
 
-        status(eventualResult) mustBe 200
-        contentAsJson(eventualResult) mustBe Json.toJson(declaration)
-      }
+      val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+      val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+
+      status(eventualResult) mustBe 200
+      contentAsJson(eventualResult) mustBe Json.toJson(declaration)
     }
+
     "return 404 if not found for a given mibRef and Eori" in {
       val declaration = aDeclaration
-      setUp(Left(DeclarationNotFound)) { controller =>
-        val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
-        val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+      (declarationService.findBy(_: MibReference, _: Eori)).expects(*, *).returning(EitherT(DeclarationNotFound.asLeft.asFuture))
 
-        status(eventualResult) mustBe 404
-      }
+      val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+      val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
+
+      status(eventualResult) mustBe 404
     }
   }
 
-  "/payment-callback should trigger email delivery and update paymentSuccess flag" in {
+  "GET /payment-callback should trigger email delivery and update paymentSuccess flag" in {
     val declaration = aDeclaration
-    setUp(Right(declaration)) { controller =>
-      val postRequest = buildPost(routes.DeclarationController.paymentSuccessCallback(declaration.mibReference.value).url)
-      val eventualResult = controller.paymentSuccessCallback(declaration.mibReference.value)(postRequest)
+    (declarationService
+      .processPaymentCallback(_: MibReference)(_: HeaderCarrier))
+      .expects(*, *)
+      .returning(EitherT(declaration.asRight.asFuture))
+    val postRequest = buildPost(routes.DeclarationController.paymentSuccessCallback(declaration.mibReference.value).url)
+    val eventualResult = controller.paymentSuccessCallback(declaration.mibReference.value)(postRequest)
+
+    status(eventualResult) mustBe 200
+  }
+
+  "POST /payment-callback" should {
+    "return 200 when declaration is found" in {
+      val declaration = aDeclaration
+      (declarationService
+        .processPaymentCallback(_: PaymentCallbackRequest)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT(declaration.asRight.asFuture))
+
+      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback().url)
+        .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
+
+      val eventualResult = controller.handlePaymentCallback(postRequest)
 
       status(eventualResult) mustBe 200
     }
-  }
 
-  def setUp(stubbedPersistedDeclaration: Either[BusinessError, Declaration])(fn: DeclarationController => Any)(): Unit = {
-    val reactiveMongo = new ReactiveMongoComponent {
-      override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri)
+    "return 404 when declaration is not found" in {
+      (declarationService
+        .processPaymentCallback(_: PaymentCallbackRequest)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT(DeclarationNotFound.asLeft.asFuture))
+
+      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback().url)
+        .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
+
+      val eventualResult = controller.handlePaymentCallback(postRequest)
+
+      status(eventualResult) mustBe 404
     }
-
-    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
-    val auditConnector = injector.instanceOf[AuditConnector]
-
-    val emailConnector = new EmailConnector {
-      override def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
-        Future.successful(202)
-    }
-
-    val emailService = new EmailService(emailConnector, repository)
-
-    val declarationService = new DeclarationService(repository, emailService, auditConnector, messagesApi) {
-      override def persistDeclaration(paymentRequest: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Declaration] =
-        Future.successful(stubbedPersistedDeclaration.right.get)
-
-      override def upsertDeclaration(declaration: Declaration): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
-
-      override def findByDeclarationId(declarationId: DeclarationId): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
-
-      override def findByMibReference(mibReference: MibReference): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
-
-      override def findBy(mibReference: MibReference, eori: Eori): EitherT[Future, BusinessError, Declaration] =
-        EitherT[Future, BusinessError, Declaration](Future.successful(stubbedPersistedDeclaration))
-    }
-
-    val controller = new DeclarationController(declarationService, component)
-
-    fn(controller)
   }
 }

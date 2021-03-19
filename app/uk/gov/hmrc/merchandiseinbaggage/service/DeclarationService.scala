@@ -86,8 +86,8 @@ class DeclarationService @Inject()(
     emailService
       .sendEmails(declaration)
       .fold(
-        _ => auditDeclarationComplete(declaration.copy(emailsSent = false)),
-        _ => auditDeclarationComplete(declaration.copy(emailsSent = true))
+        _ => auditDeclaration(declaration.copy(emailsSent = false)),
+        _ => auditDeclaration(declaration.copy(emailsSent = true))
       )
       .flatten
 
@@ -97,20 +97,63 @@ class DeclarationService @Inject()(
   def findByDeclarationId(declarationId: DeclarationId): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findByDeclarationId(declarationId), DeclarationNotFound)
 
-  def findByMibReference(mibReference: MibReference): EitherT[Future, BusinessError, Declaration] =
-    EitherT.fromOptionF(declarationRepository.findByMibReference(mibReference), DeclarationNotFound)
+  def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): EitherT[Future, BusinessError, Declaration] =
+    EitherT.fromOptionF(declarationRepository.findBy(mibReference, amendmentReference), DeclarationNotFound)
 
   def findBy(mibReference: MibReference, eori: Eori): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findBy(mibReference, eori), DeclarationNotFound)
 
-  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Unit] =
+  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] =
     for {
-      foundDeclaration   <- findByMibReference(mibRef)
+      foundDeclaration   <- findBy(mibRef)
       updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
       emailResponse      <- emailService.sendEmails(updatedDeclaration)
-      _                  <- EitherT(auditDeclarationComplete(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
+      _                  <- EitherT(auditDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
       _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
     } yield {
       emailResponse
     }
+
+  def processPaymentCallback(paymentCallbackRequest: PaymentCallbackRequest)(
+    implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] = {
+
+    val mibReference = MibReference(paymentCallbackRequest.chargeReference)
+    val amendmentReference = paymentCallbackRequest.amendmentReference
+
+    def updatePaymentStatus(declaration: Declaration) = {
+      val updatedDeclaration = amendmentReference match {
+        case Some(reference) =>
+          val updatedAmendments = declaration.amendments.map { amendment =>
+            amendment.reference match {
+              case r if r == reference => amendment.copy(paymentStatus = Some(Paid))
+              case _                   => amendment
+            }
+          }
+          declaration.copy(amendments = updatedAmendments)
+
+        case None => declaration.copy(paymentStatus = Some(Paid))
+      }
+      upsertDeclaration(updatedDeclaration)
+    }
+
+    def audit(declaration: Declaration) = {
+      val mayBeAmendment = amendmentReference.flatMap(reference => declaration.amendments.find(_.reference == reference))
+
+      EitherT[Future, BusinessError, Unit](
+        (
+          auditDeclaration(declaration),
+          auditRefundableDeclaration(declaration, mayBeAmendment)
+        ).mapN((_, _) => Right(()))
+      )
+    }
+
+    for {
+      foundDeclaration        <- findBy(mibReference, amendmentReference)
+      updatedDeclaration      <- updatePaymentStatus(foundDeclaration)
+      emailUpdatedDeclaration <- emailService.sendEmails(updatedDeclaration, amendmentReference)
+      _                       <- audit(emailUpdatedDeclaration)
+    } yield {
+      emailUpdatedDeclaration
+    }
+  }
 }

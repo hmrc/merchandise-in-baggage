@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api
+package uk.gov.hmrc.merchandiseinbaggage.model.core
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json}
 
-import java.time.LocalDateTime
+case class PaymentCallbackRequest(chargeReference: String, amendmentReference: Option[Int] = None)
 
-case class Amendment(
-  reference: Int,
-  dateOfAmendment: LocalDateTime,
-  goods: DeclarationGoods,
-  maybeTotalCalculationResult: Option[TotalCalculationResult] = None,
-  paymentStatus: Option[PaymentStatus] = None,
-  source: Option[String] = Some("Digital"),
-  emailsSent: Boolean = false
-)
-
-object Amendment {
-  implicit val format: OFormat[Amendment] = Json.using[Json.WithDefaultValues].format[Amendment]
+object PaymentCallbackRequest {
+  implicit val format: Format[PaymentCallbackRequest] = Json.format[PaymentCallbackRequest]
 }

@@ -57,7 +57,8 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with 
         "play.http.router"                               -> "testOnlyDoNotUseInAppConf.Routes",
         "microservice.services.currency-conversion.port" -> WireMock.port,
         "microservice.services.email.port"               -> WireMock.port,
-        "microservice.services.eori-check.port"          -> WireMock.port
+        "microservice.services.eori-check.port"          -> WireMock.port,
+        "mongodb.uri"                                    -> "mongodb://localhost:27017/merchandise-in-baggage-test"
       ))
       .build()
 

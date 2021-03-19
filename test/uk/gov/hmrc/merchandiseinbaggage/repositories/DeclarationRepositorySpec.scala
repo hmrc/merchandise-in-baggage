@@ -80,7 +80,7 @@ class DeclarationRepositorySpec
       insertResult mustBe declaration
     }
 
-    whenReady(repository.findByMibReference(declaration.mibReference)) { findResult =>
+    whenReady(repository.findBy(declaration.mibReference)) { findResult =>
       findResult mustBe Some(declaration)
     }
   }
