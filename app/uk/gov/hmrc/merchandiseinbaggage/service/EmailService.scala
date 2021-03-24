@@ -26,6 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
+import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
@@ -74,7 +75,7 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
     )
   }
 
-  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int] = None): Future[Declaration] = {
+  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int]): Future[Declaration] = {
     val updatedDeclaration = amendmentReference match {
       case Some(reference) =>
         val updatedAmendments = declaration.amendments.map { amendment =>
@@ -105,8 +106,17 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
     implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
-    val paidAmendmentGoods = amendments.filter(_.paymentStatus.contains(Paid)).flatMap(_.goods.goods)
-    val allGoods = declarationGoods.goods ++ paidAmendmentGoods
+    val amendmentGoods = {
+      declarationType match {
+        case Import =>
+          amendments
+            .filter(a => a.paymentStatus.contains(Paid) || a.paymentStatus.contains(NotRequired))
+            .flatMap(_.goods.goods)
+        case Export => amendments.flatMap(_.goods.goods)
+      }
+    }
+
+    val allGoods = declarationGoods.goods ++ amendmentGoods
 
     val goodsParams = allGoods.zipWithIndex
       .map { goodsWithIdx =>
@@ -139,38 +149,63 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
       "eori"                      -> eori.value
     )
 
-    val calculationParams = {
-      maybeTotalCalculationResult match {
-        case Some(total) =>
-          Map(
-            "customsDuty" -> total.totalDutyDue.formattedInPounds,
-            "vat"         -> total.totalVatDue.formattedInPounds,
-            "total"       -> total.totalTaxDue.formattedInPounds
-          )
-
-        case None => Map.empty
-      }
-    }
-
     val allParams =
       if (declarationType == DeclarationType.Import)
-        goodsParams ++ commonParams ++ calculationParams
+        goodsParams ++ commonParams ++ paymentParams(declaration)
       else
         goodsParams ++ commonParams
 
+    val journeyType = if (amendments.isEmpty) New else Amend
+
     DeclarationEmailInfo(
       Seq(emailTo),
-      templateId(lang, declarationType),
+      templateId(lang, declarationType, journeyType),
       allParams
     )
   }
 
-  private def templateId(lang: String, declarationType: DeclarationType): String = {
-    val importTemplate = if (lang == "en") "mods_import_declaration" else "mods_import_declaration_cy"
-    val exportTemplate = if (lang == "en") "mods_export_declaration" else "mods_export_declaration_cy"
-    if (declarationType == DeclarationType.Import)
-      importTemplate
-    else
-      exportTemplate
+  private def templateId(lang: String, declarationType: DeclarationType, journeyType: JourneyType): String = {
+
+    val templateId = (declarationType, journeyType) match {
+      case (Import, New)   => "mods_import_declaration"
+      case (Import, Amend) => "mods_amend_import_declaration"
+      case (Export, New)   => "mods_export_declaration"
+      case (Export, Amend) => "mods_amend_export_declaration"
+    }
+
+    if (lang == "en") {
+      templateId
+    } else {
+      templateId + "_cy"
+    }
+  }
+
+  case class PaymentMade(totalDutyDue: AmountInPence, totalVatDue: AmountInPence, totalTaxDue: AmountInPence)
+
+  private def paymentParams(declaration: Declaration) = {
+
+    def paymentForCalculation(maybeTotalCalculationResult: Option[TotalCalculationResult]) =
+      maybeTotalCalculationResult match {
+        case Some(total) => PaymentMade(total.totalDutyDue, total.totalVatDue, total.totalTaxDue)
+        case None        => PaymentMade(AmountInPence(0), AmountInPence(0), AmountInPence(0))
+      }
+
+    val declarationPayment = paymentForCalculation(declaration.maybeTotalCalculationResult)
+
+    val amendmentPayments = declaration.amendments
+      .filter(a => a.paymentStatus.contains(Paid) || a.paymentStatus.contains(NotRequired))
+      .map(a => paymentForCalculation(a.maybeTotalCalculationResult))
+
+    val totalPaymentsMade = (declarationPayment +: amendmentPayments)
+
+    val totalCustomsDuty = AmountInPence(totalPaymentsMade.map(_.totalDutyDue.value).sum)
+    val totalVat = AmountInPence(totalPaymentsMade.map(_.totalVatDue.value).sum)
+    val totalTax = AmountInPence(totalPaymentsMade.map(_.totalTaxDue.value).sum)
+
+    Map(
+      "customsDuty" -> totalCustomsDuty.formattedInPounds,
+      "vat"         -> totalVat.formattedInPounds,
+      "total"       -> totalTax.formattedInPounds
+    )
   }
 }
