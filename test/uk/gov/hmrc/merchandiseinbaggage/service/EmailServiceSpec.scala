@@ -22,7 +22,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Declaration
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -81,6 +81,28 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   "sendEmails should handle Amended Import declarations" in {
     val declaration = aDeclarationWithAmendment
     val updatedAmendment = aAmendment.copy(emailsSent = true)
+    val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
+    (emailConnector
+      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
+        emailInfo.templateId == "mods_amend_import_declaration" &&
+        emailInfo.parameters.get("total").value == "£1.00"
+      })
+      .returns(Future.successful(202))
+      .twice()
+
+    (declarationRepo
+      .upsertDeclaration(_: Declaration))
+      .expects(amendedDeclarationWithEmailSent)
+      .returns(Future.successful(amendedDeclarationWithEmailSent))
+
+    emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+  }
+
+  "sendEmails should consider only paid amendments" in {
+    val paidAmendment = aAmendment.copy(paymentStatus = Some(Paid))
+    val declaration = aDeclaration.copy(amendments = Seq(paidAmendment))
+    val updatedAmendment = paidAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))

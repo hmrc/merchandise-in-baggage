@@ -75,7 +75,7 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
     )
   }
 
-  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int] = None): Future[Declaration] = {
+  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int]): Future[Declaration] = {
     val updatedDeclaration = amendmentReference match {
       case Some(reference) =>
         val updatedAmendments = declaration.amendments.map { amendment =>
@@ -155,21 +155,22 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
       else
         goodsParams ++ commonParams
 
+    val journeyType = if (amendments.isEmpty) New else Amend
+
     DeclarationEmailInfo(
       Seq(emailTo),
-      templateId(lang, declarationType, amendments),
+      templateId(lang, declarationType, journeyType),
       allParams
     )
   }
 
-  private def templateId(lang: String, declarationType: DeclarationType, amendments: Seq[Amendment]): String = {
-    val isAmendJourney = amendments.nonEmpty
+  private def templateId(lang: String, declarationType: DeclarationType, journeyType: JourneyType): String = {
 
-    val templateId = (declarationType, isAmendJourney) match {
-      case (Import, false) => "mods_import_declaration"
-      case (Import, true)  => "mods_amend_import_declaration"
-      case (Export, false) => "mods_export_declaration"
-      case (Export, true)  => "mods_amend_export_declaration"
+    val templateId = (declarationType, journeyType) match {
+      case (Import, New)   => "mods_import_declaration"
+      case (Import, Amend) => "mods_amend_import_declaration"
+      case (Export, New)   => "mods_export_declaration"
+      case (Export, Amend) => "mods_amend_export_declaration"
     }
 
     if (lang == "en") {
@@ -191,7 +192,9 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
 
     val declarationPayment = paymentForCalculation(declaration.maybeTotalCalculationResult)
 
-    val amendmentPayments = declaration.amendments.map(a => paymentForCalculation(a.maybeTotalCalculationResult))
+    val amendmentPayments = declaration.amendments
+      .filter(a => a.paymentStatus.contains(Paid) || a.paymentStatus.contains(NotRequired))
+      .map(a => paymentForCalculation(a.maybeTotalCalculationResult))
 
     val totalPaymentsMade = (declarationPayment +: amendmentPayments)
 
