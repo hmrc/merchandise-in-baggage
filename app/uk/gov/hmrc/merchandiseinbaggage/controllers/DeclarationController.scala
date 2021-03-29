@@ -106,7 +106,7 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
 
   def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async { implicit request =>
     val callbackRequest = request.body
-    logger.info(s"got the payment callback with request: $callbackRequest")
+    logger.warn(s"got the payment callback with request: $callbackRequest")
 
     declarationService
       .processPaymentCallback(callbackRequest)
