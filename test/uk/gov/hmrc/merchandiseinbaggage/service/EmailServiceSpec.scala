@@ -142,6 +142,27 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
     emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
   }
 
+  "sendEmails should use the correct language" in {
+    val amendment = aAmendment.copy(lang = "cy")
+    val declaration = aDeclaration.copy(declarationType = Export, amendments = Seq(amendment))
+    val updatedAmendment = amendment.copy(emailsSent = true)
+    val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
+    (emailConnector
+      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
+        emailInfo.templateId == "mods_amend_export_declaration_cy"
+      })
+      .returns(Future.successful(202))
+      .twice()
+
+    (declarationRepo
+      .upsertDeclaration(_: Declaration))
+      .expects(amendedDeclarationWithEmailSent)
+      .returns(Future.successful(amendedDeclarationWithEmailSent))
+
+    emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+  }
+
   "should not send emails if they are already sent" in {
     val declaration = aDeclaration.copy(emailsSent = true)
     emailService.sendEmails(declaration).value.futureValue mustBe Right(declaration)
