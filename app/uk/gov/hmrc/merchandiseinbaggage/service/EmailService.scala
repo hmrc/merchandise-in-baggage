@@ -55,9 +55,9 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
         logger.warn(s"emails are already sent for declaration: ${declaration.mibReference.value}")
         declaration.asRight.asFuture
       } else {
-        val emailToBF = emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce"))
+        val emailToBF = emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce", amendmentReference))
         val emailToTrader = declaration.email match {
-          case Some(email) => emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader"))
+          case Some(email) => emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader", amendmentReference))
           case None        => ACCEPTED.asFuture
         }
 
@@ -102,7 +102,7 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
       case None => declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
     }
 
-  private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String)(
+  private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String, amendmentReference: Option[Int])(
     implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
@@ -156,6 +156,15 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
         goodsParams ++ commonParams
 
     val journeyType = if (amendments.isEmpty) New else Amend
+
+    val lang = amendmentReference match {
+      case Some(reference) =>
+        declaration.amendments.find(_.reference == reference) match {
+          case Some(amendment) => amendment.lang
+          case None            => declaration.lang
+        }
+      case None => declaration.lang
+    }
 
     DeclarationEmailInfo(
       Seq(emailTo),
