@@ -30,9 +30,16 @@ import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
-  private val pactDir = "../merchandise-in-baggage-frontend/pact/"
+  private val pactDir = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-internal-frontend/pact/")
+
+  println("Running pacttest for: " + pactDir)
+
   private val contracts = new File(pactDir).listFiles()
-  val frontendContract = contracts.find(_.getAbsolutePath.contains("merchandise-in-baggage-frontend_merchandise-in-baggage")).get
+  val frontendContract: File = contracts
+    .find(_.getAbsolutePath.contains(pactDir))
+    .getOrElse(fail("contracts not found"))
+
+  println("Running pacttest found: " + frontendContract.getAbsolutePath)
 
   "Verifying Consumer Contracts" must {
     "be able to verify it's contracts" in {
