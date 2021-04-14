@@ -2,7 +2,9 @@
 
 chmod a+x checkincheck.sh
 
-PACT="../merchandise-in-baggage-frontend/pact/"
+
+pactlist=("../merchandise-in-baggage-frontend" "../merchandise-in-baggage-internal-frontend")
+
 
 contractsList() {
   for file in "$PACT"*; do
@@ -10,13 +12,24 @@ contractsList() {
   done
 }
 
+# clean build everything
+sbt clean test
 
-if [ -d $PACT ] && [ "$(ls -A $PACT)" ]; then
-  printf "#####################\nContracts found in $PACT \n"
-  contractsList
-  printf "Running tests including pact contract verifier... \n#####################\n"
-else
-  printf "#####################\nThere are not contract tests in $PACT. Running any other tests... \n#####################\n"
-fi
+for PACT in "${pactlist[@]}"; do
+    cd $PACT
+    sbt "testOnly *VerifyContractSpec;"
+done
 
-sbt "test; contractVerifier;"
+# contract test everything
+for PACT in "${pactlist[@]}"; do
+  export PACTTEST=$PACT/pact/
+  if [ -d $PACTTEST ] && [ "$(ls -A $PACTTEST)" ]; then
+    printf "#####################\nContracts found in $PACTTEST \n"
+    contractsList
+    printf "Running tests including pact contract verifier... \n#####################\n"
+    cd ../merchandise-in-baggage
+    sbt "contractVerifier;"
+  else
+    printf "#####################\nThere are not contract tests in $PACTTEST. Running any other tests... \n#####################\n"
+  fi
+done
