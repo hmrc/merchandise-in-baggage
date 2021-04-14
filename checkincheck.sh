@@ -17,7 +17,7 @@ sbt clean test
 
 for PACT in "${pactlist[@]}"; do
     cd $PACT
-    sbt clean test
+    sbt "testOnly *VerifyContractSpec;"
 done
 
 # contract test everything
