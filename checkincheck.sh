@@ -17,7 +17,8 @@ sbt clean test
 
 for PACT in "${pactlist[@]}"; do
     cd $PACT
-    sbt "testOnly *VerifyContractSpec;"
+    printf "#####################\nGenerating $PACT consumer contracts\n"
+    sbt "testOnly *ContractSpec;"
 done
 
 # contract test everything
