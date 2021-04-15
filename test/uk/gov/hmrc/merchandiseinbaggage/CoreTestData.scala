@@ -23,7 +23,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults, WithinThreshold}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
 
 trait CoreTestData {
@@ -38,6 +38,19 @@ trait CoreTestData {
     YesNoDontKnow.Yes,
     PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
   )
+
+  val aCategoryQuantityOfGoods: CategoryQuantityOfGoods = CategoryQuantityOfGoods("test good", "123")
+
+  val aPurchaseDetails: PurchaseDetails =
+    PurchaseDetails("199.99", Currency("EUR", "title.euro_eur", Some("EUR"), List("Europe", "European")))
+
+  val aExportGoods =
+    ExportGoods(
+      aCategoryQuantityOfGoods,
+      Country("ITA", "Itay", "IT", true, Nil),
+      aPurchaseDetails
+    )
+
   private val aDeclarationGoods = DeclarationGoods(Seq(aImportGoods))
   private val aName = Name("Terry", "Crews")
   private val anEori = Eori("eori-test")
@@ -47,7 +60,7 @@ trait CoreTestData {
   private val aCalculationResult = CalculationResult(aImportGoods, AmountInPence(100), AmountInPence(100), AmountInPence(100), None)
   private val aTotalCalculationResult =
     TotalCalculationResult(
-      CalculationResults(Seq(aCalculationResult)),
+      CalculationResults(Seq(aCalculationResult), WithinThreshold),
       AmountInPence(100),
       AmountInPence(100),
       AmountInPence(100),
@@ -55,7 +68,7 @@ trait CoreTestData {
 
   val zeroTotalCalculationResult =
     TotalCalculationResult(
-      CalculationResults(Seq(aCalculationResult)),
+      CalculationResults(Seq(aCalculationResult), WithinThreshold),
       AmountInPence(0),
       AmountInPence(0),
       AmountInPence(0),

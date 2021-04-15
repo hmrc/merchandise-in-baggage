@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
+import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
-import javax.inject.Inject
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,5 +38,17 @@ class CalculationController @Inject()(
         calculationService.calculate(req)
       }
       .map((results: Seq[CalculationResult]) => Ok(Json.toJson(results)))
+  }
+
+  def calculationResults: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
+    Future
+      .traverse(request.body) { req =>
+        calculationService.calculate(req)
+      }
+      .map((results: Seq[CalculationResult]) => {
+        // TODO fix this
+        val threshold = calculationService.calculateThreshold(results, request.body.headOption.map(_.destination).getOrElse(GreatBritain))
+        Ok(Json.toJson(CalculationResults(results, threshold)))
+      })
   }
 }
