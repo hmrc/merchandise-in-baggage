@@ -103,17 +103,6 @@ class DeclarationService @Inject()(
   def findBy(mibReference: MibReference, eori: Eori): EitherT[Future, BusinessError, Declaration] =
     EitherT.fromOptionF(declarationRepository.findBy(mibReference, eori), DeclarationNotFound)
 
-  def processPaymentCallback(mibRef: MibReference)(implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] =
-    for {
-      foundDeclaration   <- findBy(mibRef)
-      updatedDeclaration <- upsertDeclaration(foundDeclaration.copy(paymentStatus = Some(Paid)))
-      emailResponse      <- emailService.sendEmails(updatedDeclaration)
-      _                  <- EitherT(auditDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
-      _                  <- EitherT(auditRefundableDeclaration(updatedDeclaration.copy(emailsSent = true)).map[Either[BusinessError, Unit]](_ => Right(())))
-    } yield {
-      emailResponse
-    }
-
   def processPaymentCallback(paymentCallbackRequest: PaymentCallbackRequest)(
     implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] = {
 

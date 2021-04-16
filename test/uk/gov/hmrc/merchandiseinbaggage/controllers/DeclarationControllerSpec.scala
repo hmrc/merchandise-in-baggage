@@ -100,18 +100,6 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
   }
 
-  "GET /payment-callback should trigger email delivery and update paymentSuccess flag" in {
-    val declaration = aDeclaration
-    (declarationService
-      .processPaymentCallback(_: MibReference)(_: HeaderCarrier))
-      .expects(*, *)
-      .returning(EitherT(declaration.asRight.asFuture))
-    val postRequest = buildPost(routes.DeclarationController.paymentSuccessCallback(declaration.mibReference.value).url)
-    val eventualResult = controller.paymentSuccessCallback(declaration.mibReference.value)(postRequest)
-
-    status(eventualResult) mustBe 200
-  }
-
   "POST /payment-callback" should {
     "return 200 when declaration is found" in {
       val declaration = aDeclaration
