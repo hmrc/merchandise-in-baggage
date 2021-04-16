@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -33,14 +32,6 @@ class CalculationController @Inject()(
     extends BackendController(cc) {
 
   def handleCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
-    Future
-      .traverse(request.body) { req =>
-        calculationService.calculate(req)
-      }
-      .map((results: Seq[CalculationResult]) => Ok(Json.toJson(results)))
-  }
-
-  def calculationResults: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
     Future
       .traverse(request.body) { req =>
         calculationService.calculate(req)

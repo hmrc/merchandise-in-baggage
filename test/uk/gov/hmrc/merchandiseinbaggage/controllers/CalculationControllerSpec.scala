@@ -18,17 +18,17 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import java.time.LocalDate
 
+import com.softwaremill.quicklens._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.controllers.routes._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult, CalculationResults, OverThreshold, WithinThreshold}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import com.softwaremill.quicklens._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -61,9 +61,9 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val controller = new CalculationController(service(expectedResult), component)
     val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
 
-    val request = buildPost(CalculationController.calculationResults().url)
+    val request = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
-    val eventualResult = controller.calculationResults(request)
+    val eventualResult = controller.handleCalculations(request)
 
     status(eventualResult) mustBe 200
     contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(expectedResult), WithinThreshold))
@@ -74,9 +74,9 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val resultOver = expectedResult.modify(_.gbpAmount.value).setTo(15000001)
     val controller = new CalculationController(service(resultOver), component)
 
-    val request = buildPost(CalculationController.calculationResults().url)
+    val request = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
-    val eventualResult = controller.calculationResults(request)
+    val eventualResult = controller.handleCalculations(request)
 
     status(eventualResult) mustBe 200
     contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(resultOver), OverThreshold))
