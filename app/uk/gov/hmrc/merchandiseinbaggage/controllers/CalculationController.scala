@@ -46,8 +46,7 @@ class CalculationController @Inject()(
         calculationService.calculate(req)
       }
       .map((results: Seq[CalculationResult]) => {
-        // TODO fix this
-        val threshold = calculationService.calculateThreshold(results, request.body.headOption.map(_.destination).getOrElse(GreatBritain))
+        val threshold = calculationService.calculateThreshold(results, request.body.headOption.map(_.destination))
         Ok(Json.toJson(CalculationResults(results, threshold)))
       })
   }

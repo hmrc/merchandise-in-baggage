@@ -21,6 +21,7 @@ import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, GoodsDestination, YesNoDontKnow}
 
@@ -36,8 +37,8 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
       .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code, date))
 
   //TODO to be enhanced to handle exports too!
-  def calculateThreshold(calculationResults: Seq[CalculationResult], destination: GoodsDestination): ThresholdCheck =
-    if (calculationResults.map(_.gbpAmount.value).sum > destination.threshold.value) OverThreshold
+  def calculateThreshold(calculationResults: Seq[CalculationResult], destination: Option[GoodsDestination]): ThresholdCheck =
+    if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value) OverThreshold
     else WithinThreshold
 
   private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String, date: LocalDate)(

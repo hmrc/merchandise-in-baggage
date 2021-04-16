@@ -121,10 +121,11 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val importGoods = aImportGoods
     val results: Seq[CalculationResult] =
       Seq(
-        CalculationResult(importGoods, AmountInPence(150000), AmountInPence(0), AmountInPence(0), None)
+        CalculationResult(importGoods, AmountInPence(100000), AmountInPence(0), AmountInPence(0), None),
+        CalculationResult(importGoods, AmountInPence(50000), AmountInPence(0), AmountInPence(0), None)
       )
 
-    service.calculateThreshold(results, GreatBritain) mustBe WithinThreshold
-    service.calculateThreshold(results.modify(_.each.gbpAmount.value).setTo(150001), GreatBritain) mustBe OverThreshold
+    service.calculateThreshold(results, Some(GreatBritain)) mustBe WithinThreshold
+    service.calculateThreshold(results.modify(_.each.gbpAmount.value).setTo(150001), Some(GreatBritain)) mustBe OverThreshold
   }
 }
