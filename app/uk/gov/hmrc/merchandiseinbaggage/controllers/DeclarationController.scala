@@ -38,14 +38,16 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
   private val logger = Logger(this.getClass)
 
   def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
-    declarationService.persistDeclaration(request.body).map { dec =>
-      Created(toJson(dec.declarationId))
+    declarationService.persistDeclaration(request.body).map { declaration =>
+      logger.warn(s"new ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}")
+      Created(toJson(declaration.declarationId))
     }
   }
 
   def amendDeclaration(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
-    declarationService.amendDeclaration(request.body).map { dec =>
-      Ok(toJson(dec.declarationId))
+    declarationService.amendDeclaration(request.body).map { declaration =>
+      logger.warn(s"amend ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}")
+      Ok(toJson(declaration.declarationId))
     }
   }
 
