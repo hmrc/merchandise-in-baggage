@@ -88,24 +88,6 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
       )
   }
 
-  def paymentSuccessCallback(mibRef: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"got the payment callback for reference: $mibRef")
-
-    declarationService
-      .processPaymentCallback(MibReference(mibRef))
-      .fold(
-        {
-          case DeclarationNotFound =>
-            logger.warn(s"Declaration with MibReference [$mibRef] not found")
-            NotFound
-          case e =>
-            logger.error(s"Error for MibReference [$mibRef] - [$e]]")
-            InternalServerError("Something went wrong")
-        },
-        _ => Ok
-      )
-  }
-
   def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async { implicit request =>
     val callbackRequest = request.body
     logger.warn(s"got the payment callback with request: $callbackRequest")

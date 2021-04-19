@@ -10,8 +10,6 @@ GET         /declarations                       uk.gov.hmrc.merchandiseinbaggage
 
 POST        /calculations                       uk.gov.hmrc.merchandiseinbaggage.controllers.CalculationController.handleCalculations()
 
-GET         /payment-callback/:mibRef           uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.paymentSuccessCallback(mibRef: String)
-
 POST        /payment-callback                  uk.gov.hmrc.merchandiseinbaggage.controllers.DeclarationController.handlePaymentCallback
 
 GET         /validate/eori/:eoriNumber          uk.gov.hmrc.merchandiseinbaggage.controllers.EoriCheckNumberController.checkEoriNumber(eoriNumber: String)

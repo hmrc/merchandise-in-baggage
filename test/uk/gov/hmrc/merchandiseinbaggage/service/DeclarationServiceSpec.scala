@@ -136,8 +136,9 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     declarationService.findBy(declaration.mibReference).value.futureValue mustBe Left(DeclarationNotFound)
   }
 
-  "processPaymentCallback for new declarations " should {
-    "triggers email delivery, update paymentSuccess flag and trigger Audit" in new Fixture {
+  "processPaymentCallback" should {
+
+    "triggers emails, update paymentSuccess flag and triggers Audit for new declarations" in new Fixture {
       val declaration = aDeclaration
 
       mockFindBy(Some(declaration), declaration.mibReference, None)
@@ -145,12 +146,13 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
       mockEmails(declaration)
       mockAudit()
 
-      declarationService.processPaymentCallback(declaration.mibReference).value.futureValue mustBe Right(declaration)
+      declarationService
+        .processPaymentCallback(PaymentCallbackRequest(declaration.mibReference.value, None))
+        .value
+        .futureValue mustBe Right(declaration)
     }
-  }
 
-  "processPaymentCallback for amend declarations " should {
-    "triggers email delivery, update paymentSuccess flag and trigger Audit" in new Fixture {
+    "triggers emails, update paymentSuccess flag and triggers Audit for amend declarations" in new Fixture {
       val declaration = aDeclarationWithAmendment
 
       mockFindBy(Some(declaration), declaration.mibReference, Some(1))
