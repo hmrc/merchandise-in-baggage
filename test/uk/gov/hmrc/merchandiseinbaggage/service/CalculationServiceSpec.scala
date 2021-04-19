@@ -16,17 +16,19 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDate
 import java.time.LocalDate.now
+
 import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
-import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,7 +56,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
+    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item where origin is unknown" in {
@@ -76,7 +78,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
+    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
@@ -98,7 +100,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(0), AmountInPence(455), Some(period))
 
-    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
+    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
@@ -112,6 +114,18 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(500), None)
 
-    service.calculate(CalculationRequest(importGoods)).futureValue mustBe calculationResult
+    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
+  }
+
+  s"calculate $ThresholdCheck" in {
+    val importGoods = aImportGoods
+    val results: Seq[CalculationResult] =
+      Seq(
+        CalculationResult(importGoods, AmountInPence(100000), AmountInPence(0), AmountInPence(0), None),
+        CalculationResult(importGoods, AmountInPence(50000), AmountInPence(0), AmountInPence(0), None)
+      )
+
+    service.calculateThreshold(results, Some(GreatBritain)) mustBe WithinThreshold
+    service.calculateThreshold(results.modify(_.each.gbpAmount.value).setTo(150001), Some(GreatBritain)) mustBe OverThreshold
   }
 }

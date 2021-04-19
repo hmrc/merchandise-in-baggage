@@ -16,13 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import java.time.LocalDate
+
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResult}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, GoodsDestination, YesNoDontKnow}
 
-import java.time.LocalDate
-import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 
@@ -33,6 +35,11 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
     implicit hc: HeaderCarrier): Future[CalculationResult] =
     calculationRequest.goods.purchaseDetails.currency.valueForConversion
       .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code, date))
+
+  //TODO to be enhanced to handle exports too!
+  def calculateThreshold(calculationResults: Seq[CalculationResult], destination: Option[GoodsDestination]): ThresholdCheck =
+    if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value) OverThreshold
+    else WithinThreshold
 
   private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String, date: LocalDate)(
     implicit hc: HeaderCarrier): Future[CalculationResult] =

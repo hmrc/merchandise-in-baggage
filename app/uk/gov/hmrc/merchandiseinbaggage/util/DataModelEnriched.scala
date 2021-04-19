@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
+package uk.gov.hmrc.merchandiseinbaggage.util
 
-import play.api.libs.json._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.AmountInPence
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResults
 
-case class CalculationResults(calculationResults: Seq[CalculationResult], thresholdCheck: ThresholdCheck)
+object DataModelEnriched {
 
-object CalculationResults {
-  implicit val format: OFormat[CalculationResults] = Json.format[CalculationResults]
+  implicit class CalculationResultsEnriched(calculations: CalculationResults) {
+    import calculations._
+    def totalGbpValue: AmountInPence = AmountInPence(
+      calculationResults.map(_.gbpAmount.value).sum
+    )
+  }
 }

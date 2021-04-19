@@ -18,8 +18,21 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
 import play.api.libs.json._
 
-case class CalculationResults(calculationResults: Seq[CalculationResult], thresholdCheck: ThresholdCheck)
+sealed trait ThresholdCheck
+case object OverThreshold extends ThresholdCheck
+case object WithinThreshold extends ThresholdCheck
 
-object CalculationResults {
-  implicit val format: OFormat[CalculationResults] = Json.format[CalculationResults]
+object ThresholdCheck {
+  implicit val format: Format[ThresholdCheck] = new Format[ThresholdCheck] {
+    override def reads(json: JsValue): JsResult[ThresholdCheck] =
+      json.as[String] match {
+        case "OverThreshold"   => JsSuccess(OverThreshold)
+        case "WithinThreshold" => JsSuccess(WithinThreshold)
+      }
+
+    override def writes(o: ThresholdCheck): JsValue = o match {
+      case OverThreshold   => JsString("OverThreshold")
+      case WithinThreshold => JsString("WithinThreshold")
+    }
+  }
 }
