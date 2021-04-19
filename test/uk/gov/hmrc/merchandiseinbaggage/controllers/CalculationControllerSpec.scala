@@ -54,7 +54,7 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val eventualResult = controller.handleCalculations(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(Seq(expectedResult))
+    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(expectedResult), WithinThreshold))
   }
 
   s"handle multiple calculation requests returning $CalculationResults $WithinThreshold" in {
