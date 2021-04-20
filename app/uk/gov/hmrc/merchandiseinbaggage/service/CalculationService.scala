@@ -32,26 +32,38 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 @Singleton
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
-  def calculate(calculationRequest: CalculationRequest, date: LocalDate = LocalDate.now())(
-    implicit hc: HeaderCarrier): Future[CalculationResult] = {
-    calculationRequest.goods match {
-      case importGoods: ImportGoods =>
-        calculationRequest.goods.purchaseDetails.currency.valueForConversion
-          .fold(Future(calculation(importGoods, BigDecimal(1), None)))(code => findRateAndCalculate(importGoods, code, date))
-      case exportGoods: ExportGoods => Future(
-        CalculationResult(calculationRequest.goods.asInstanceOf[ImportGoods],
-          AmountInPence(0), AmountInPence(0), AmountInPence(0), None) //TODO not valid
-      )
+  def calculate(calculationRequests: Seq[CalculationRequest])(implicit hc: HeaderCarrier): Future[CalculationResults] =
+    calculationRequests.headOption.map(_.goods) match {
+      case Some(importGoods: ImportGoods) =>
+        importsResults(calculationRequests).map { results =>
+          val threshold = calculateThresholdImport(results, calculationRequests.headOption.map(_.destination))
+          CalculationResults(results, threshold)
+        }
+
+      case Some(exportGoods: ExportGoods) =>
+        Future(
+          CalculationResults(
+            Seq.empty,
+            calculateThresholdExport(calculationRequests.map(_.goods), calculationRequests.headOption.map(_.destination))))
+      case None => Future(CalculationResults(Seq.empty, WithinThreshold))
     }
-  }
+
+  private def importsResults(calculationRequests: Seq[CalculationRequest])(implicit hc: HeaderCarrier): Future[Seq[CalculationResult]] =
+    Future.traverse(calculationRequests) { req =>
+      calculateImports(req.goods.asInstanceOf[ImportGoods]) //TODO casting safe here but still horrible!!!
+    }
+
+  def calculateImports(importGoods: ImportGoods, date: LocalDate = LocalDate.now())(implicit hc: HeaderCarrier): Future[CalculationResult] =
+    importGoods.purchaseDetails.currency.valueForConversion
+      .fold(Future(calculation(importGoods, BigDecimal(1), None)))(code => findRateAndCalculate(importGoods, code, date))
 
   //TODO to be enhanced to handle exports too!
   def calculateThresholdImport(calculationResults: Seq[CalculationResult], destination: Option[GoodsDestination]): ThresholdCheck =
     if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value) OverThreshold
     else WithinThreshold
 
-  def calculateThresholdExport(goods: DeclarationGoods, destination: Option[GoodsDestination]): ThresholdCheck =
-    if (goods.goods.map(_.purchaseDetails.numericAmount).sum > destination.map(_.threshold.inPounds).getOrElse(0))
+  def calculateThresholdExport(goods: Seq[Goods], destination: Option[GoodsDestination]): ThresholdCheck =
+    if (goods.map(_.purchaseDetails.numericAmount).sum > destination.map(_.threshold.inPounds).getOrElse(0))
       OverThreshold
     else WithinThreshold
 

@@ -18,11 +18,10 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import java.time.LocalDate
 
-import com.softwaremill.quicklens._
+import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.controllers.routes._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
@@ -33,21 +32,21 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData {
+class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
 
   val today = LocalDate.now
   val period = ConversionRatePeriod(today, today, "EUR", BigDecimal(1.1))
   val expectedResult = CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
-  val connector = injector.instanceOf[CurrencyConversionConnector]
-  def service(result: CalculationResult) = new CalculationService(connector) {
-    override def calculate(calculationRequests: CalculationRequest, date: LocalDate = LocalDate.now())(
-      implicit hc: HeaderCarrier): Future[CalculationResult] =
-      Future.successful(result)
-  }
+  val mockService = mock[CalculationService]
 
-  "handle multiple calculation requests" in {
-    val controller = new CalculationController(service(expectedResult), component)
+  s"handle multiple calculation requests delegating to CalculationService" in {
+    val controller = new CalculationController(mockService, component)
     val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
+
+    (mockService
+      .calculate(_: Seq[CalculationRequest])(_: HeaderCarrier))
+      .expects(calculationRequests, *)
+      .returning(Future.successful(CalculationResults(Seq(expectedResult), WithinThreshold)))
 
     val request = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
@@ -55,30 +54,5 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     status(eventualResult) mustBe 200
     contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(expectedResult), WithinThreshold))
-  }
-
-  s"handle multiple calculation requests returning $CalculationResults $WithinThreshold" in {
-    val controller = new CalculationController(service(expectedResult), component)
-    val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
-
-    val request = buildPost(CalculationController.handleCalculations().url)
-      .withBody[Seq[CalculationRequest]](calculationRequests)
-    val eventualResult = controller.handleCalculations(request)
-
-    status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(expectedResult), WithinThreshold))
-  }
-
-  s"handle multiple calculation requests returning $CalculationResults $OverThreshold" in {
-    val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
-    val resultOver = expectedResult.modify(_.gbpAmount.value).setTo(15000001)
-    val controller = new CalculationController(service(resultOver), component)
-
-    val request = buildPost(CalculationController.handleCalculations().url)
-      .withBody[Seq[CalculationRequest]](calculationRequests)
-    val eventualResult = controller.handleCalculations(request)
-
-    status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(resultOver), OverThreshold))
   }
 }

@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, DeclarationGoods, ExportGoods, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, ExportGoods, YesNoDontKnow}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -56,7 +56,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
+    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item where origin is unknown" in {
@@ -78,7 +78,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
+    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
@@ -100,7 +100,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(0), AmountInPence(455), Some(period))
 
-    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
+    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
@@ -114,7 +114,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(500), None)
 
-    service.calculate(CalculationRequest(importGoods, GreatBritain)).futureValue mustBe calculationResult
+    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
   }
 
   s"calculate $ThresholdCheck" in {
@@ -130,10 +130,92 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   s"calculate $ThresholdCheck for Export goods" in {
-    val declarationGoods = DeclarationGoods(Seq(aExportGoods))
-    val declarationGoodsOverThreshold = DeclarationGoods(Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("1501")))
+    val declarationGoods = Seq(aExportGoods)
+    val declarationGoodsOverThreshold = Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("1501"))
 
     service.calculateThresholdExport(declarationGoods, Some(GreatBritain)) mustBe WithinThreshold
     service.calculateThresholdExport(declarationGoodsOverThreshold, Some(GreatBritain)) mustBe OverThreshold
+  }
+
+  s"handle $CalculationResults for Export goods" in {
+    val requests = Seq(CalculationRequest(aExportGoods, GreatBritain))
+
+    service.calculate(requests).futureValue mustBe CalculationResults(Seq.empty, WithinThreshold)
+  }
+
+  "handle multiple calculation requests" in {
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.No)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("USD")
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("USD")
+
+    val calculationRequests = Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
+    val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
+
+    (connector
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returns(
+        Future.successful(Seq(period))
+      )
+      .twice()
+
+    val eventualResult = service.calculate(calculationRequests)
+    val expectedResults = Seq(
+      CalculationResult(importGoods, 9091.toAmountInPence, 300.toAmountInPence, 470.toAmountInPence, Some(period)),
+      CalculationResult(importGoods, 9091.toAmountInPence, 300.toAmountInPence, 470.toAmountInPence, Some(period))
+    )
+
+    eventualResult.futureValue mustBe CalculationResults(expectedResults, WithinThreshold)
+  }
+
+  s"handle multiple calculation requests returning $CalculationResults $OverThreshold" in {
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.No)
+      .modify(_.purchaseDetails.currency.code)
+      .setTo("USD")
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("USD")
+      .modify(_.purchaseDetails.amount)
+      .setTo("75100")
+
+    val calculationRequests = Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
+    val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
+
+    (connector
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returns(
+        Future.successful(Seq(period))
+      )
+      .twice()
+
+    val eventualResult = service.calculate(calculationRequests)
+    val expectedResults = Seq(
+      CalculationResult(importGoods, 6827273.toAmountInPence, 225300.toAmountInPence, 352629.toAmountInPence, Some(period)),
+      CalculationResult(importGoods, 6827273.toAmountInPence, 225300.toAmountInPence, 352629.toAmountInPence, Some(period))
+    )
+
+    eventualResult.futureValue mustBe CalculationResults(expectedResults, OverThreshold)
+  }
+
+  s"handle calculation requests for $ExportGoods $WithinThreshold" in {
+    val exportGoods = aExportGoods
+    val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
+    val eventualResult = service.calculate(calculationRequests)
+
+    eventualResult.futureValue mustBe CalculationResults(Seq.empty, WithinThreshold)
+  }
+
+  s"handle calculation requests for $ExportGoods $OverThreshold" in {
+    val exportGoods = aExportGoods.modify(_.purchaseDetails.amount).setTo("150001")
+    val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
+    val eventualResult = service.calculate(calculationRequests)
+
+    eventualResult.futureValue mustBe CalculationResults(Seq.empty, OverThreshold)
   }
 }
