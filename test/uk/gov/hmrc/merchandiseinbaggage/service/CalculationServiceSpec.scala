@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, DeclarationGoods, ExportGoods, YesNoDontKnow}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -125,7 +125,15 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         CalculationResult(importGoods, AmountInPence(50000), AmountInPence(0), AmountInPence(0), None)
       )
 
-    service.calculateThreshold(results, Some(GreatBritain)) mustBe WithinThreshold
-    service.calculateThreshold(results.modify(_.each.gbpAmount.value).setTo(150001), Some(GreatBritain)) mustBe OverThreshold
+    service.calculateThresholdImport(results, Some(GreatBritain)) mustBe WithinThreshold
+    service.calculateThresholdImport(results.modify(_.each.gbpAmount.value).setTo(150001), Some(GreatBritain)) mustBe OverThreshold
+  }
+
+  s"calculate $ThresholdCheck for Export goods" in {
+    val declarationGoods = DeclarationGoods(Seq(aExportGoods))
+    val declarationGoodsOverThreshold = DeclarationGoods(Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("1501")))
+
+    service.calculateThresholdExport(declarationGoods, Some(GreatBritain)) mustBe WithinThreshold
+    service.calculateThresholdExport(declarationGoodsOverThreshold, Some(GreatBritain)) mustBe OverThreshold
   }
 }

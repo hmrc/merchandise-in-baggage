@@ -22,8 +22,9 @@ import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, GoodsDestination, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.util.DataModelEnriched._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
@@ -32,36 +33,49 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
   def calculate(calculationRequest: CalculationRequest, date: LocalDate = LocalDate.now())(
-    implicit hc: HeaderCarrier): Future[CalculationResult] =
-    calculationRequest.goods.purchaseDetails.currency.valueForConversion
-      .fold(Future(calculation(calculationRequest, BigDecimal(1), None)))(code => findRateAndCalculate(calculationRequest, code, date))
+    implicit hc: HeaderCarrier): Future[CalculationResult] = {
+    calculationRequest.goods match {
+      case importGoods: ImportGoods =>
+        calculationRequest.goods.purchaseDetails.currency.valueForConversion
+          .fold(Future(calculation(importGoods, BigDecimal(1), None)))(code => findRateAndCalculate(importGoods, code, date))
+      case exportGoods: ExportGoods => Future(
+        CalculationResult(calculationRequest.goods.asInstanceOf[ImportGoods],
+          AmountInPence(0), AmountInPence(0), AmountInPence(0), None) //TODO not valid
+      )
+    }
+  }
 
   //TODO to be enhanced to handle exports too!
-  def calculateThreshold(calculationResults: Seq[CalculationResult], destination: Option[GoodsDestination]): ThresholdCheck =
+  def calculateThresholdImport(calculationResults: Seq[CalculationResult], destination: Option[GoodsDestination]): ThresholdCheck =
     if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value) OverThreshold
     else WithinThreshold
 
-  private def findRateAndCalculate(calculationRequest: CalculationRequest, code: String, date: LocalDate)(
+  def calculateThresholdExport(goods: DeclarationGoods, destination: Option[GoodsDestination]): ThresholdCheck =
+    if (goods.goods.map(_.purchaseDetails.numericAmount).sum > destination.map(_.threshold.inPounds).getOrElse(0))
+      OverThreshold
+    else WithinThreshold
+
+  private def findRateAndCalculate(importGoods: ImportGoods, code: String, date: LocalDate)(
     implicit hc: HeaderCarrier): Future[CalculationResult] =
     connector
       .getConversionRate(code, date)
       .map(
         _.find(_.currencyCode == code)
-          .fold(calculation(calculationRequest, BigDecimal(0), None))(conversionRate =>
-            calculation(calculationRequest, conversionRate.rate, Some(conversionRate))))
+          .fold(calculation(importGoods, BigDecimal(0), None))(conversionRate =>
+            calculation(importGoods, conversionRate.rate, Some(conversionRate))))
 
   private def calculation(
-    calculationRequest: CalculationRequest,
+    importGoods: ImportGoods,
     rate: BigDecimal,
     conversionRatePeriod: Option[ConversionRatePeriod]): CalculationResult = {
-    import calculationRequest.goods._
+    import importGoods._
     val converted: BigDecimal = (BigDecimal(purchaseDetails.amount) / rate).setScale(2, HALF_UP) //TODO handle possible failure
     val duty = calculateDuty(producedInEu, converted)
     val vatRate = BigDecimal(goodsVatRate.value / 100.0)
     val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)
 
     CalculationResult(
-      calculationRequest.goods,
+      importGoods,
       AmountInPence((converted * 100).toLong),
       AmountInPence((duty * 100).toLong),
       AmountInPence((vat * 100).toLong),

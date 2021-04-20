@@ -16,10 +16,16 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.util
 
-import uk.gov.hmrc.merchandiseinbaggage.model.api.AmountInPence
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, PurchaseDetails}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResults
 
 object DataModelEnriched {
+
+  implicit class PurchaseDetailsEnriched(details: PurchaseDetails) {
+    import details._
+
+    val numericAmount: BigDecimal = BigDecimal(amount)
+  }
 
   implicit class CalculationResultsEnriched(calculations: CalculationResults) {
     import calculations._

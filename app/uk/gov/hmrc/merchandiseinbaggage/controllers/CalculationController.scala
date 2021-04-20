@@ -37,7 +37,7 @@ class CalculationController @Inject()(
         calculationService.calculate(req)
       }
       .map((results: Seq[CalculationResult]) => {
-        val threshold = calculationService.calculateThreshold(results, request.body.headOption.map(_.destination))
+        val threshold = calculationService.calculateThresholdImport(results, request.body.headOption.map(_.destination))
         Ok(Json.toJson(CalculationResults(results, threshold)))
       })
   }
