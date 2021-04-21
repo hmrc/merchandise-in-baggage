@@ -23,7 +23,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults, WithinThreshold}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
 
 trait CoreTestData {
@@ -60,7 +60,7 @@ trait CoreTestData {
   private val aCalculationResult = CalculationResult(aImportGoods, AmountInPence(100), AmountInPence(100), AmountInPence(100), None)
   private val aTotalCalculationResult =
     TotalCalculationResult(
-      CalculationResults(Seq(aCalculationResult), WithinThreshold),
+      CalculationResults(Seq(aCalculationResult)),
       AmountInPence(100),
       AmountInPence(100),
       AmountInPence(100),
@@ -68,7 +68,7 @@ trait CoreTestData {
 
   val zeroTotalCalculationResult =
     TotalCalculationResult(
-      CalculationResults(Seq(aCalculationResult), WithinThreshold),
+      CalculationResults(Seq(aCalculationResult)),
       AmountInPence(0),
       AmountInPence(0),
       AmountInPence(0),

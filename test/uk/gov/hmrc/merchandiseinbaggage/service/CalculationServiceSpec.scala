@@ -56,7 +56,12 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
+    service
+      .calculate(Seq(CalculationRequest(importGoods, GreatBritain)))
+      .futureValue
+      .results
+      .calculationResults
+      .head mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item where origin is unknown" in {
@@ -78,7 +83,12 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
 
-    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
+    service
+      .calculate(Seq(CalculationRequest(importGoods, GreatBritain)))
+      .futureValue
+      .results
+      .calculationResults
+      .head mustBe calculationResult
   }
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
@@ -100,7 +110,12 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(9091), AmountInPence(0), AmountInPence(455), Some(period))
 
-    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
+    service
+      .calculate(Seq(CalculationRequest(importGoods, GreatBritain)))
+      .futureValue
+      .results
+      .calculationResults
+      .head mustBe calculationResult
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
@@ -114,7 +129,12 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     val calculationResult = CalculationResult(importGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(500), None)
 
-    service.calculate(Seq(CalculationRequest(importGoods, GreatBritain))).futureValue.calculationResults.head mustBe calculationResult
+    service
+      .calculate(Seq(CalculationRequest(importGoods, GreatBritain)))
+      .futureValue
+      .results
+      .calculationResults
+      .head mustBe calculationResult
   }
 
   s"calculate $ThresholdCheck" in {
@@ -140,7 +160,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   s"handle $CalculationResults for Export goods" in {
     val requests = Seq(CalculationRequest(aExportGoods, GreatBritain))
 
-    service.calculate(requests).futureValue mustBe CalculationResults(Seq.empty, WithinThreshold)
+    service.calculate(requests).futureValue mustBe CalculationResponse(CalculationResults(Seq.empty), WithinThreshold)
   }
 
   "handle multiple calculation requests" in {
@@ -169,7 +189,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       CalculationResult(importGoods, 9091.toAmountInPence, 300.toAmountInPence, 470.toAmountInPence, Some(period))
     )
 
-    eventualResult.futureValue mustBe CalculationResults(expectedResults, WithinThreshold)
+    eventualResult.futureValue mustBe CalculationResponse(CalculationResults(expectedResults), WithinThreshold)
   }
 
   s"handle multiple calculation requests returning $CalculationResults $OverThreshold" in {
@@ -200,7 +220,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       CalculationResult(importGoods, 6827273.toAmountInPence, 225300.toAmountInPence, 352629.toAmountInPence, Some(period))
     )
 
-    eventualResult.futureValue mustBe CalculationResults(expectedResults, OverThreshold)
+    eventualResult.futureValue mustBe CalculationResponse(CalculationResults(expectedResults), OverThreshold)
   }
 
   s"handle calculation requests for $ExportGoods $WithinThreshold" in {
@@ -208,7 +228,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
     val eventualResult = service.calculate(calculationRequests)
 
-    eventualResult.futureValue mustBe CalculationResults(Seq.empty, WithinThreshold)
+    eventualResult.futureValue mustBe CalculationResponse(CalculationResults(Seq.empty), WithinThreshold)
   }
 
   s"handle calculation requests for $ExportGoods $OverThreshold" in {
@@ -216,6 +236,6 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
     val eventualResult = service.calculate(calculationRequests)
 
-    eventualResult.futureValue mustBe CalculationResults(Seq.empty, OverThreshold)
+    eventualResult.futureValue mustBe CalculationResponse(CalculationResults(Seq.empty), OverThreshold)
   }
 }
