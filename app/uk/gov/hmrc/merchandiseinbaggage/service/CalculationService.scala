@@ -32,24 +32,24 @@ import scala.math.BigDecimal.RoundingMode.HALF_UP
 @Singleton
 class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
 
-  def calculate(calculationRequests: Seq[CalculationRequest])(implicit hc: HeaderCarrier): Future[CalculationResults] =
+  def calculate(calculationRequests: Seq[CalculationRequest])(implicit hc: HeaderCarrier): Future[CalculationResponse] =
     calculationRequests.headOption.map(_.goods) match {
       case Some(_: ImportGoods) => importCalculationResults(calculationRequests)
       case Some(_: ExportGoods) => exportCalculationResults(calculationRequests)
-      case None                 => Future(CalculationResults(Seq.empty, WithinThreshold))
+      case None                 => Future(CalculationResponse(CalculationResults(Seq.empty), WithinThreshold))
     }
 
-  private def exportCalculationResults(calculationRequests: Seq[CalculationRequest]): Future[CalculationResults] =
+  private def exportCalculationResults(calculationRequests: Seq[CalculationRequest]): Future[CalculationResponse] =
     Future(
-      CalculationResults(
-        Seq.empty,
+      CalculationResponse(
+        CalculationResults(Seq.empty),
         calculateThresholdExport(calculationRequests.map(_.goods), calculationRequests.headOption.map(_.destination))))
 
   private def importCalculationResults(calculationRequests: Seq[CalculationRequest])(
-    implicit hc: HeaderCarrier): Future[CalculationResults] =
+    implicit hc: HeaderCarrier): Future[CalculationResponse] =
     importsResults(calculationRequests.map(_.goods).collect { case g: ImportGoods => g }).map { results =>
       val threshold = calculateThresholdImport(results, calculationRequests.headOption.map(_.destination))
-      CalculationResults(results, threshold)
+      CalculationResponse(CalculationResults(results), threshold)
     }
 
   private def importsResults(importGoods: Seq[ImportGoods])(implicit hc: HeaderCarrier): Future[Seq[CalculationResult]] =

@@ -46,13 +46,13 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     (mockService
       .calculate(_: Seq[CalculationRequest])(_: HeaderCarrier))
       .expects(calculationRequests, *)
-      .returning(Future.successful(CalculationResults(Seq(expectedResult), WithinThreshold)))
+      .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
     val request = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
     val eventualResult = controller.handleCalculations(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResults(Seq(expectedResult), WithinThreshold))
+    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold))
   }
 }
