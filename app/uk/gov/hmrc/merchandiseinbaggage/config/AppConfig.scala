@@ -55,3 +55,12 @@ trait CurrencyConversionConfiguration {
 final case class CurrencyConversionConf(protocol: String, host: String = "localhost", port: Int) {
   val currencyConversionUrl = s"/currency-conversion/rates/"
 }
+
+trait ExchangeRateConfiguration {
+  lazy val exchangeRateConf: ExchangeRateConf = configSource("microservice.services.exchange-rate")
+    .loadOrThrow[ExchangeRateConf]
+}
+
+final case class ExchangeRateConf(protocol: String, host: String = "localhost", port: Int) {
+  val exchangeRateUrl = s"$protocol://$host:$port"
+}
