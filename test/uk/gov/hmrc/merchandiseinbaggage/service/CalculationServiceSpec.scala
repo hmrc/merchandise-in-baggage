@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDate
 import java.time.LocalDate.now
+import java.time.{LocalDate, LocalDateTime}
 
+import cats.data.EitherT
 import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
@@ -26,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, ConversionRatePeriod, ExportGoods, YesNoDontKnow}
+import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory with CoreTestData {
 
   val connector: CurrencyConversionConnector = mock[CurrencyConversionConnector]
-  val service = new CalculationService(connector)
+  val mockDeclarationService: DeclarationService = mock[DeclarationService]
+  val service = new CalculationService(connector, mockDeclarationService)
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
     val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
@@ -237,5 +239,44 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val eventualResult = service.calculate(calculationRequests)
 
     eventualResult.futureValue mustBe CalculationResponse(CalculationResults(Seq.empty), OverThreshold)
+  }
+
+  s"handle calculation for $Amendment $ImportGoods by adding both goods original + amend" in {
+    val conversionRatePeriod = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
+    val importGoods = aImportGoods
+      .modify(_.producedInEu)
+      .setTo(YesNoDontKnow.No)
+      .modify(_.purchaseDetails.currency.valueForConversion.each)
+      .setTo("USD")
+      .modify(_.purchaseDetails.amount)
+      .setTo("100")
+
+    val originalGoods = importGoods.modify(_.purchaseDetails.amount).setTo("200")
+    val declaration = aDeclaration.modify(_.declarationGoods.goods).setTo(Seq(originalGoods))
+
+    (mockDeclarationService
+      .findByDeclarationId(_: DeclarationId))
+      .expects(declaration.declarationId)
+      .returning(EitherT.pure(declaration))
+
+    (connector
+      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returns(
+        Future.successful(Seq(conversionRatePeriod))
+      )
+      .twice()
+
+    val amends = Amendment(111, LocalDateTime.now(), DeclarationGoods(Seq(importGoods)))
+    val eventualResult = service.calculateAmendPlusOriginal(Some(amends), Some(GreatBritain), declaration.declarationId)
+
+    val expectedResults = Seq(
+      CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(conversionRatePeriod)),
+      CalculationResult(originalGoods, AmountInPence(18182), AmountInPence(600), AmountInPence(939), Some(conversionRatePeriod))
+    )
+    val expected = eventualResult.value.futureValue.get
+
+    expected.results mustBe CalculationResults(expectedResults)
+    expected.thresholdCheck mustBe WithinThreshold
   }
 }

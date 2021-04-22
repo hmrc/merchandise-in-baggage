@@ -55,4 +55,21 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     status(eventualResult) mustBe 200
     contentAsJson(eventualResult) mustBe Json.toJson(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold))
   }
+
+  s"handle amends calculations delegating to CalculationService" in {
+    val controller = new CalculationController(mockService, component)
+    val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
+
+    (mockService
+      .calculate(_: Seq[CalculationRequest])(_: HeaderCarrier))
+      .expects(calculationRequests, *)
+      .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
+
+    val request = buildPost(CalculationController.handleCalculations().url)
+      .withBody[Seq[CalculationRequest]](calculationRequests)
+    val eventualResult = controller.handleAmendCalculations(request)
+
+    status(eventualResult) mustBe 200
+    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold))
+  }
 }

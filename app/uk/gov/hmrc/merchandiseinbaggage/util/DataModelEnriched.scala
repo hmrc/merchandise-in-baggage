@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.util
 
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, PurchaseDetails}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationResults
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{AmountInPence, Goods, GoodsDestination, PurchaseDetails}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationRequest, CalculationResults}
 
 object DataModelEnriched {
 
@@ -32,5 +32,10 @@ object DataModelEnriched {
     def totalGbpValue: AmountInPence = AmountInPence(
       calculationResults.map(_.gbpAmount.value).sum
     )
+  }
+
+  implicit class GoodsEnriched(goods: Goods) {
+    def calculationRequest(destination: GoodsDestination): CalculationRequest =
+      CalculationRequest(goods, destination)
   }
 }
