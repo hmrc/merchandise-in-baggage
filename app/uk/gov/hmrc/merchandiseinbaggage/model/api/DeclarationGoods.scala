@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.ExportGoods.categoryReads
+import uk.gov.hmrc.merchandiseinbaggage.model.api.Goods.categoryReads
 
 sealed trait Goods {
   val category: String
@@ -74,12 +74,6 @@ object ExportGoods {
       JsSuccess(ExportGoods(categoryReads(json), destination, purchaseDetails))
     }
   }
-
-  def categoryReads(json: JsValue): String =
-    (json \ "category").asOpt[String] match {
-      case Some(category) => category
-      case None           => (json \ "categoryQuantityOfGoods" \ "category").as[String]
-    }
 }
 
 object Goods {
@@ -104,7 +98,7 @@ object Goods {
       JsSuccess(ExportGoods(categoryReads(json), destination, purchaseDetails))
   }
 
-  private def categoryReads(json: JsObject): String =
+  def categoryReads(json: JsValue): String =
     (json \ "category").asOpt[String] match {
       case Some(category) => category
       case None           => (json \ "categoryQuantityOfGoods" \ "category").as[String]
