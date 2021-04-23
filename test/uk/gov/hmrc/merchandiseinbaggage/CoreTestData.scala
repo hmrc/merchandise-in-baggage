@@ -33,20 +33,18 @@ trait CoreTestData {
   private val aSessionId = SessionId("123456789")
   private val aGoodDestination = GreatBritain
   val aImportGoods: ImportGoods = ImportGoods(
-    CategoryQuantityOfGoods("test", "1"),
+    "test",
     GoodsVatRates.Five,
     YesNoDontKnow.Yes,
     PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
   )
-
-  val aCategoryQuantityOfGoods: CategoryQuantityOfGoods = CategoryQuantityOfGoods("test good", "123")
 
   val aPurchaseDetails: PurchaseDetails =
     PurchaseDetails("199.99", Currency("EUR", "title.euro_eur", Some("EUR"), List("Europe", "European")))
 
   val aExportGoods =
     ExportGoods(
-      aCategoryQuantityOfGoods,
+      "test good",
       Country("ITA", "Itay", "IT", true, Nil),
       aPurchaseDetails
     )

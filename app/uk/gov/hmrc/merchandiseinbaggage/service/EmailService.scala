@@ -124,15 +124,15 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
         goods match {
           case ig: ImportGoods =>
             Map(
-              s"goodsCategory_$idx"     -> ig.categoryQuantityOfGoods.category,
-              s"goodsQuantity_$idx"     -> ig.categoryQuantityOfGoods.quantity,
+              s"goodsCategory_$idx"     -> ig.category,
+              s"goodsQuantity_$idx"     -> "", //TODO: temporary hack until the email changes are ready
               s"goodsProducedInEu_$idx" -> messages(ig.producedInEu.messageKey),
               s"goodsPrice_$idx"        -> ig.purchaseDetails.formatted
             )
           case eg: ExportGoods =>
             Map(
-              s"goodsCategory_$idx"    -> eg.categoryQuantityOfGoods.category,
-              s"goodsQuantity_$idx"    -> eg.categoryQuantityOfGoods.quantity,
+              s"goodsCategory_$idx"    -> eg.category,
+              s"goodsQuantity_$idx"    -> "", //TODO: temporary hack until the email changes are ready
               s"goodsDestination_$idx" -> eg.destination.displayName,
               s"goodsPrice_$idx"       -> eg.purchaseDetails.formatted
             )

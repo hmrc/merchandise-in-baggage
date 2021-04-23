@@ -29,7 +29,6 @@ case class RefundableDeclaration(
   vat: String,
   vatRate: String,
   paymentAmount: String,
-  goodsQuantity: String,
   producedInEu: String,
   purchaseAmount: String,
   currencyCode: String,
