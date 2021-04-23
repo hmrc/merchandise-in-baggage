@@ -34,4 +34,8 @@ class CalculationController @Inject()(
   def handleCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
     calculationService.calculate(request.body).map(results => Ok(Json.toJson(results)))
   }
+
+  def handleAmendCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
+    calculationService.calculate(request.body).map(results => Ok(Json.toJson(results)))
+  }
 }

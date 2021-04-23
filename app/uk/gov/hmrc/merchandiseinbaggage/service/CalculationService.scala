@@ -18,6 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDate
 
+import cats.data.OptionT
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
@@ -30,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 
 @Singleton
-class CalculationService @Inject()(connector: CurrencyConversionConnector)(implicit ec: ExecutionContext) {
+class CalculationService @Inject()(connector: CurrencyConversionConnector, declarationService: DeclarationService)(
+  implicit ec: ExecutionContext) {
 
   def calculate(calculationRequests: Seq[CalculationRequest])(implicit hc: HeaderCarrier): Future[CalculationResponse] =
     calculationRequests.headOption.map(_.goods) match {
@@ -38,6 +40,16 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector)(impli
       case Some(_: ExportGoods) => exportCalculationResults(calculationRequests)
       case None                 => Future(CalculationResponse(CalculationResults(Seq.empty), WithinThreshold))
     }
+
+  def calculateAmendPlusOriginal(amend: Option[Amendment], maybeGoodsDestination: Option[GoodsDestination], declarationId: DeclarationId)(
+    implicit hc: HeaderCarrier): OptionT[Future, CalculationResponse] =
+    for {
+      amendments          <- OptionT.fromOption[Future](amend)
+      destination         <- OptionT.fromOption[Future](maybeGoodsDestination)
+      originalDeclaration <- declarationService.findByDeclarationId(declarationId).toOption
+      totalGoods = amendments.goods.goods ++ originalDeclaration.declarationGoods.goods
+      calculationResponse <- OptionT.liftF(calculate(totalGoods.map(_.calculationRequest(destination))))
+    } yield calculationResponse
 
   private def exportCalculationResults(calculationRequests: Seq[CalculationRequest]): Future[CalculationResponse] =
     Future(
