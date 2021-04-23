@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
+import cats.data.OptionT
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.controllers.routes._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, ConversionRatePeriod, DeclarationGoods}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
@@ -58,15 +59,16 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
   s"handle amends calculations delegating to CalculationService" in {
     val controller = new CalculationController(mockService, component)
-    val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
+    val amend = Amendment(111, LocalDateTime.now, DeclarationGoods(Seq(aImportGoods)))
+    val calculationRequest = CalculationAmendRequest(Some(amend), Some(GreatBritain), aDeclarationId)
 
     (mockService
-      .calculate(_: Seq[CalculationRequest])(_: HeaderCarrier))
-      .expects(calculationRequests, *)
-      .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
+      .calculateAmendPlusOriginal(_: CalculationAmendRequest)(_: HeaderCarrier))
+      .expects(calculationRequest, *)
+      .returning(OptionT.pure[Future](CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
     val request = buildPost(CalculationController.handleAmendCalculations().url)
-      .withBody[Seq[CalculationRequest]](calculationRequests)
+      .withBody[CalculationAmendRequest](calculationRequest)
     val eventualResult = controller.handleAmendCalculations(request)
 
     status(eventualResult) mustBe 200

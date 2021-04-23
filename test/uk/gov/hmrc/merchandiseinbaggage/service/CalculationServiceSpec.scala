@@ -268,7 +268,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       .twice()
 
     val amends = Amendment(111, LocalDateTime.now(), DeclarationGoods(Seq(importGoods)))
-    val eventualResult = service.calculateAmendPlusOriginal(Some(amends), Some(GreatBritain), declaration.declarationId)
+    val eventualResult =
+      service.calculateAmendPlusOriginal(CalculationAmendRequest(Some(amends), Some(GreatBritain), declaration.declarationId))
 
     val expectedResults = Seq(
       CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(conversionRatePeriod)),
