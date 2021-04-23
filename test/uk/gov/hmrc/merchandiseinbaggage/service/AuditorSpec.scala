@@ -86,7 +86,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
       auditedEvent.auditType mustBe "RefundableDeclaration"
 
       val refundJson =
-        """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","goodsQuantity":"1","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
+        """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
       auditedEvent.detail mustBe Json.parse(refundJson)
     }
@@ -105,7 +105,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
       auditedEvent.auditType mustBe "RefundableDeclaration"
 
       val refundJson =
-        """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","goodsQuantity":"1","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
+        """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
       auditedEvent.detail mustBe Json.parse(refundJson)
     }
