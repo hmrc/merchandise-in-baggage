@@ -16,45 +16,49 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.merchandiseinbaggage.config.{ExchangeRateConf, ExchangeRateConfiguration}
-import uk.gov.hmrc.merchandiseinbaggage.stubs.ExchangeRateStub.givenExchangeServer
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val httpClient = app.injector.instanceOf[HttpClient]
-
-  trait WireMockExchangeRateConfiguration extends ExchangeRateConfiguration {
-    override lazy val exchangeRateConf: ExchangeRateConf = ExchangeRateConf("http", "localhost", 17777)
-  }
-
-  val exchange = new ExchangeRateConnector(httpClient) with WireMockExchangeRateConfiguration
-
   "return with month page URI" in {
-    givenExchangeServer()
 
-    whenReady(exchange.monthlyURL(2021)) { result =>
+    val exchange = new ExchangeLinkLoaderImpl() {
+      override def getPage(yearlyUrl: String): Document =
+        Jsoup.parse(
+          """<body><h2 class="gem-c-heading ">Documents</h2><a href="/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview">View online</a>
+            |""".stripMargin)
+    }
+
+    whenReady(exchange.getMonthlyUrl("http://something")) { result =>
       result mustBe "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"
     }
   }
 
   "unable to find month page then returns year URI" in {
-    givenExchangeServer()
+    val exchange = new ExchangeLinkLoaderImpl() {
+      override def getPage(yearlyUrl: String): Document =
+        throw new Exception("Something odd")
+    }
 
-    whenReady(exchange.monthlyURL(2020)) { result =>
-      result mustBe s"${exchange.exchangeRateConf.exchangeRateUrl}/government/publications/hmrc-exchange-rates-for-2020-monthly"
+    val yearUrl = "https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"
+    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+      result mustBe yearUrl
     }
   }
 
   "Badly formated month page then returns year URI" in {
-    givenExchangeServer()
+    val exchange = new ExchangeLinkLoaderImpl() {
+      override def getPage(yearlyUrl: String): Document =
+        Jsoup.parse(
+          """<body><h1 class="gem-c-heading ">Documents</h2><a href="/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview">View online</a>
+            |""".stripMargin)
+    }
 
-    whenReady(exchange.monthlyURL(2019)) { result =>
-      result mustBe s"${exchange.exchangeRateConf.exchangeRateUrl}/government/publications/hmrc-exchange-rates-for-2019-monthly"
+    val yearUrl = "https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"
+    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+      result mustBe yearUrl
     }
   }
 

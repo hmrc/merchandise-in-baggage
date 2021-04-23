@@ -18,7 +18,6 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.merchandiseinbaggage.connectors.ExchangeRateConnector
-import uk.gov.hmrc.merchandiseinbaggage.stubs.ExchangeRateStub.givenExchangeServer
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData, WireMock}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, status}
@@ -26,23 +25,37 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ExchangeRateURL
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class ExchangeRateControllerSpec extends BaseSpecWithApplication with CoreTestData with WireMock {
 
   val connector: ControllerComponents = injector.instanceOf[ControllerComponents]
-  val rates: ExchangeRateConnector = injector.instanceOf[ExchangeRateConnector]
 
   "return with month page URI" in {
-    givenExchangeServer()
+    val rates = new ExchangeRateConnector() {
+      override def getExchangeRateUrl(year: Int): Future[String] =
+        Future.successful("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly")
+    }
 
     val controller = new ExchangeRateController(connector, rates)
-
     val result = controller.url.apply(fakeRequest)
 
     status(result) mustBe 200
-    contentAsJson(result) mustBe Json.toJson(ExchangeRateURL(
-      "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"))
-
+    contentAsJson(result) mustBe Json.toJson(
+      ExchangeRateURL("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"))
   }
 
+  "unable to find month page then returns year URI" in {
+    val rates = new ExchangeRateConnector() {
+      override def getExchangeRateUrl(year: Int): Future[String] =
+        Future.successful("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly")
+    }
+
+    val controller = new ExchangeRateController(connector, rates)
+    val result = controller.url.apply(fakeRequest)
+
+    status(result) mustBe 200
+    contentAsJson(result) mustBe Json.toJson(
+      ExchangeRateURL("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"))
+  }
 }

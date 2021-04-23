@@ -17,36 +17,40 @@
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import org.jsoup.Jsoup
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import org.jsoup.nodes.Document
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.merchandiseinbaggage.config.ExchangeRateConfiguration
+import scala.concurrent.Future
+import scala.util.{Success, Try}
 
 @Singleton
-class ExchangeRateConnector @Inject()(httpClient: HttpClient) extends ExchangeRateConfiguration {
+class ExchangeRateConnector @Inject() extends ExchangeLinkLoaderImpl {
 
+  def getExchangeRateUrl(year: Int = LocalDate.now.getYear): Future[String] =
+    getMonthlyUrl(s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly")
+}
+
+trait ExchangeLinkLoader {
+  def getMonthlyUrl(yearUrl: String): Future[String]
+}
+
+class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
   private val serverUrl = "https://assets.publishing.service.gov.uk"
 
-  def monthlyURL(year: Int = LocalDate.now.getYear)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
-    val yearlyUrl: String =
-      s"${exchangeRateConf.exchangeRateUrl}/government/publications/hmrc-exchange-rates-for-$year-monthly"
+  override def getMonthlyUrl(yearUrl: String): Future[String] =
+    Try {
+      val response = getPage(yearUrl)
+      findFirstLink(response)
+    } match {
+      case Success(url) => Future.successful(serverUrl + url)
+      case _            => Future.successful(yearUrl)
+    }
 
-    httpClient
-      .GET[HttpResponse](yearlyUrl)
-      .map { response =>
-        serverUrl + findFirstLink(response.body)
-      }
-      .recoverWith {
-        case _ => Future.successful(yearlyUrl)
-      }
-  }
+  def getPage(yearlyUrl: String): Document = Jsoup.connect(yearlyUrl).get()
 
-  private def findFirstLink(body: String): String =
-    Jsoup
-      .parse(body)
+  def findFirstLink(doc: Document): String =
+    doc
       .select("h2.gem-c-heading")
       .nextAll
       .select("a")
