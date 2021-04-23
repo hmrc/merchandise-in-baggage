@@ -65,7 +65,7 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       .expects(calculationRequests, *)
       .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
-    val request = buildPost(CalculationController.handleCalculations().url)
+    val request = buildPost(CalculationController.handleAmendCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
     val eventualResult = controller.handleAmendCalculations(request)
 
