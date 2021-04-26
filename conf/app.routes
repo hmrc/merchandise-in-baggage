@@ -15,3 +15,4 @@ POST        /payment-callback                   uk.gov.hmrc.merchandiseinbaggage
 
 GET         /validate/eori/:eoriNumber          uk.gov.hmrc.merchandiseinbaggage.controllers.EoriCheckNumberController.checkEoriNumber(eoriNumber: String)
 
+GET         /exchange-rate-url                  uk.gov.hmrc.merchandiseinbaggage.controllers.ExchangeRateController.url()
