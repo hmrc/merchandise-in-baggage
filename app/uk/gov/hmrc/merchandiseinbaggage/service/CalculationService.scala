@@ -41,8 +41,9 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector, decla
       case None                 => Future(CalculationResponse(CalculationResults(Seq.empty), WithinThreshold))
     }
 
-  def calculateAmendPlusOriginal(amend: Option[Amendment], maybeGoodsDestination: Option[GoodsDestination], declarationId: DeclarationId)(
-    implicit hc: HeaderCarrier): OptionT[Future, CalculationResponse] =
+  def calculateAmendPlusOriginal(calculationAmendRequest: CalculationAmendRequest)(
+    implicit hc: HeaderCarrier): OptionT[Future, CalculationResponse] = {
+    import calculationAmendRequest._
     for {
       amendments          <- OptionT.fromOption[Future](amend)
       destination         <- OptionT.fromOption[Future](maybeGoodsDestination)
@@ -50,6 +51,7 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector, decla
       totalGoods = amendments.goods.goods ++ originalDeclaration.declarationGoods.goods
       calculationResponse <- OptionT.liftF(calculate(totalGoods.map(_.calculationRequest(destination))))
     } yield calculationResponse
+  }
 
   private def exportCalculationResults(calculationRequests: Seq[CalculationRequest]): Future[CalculationResponse] =
     Future(
