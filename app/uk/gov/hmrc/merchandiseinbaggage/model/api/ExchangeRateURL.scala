@@ -18,8 +18,8 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ExchangeRateURL(value: String) {
-  override val toString: String = value
+case class ExchangeRateURL(url: String) {
+  override val toString: String = url
 }
 
 object ExchangeRateURL {

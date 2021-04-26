@@ -18,21 +18,22 @@ package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import uk.gov.hmrc.merchandiseinbaggage.stubs.ExchangeRateStub
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
 class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
 
   "return with month page URI" in {
 
-    val exchange = new ExchangeLinkLoaderImpl() {
-      override def getPage(yearlyUrl: String): Document =
-        Jsoup.parse(
-          """<body><h2 class="gem-c-heading ">Documents</h2><a href="/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview">View online</a>
-            |""".stripMargin)
-    }
+    ExchangeRateStub.givenExchangeServer()
 
-    whenReady(exchange.getMonthlyUrl("http://something")) { result =>
-      result mustBe "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"
+    val exchange = new ExchangeLinkLoaderImpl()
+
+    val server = s"http://localhost:${WireMock.port}"
+
+    val yearUrl = s"$server/government/publications/hmrc-exchange-rates-for-2021-monthly"
+    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+      result mustBe s"$server/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"
     }
   }
 
@@ -52,7 +53,7 @@ class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
     val exchange = new ExchangeLinkLoaderImpl() {
       override def getPage(yearlyUrl: String): Document =
         Jsoup.parse(
-          """<body><h1 class="gem-c-heading ">Documents</h2><a href="/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview">View online</a>
+          """<body><h1 class="gem-c-heading ">Documents</h2><a href="http://something.com/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview">View online</a>
             |""".stripMargin)
     }
 

@@ -28,22 +28,24 @@ import scala.util.{Success, Try}
 class ExchangeRateConnector @Inject() extends ExchangeLinkLoaderImpl {
 
   def getExchangeRateUrl(year: Int = LocalDate.now.getYear): Future[String] =
-    getMonthlyUrl(s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly")
+    getMonthlyUrl(calcYearPage(year))
 }
 
 trait ExchangeLinkLoader {
   def getMonthlyUrl(yearUrl: String): Future[String]
+  def calcYearPage(year: Int): String
 }
 
 class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
-  private val serverUrl = "https://assets.publishing.service.gov.uk"
+
+  def calcYearPage(year: Int): String = s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly"
 
   override def getMonthlyUrl(yearUrl: String): Future[String] =
     Try {
       val response = getPage(yearUrl)
       findFirstLink(response)
     } match {
-      case Success(url) => Future.successful(serverUrl + url)
+      case Success(url) => Future.successful(url)
       case _            => Future.successful(yearUrl)
     }
 
@@ -55,6 +57,5 @@ class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
       .nextAll
       .select("a")
       .first()
-      .attributes()
-      .get("href")
+      .attr("abs:href")
 }

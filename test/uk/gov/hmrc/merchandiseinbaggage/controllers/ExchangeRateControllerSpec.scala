@@ -23,18 +23,22 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, status}
 import play.api.test.Helpers._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ExchangeRateURL
+import uk.gov.hmrc.merchandiseinbaggage.stubs.ExchangeRateStub
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class ExchangeRateControllerSpec extends BaseSpecWithApplication with CoreTestData with WireMock {
+
+  val wiremockServer = s"http://localhost:${WireMock.port}"
 
   val connector: ControllerComponents = injector.instanceOf[ControllerComponents]
 
   "return with month page URI" in {
+    ExchangeRateStub.givenExchangeServer()
+
     val rates = new ExchangeRateConnector() {
-      override def getExchangeRateUrl(year: Int): Future[String] =
-        Future.successful("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly")
+      override def calcYearPage(year: Int): String =
+        s"$wiremockServer/government/publications/hmrc-exchange-rates-for-2021-monthly"
     }
 
     val controller = new ExchangeRateController(connector, rates)
@@ -42,13 +46,13 @@ class ExchangeRateControllerSpec extends BaseSpecWithApplication with CoreTestDa
 
     status(result) mustBe 200
     contentAsJson(result) mustBe Json.toJson(
-      ExchangeRateURL("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"))
+      ExchangeRateURL(s"$wiremockServer/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"))
   }
 
   "unable to find month page then returns year URI" in {
     val rates = new ExchangeRateConnector() {
-      override def getExchangeRateUrl(year: Int): Future[String] =
-        Future.successful("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly")
+      override def calcYearPage(year: Int): String =
+        s"$wiremockServer/government/publications/hmrc-exchange-rates-for-2020-monthly"
     }
 
     val controller = new ExchangeRateController(connector, rates)
@@ -56,6 +60,6 @@ class ExchangeRateControllerSpec extends BaseSpecWithApplication with CoreTestDa
 
     status(result) mustBe 200
     contentAsJson(result) mustBe Json.toJson(
-      ExchangeRateURL("https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"))
+      ExchangeRateURL(s"$wiremockServer/government/publications/hmrc-exchange-rates-for-2020-monthly"))
   }
 }
