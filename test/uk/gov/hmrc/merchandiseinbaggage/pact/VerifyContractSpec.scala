@@ -22,7 +22,7 @@ import com.itv.scalapact.shared.ProviderStateResult
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, DeclarationId, Eori}
 import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,6 +64,13 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             CurrencyConversionStub.givenCurrencyConversion()
             ProviderStateResult(true, req => req)
 
+          case state @ "id789" =>
+            CurrencyConversionStub.givenCurrencyConversion()
+            repository
+              .insert(aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty)))
+              .futureValue
+            ProviderStateResult(true, req => req)
+
           case "checkEoriNumberTest" =>
             EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
@@ -82,6 +89,5 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
   override def beforeEach(): Unit = {
     super.beforeEach()
     repository.deleteAll()
-
   }
 }
