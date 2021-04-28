@@ -27,12 +27,12 @@ import scala.util.{Success, Try}
 @Singleton
 class ExchangeRateConnector @Inject() extends ExchangeLinkLoaderImpl {
 
-  def getExchangeRateUrl(year: Int = LocalDate.now.getYear): Future[String] =
-    getMonthlyUrl(calcYearPage(year))
+  def getExchangeRateUrl(date: LocalDate = LocalDate.now): Future[String] =
+    getMonthlyUrl(calcYearPage(date.getYear), date)
 }
 
 trait ExchangeLinkLoader {
-  def getMonthlyUrl(yearUrl: String): Future[String]
+  def getMonthlyUrl(yearUrl: String, date: LocalDate): Future[String]
   def calcYearPage(year: Int): String
 }
 
@@ -40,22 +40,23 @@ class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
 
   def calcYearPage(year: Int): String = s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly"
 
-  override def getMonthlyUrl(yearUrl: String): Future[String] =
+  override def getMonthlyUrl(yearUrl: String, date: LocalDate): Future[String] =
     Try {
+      val monthYear = f"${date.getMonthValue}%02d${date.getYear % 100}%2d"
       val response = getPage(yearUrl)
-      findFirstLink(response)
+      findFirstLink(response, monthYear)
     } match {
-      case Success(url) => Future.successful(url)
-      case _            => Future.successful(yearUrl)
+      case Success(url) if url.nonEmpty => Future.successful(url)
+      case _                            => Future.successful(yearUrl)
     }
 
   def getPage(yearlyUrl: String): Document = Jsoup.connect(yearlyUrl).get()
 
-  def findFirstLink(doc: Document): String =
+  def findFirstLink(doc: Document, month: String): String =
     doc
       .select("h2.gem-c-heading")
       .nextAll
       .select("a")
-      .first()
+      .select(s"[href*=$month]")
       .attr("abs:href")
 }

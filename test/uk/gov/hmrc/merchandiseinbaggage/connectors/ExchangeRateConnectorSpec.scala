@@ -20,6 +20,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import uk.gov.hmrc.merchandiseinbaggage.stubs.ExchangeRateStub
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
+import java.time.LocalDate
 
 class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
 
@@ -31,8 +32,9 @@ class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
 
     val server = s"http://localhost:${WireMock.port}"
 
+    val monthYear = LocalDate.of(2021, 4, 5)
     val yearUrl = s"$server/government/publications/hmrc-exchange-rates-for-2021-monthly"
-    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+    whenReady(exchange.getMonthlyUrl(yearUrl, monthYear)) { result =>
       result mustBe s"$server/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"
     }
   }
@@ -43,8 +45,9 @@ class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
         throw new Exception("Something odd")
     }
 
+    val monthYear = LocalDate.of(2020, 4, 5)
     val yearUrl = "https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"
-    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+    whenReady(exchange.getMonthlyUrl(yearUrl, monthYear)) { result =>
       result mustBe yearUrl
     }
   }
@@ -57,8 +60,9 @@ class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
             |""".stripMargin)
     }
 
+    val monthYear = LocalDate.of(2020, 4, 5)
     val yearUrl = "https://www.gov.uk/government/publications/hmrc-exchange-rates-for-2020-monthly"
-    whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
+    whenReady(exchange.getMonthlyUrl(yearUrl, monthYear)) { result =>
       result mustBe yearUrl
     }
   }
