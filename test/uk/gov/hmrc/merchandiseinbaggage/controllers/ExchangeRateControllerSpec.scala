@@ -46,7 +46,7 @@ class ExchangeRateControllerSpec extends BaseSpecWithApplication with CoreTestDa
 
     status(result) mustBe 200
     contentAsJson(result) mustBe Json.toJson(
-      ExchangeRateURL(s"$wiremockServer/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"))
+      ExchangeRateURL(s"$wiremockServer/government/publications/hmrc-exchange-rates-for-2021-monthly"))
   }
 
   "unable to find month page then returns year URI" in {

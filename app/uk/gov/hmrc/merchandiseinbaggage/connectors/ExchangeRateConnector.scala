@@ -43,8 +43,9 @@ class ExchangeLinkLoaderImpl extends ExchangeLinkLoader with Logging {
 
   override def getMonthlyUrl(yearUrl: String): Future[String] =
     Try {
-      val response = getPage(yearUrl)
-      findFirstLink(response)
+      yearUrl // TODO needs fixing for running in infarstructure
+//      val response = getPage(yearUrl)
+//      findFirstLink(response)
     } match {
       case Success(url) => Future.successful(url)
       case Failure(ex) =>
