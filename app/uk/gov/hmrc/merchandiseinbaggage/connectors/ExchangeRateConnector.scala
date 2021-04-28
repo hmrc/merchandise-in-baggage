@@ -18,11 +18,12 @@ package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import play.api.Logging
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class ExchangeRateConnector @Inject() extends ExchangeLinkLoaderImpl {
@@ -36,7 +37,7 @@ trait ExchangeLinkLoader {
   def calcYearPage(year: Int): String
 }
 
-class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
+class ExchangeLinkLoaderImpl extends ExchangeLinkLoader with Logging {
 
   def calcYearPage(year: Int): String = s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly"
 
@@ -46,7 +47,9 @@ class ExchangeLinkLoaderImpl extends ExchangeLinkLoader {
       findFirstLink(response)
     } match {
       case Success(url) => Future.successful(url)
-      case _            => Future.successful(yearUrl)
+      case Failure(ex) =>
+        logger.warn("error during retrieving exchange rate url, returning the default url, error ", ex)
+        Future.successful(yearUrl)
     }
 
   def getPage(yearlyUrl: String): Document = Jsoup.connect(yearlyUrl).get()
