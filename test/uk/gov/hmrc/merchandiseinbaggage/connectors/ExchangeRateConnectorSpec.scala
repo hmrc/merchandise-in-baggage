@@ -33,7 +33,7 @@ class ExchangeRateConnectorSpec extends BaseSpecWithApplication with WireMock {
 
     val yearUrl = s"$server/government/publications/hmrc-exchange-rates-for-2021-monthly"
     whenReady(exchange.getMonthlyUrl(yearUrl)) { result =>
-      result mustBe s"$server/government/uploads/system/uploads/attachment_data/file/974580/exrates-monthly-0421.csv/preview"
+      result mustBe yearUrl
     }
   }
 
