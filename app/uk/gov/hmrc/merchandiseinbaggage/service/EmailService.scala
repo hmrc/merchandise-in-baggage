@@ -99,7 +99,9 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
           case Some(amendment) => amendment.emailsSent
           case None            => true //no amendment found for given amendmentReference, do not trigger emails
         }
-      case None => declaration.emailsSent
+      case None =>
+        //first check for latest `amend` journey, then fallback to `new` journey
+        declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
     }
 
   private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String, amendmentReference: Option[Int])(
