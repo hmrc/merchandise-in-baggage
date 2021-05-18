@@ -30,7 +30,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-@ImplementedBy(classOf[DeclarationRepositoryImpl])
+@ImplementedBy(classOf[DeclarationRepositoryCryptoImpl])
 trait DeclarationRepository {
 
   def insertDeclaration(declaration: Declaration): Future[Declaration]
