@@ -95,11 +95,16 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB, repo: DeclarationRe
     )
 
     var result = tryTransform(transformGoods, record, declarationId)
+
     result = declarationType match {
       case Import => tryTransform(transformTotalCalculationResult, result, declarationId)
       case Export => result
     }
-    result = tryTransform(transformAmendments, result, declarationId)
+
+    result = (record \ "amendments").asOpt[JsArray] match {
+      case Some(arr) if arr.value.nonEmpty => tryTransform(transformAmendments, result, declarationId)
+      case _                               => result
+    }
 
     result
   }
@@ -140,43 +145,52 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB, repo: DeclarationRe
       }
   }
 
-  private def updateAmendments(record: JsObject, declarationType: DeclarationType) = (record \ "amendments").as[JsArray].value.map { json =>
-    val reference = (json \ "reference").as[Int]
-    val dateOfAmendment = (json \ "dateOfAmendment").as[LocalDateTime]
-    val goods = declarationType match {
-      case Import =>
-        (json \ "goods" \ "goods").as[JsArray].value.map { json =>
-          val category = (json \ "categoryQuantityOfGoods" \ "category").as[String]
-          val goodsVatRate = (json \ "goodsVatRate").as[GoodsVatRate]
-          val producedInEu = (json \ "producedInEu").as[YesNoDontKnow]
-          val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
+  private def updateAmendments(record: JsObject, declarationType: DeclarationType) =
+    (record \ "amendments").as[JsArray].value.map { json =>
+      val reference = (json \ "reference").as[Int]
+      val dateOfAmendment = (json \ "dateOfAmendment").as[LocalDateTime]
+      val goods = declarationType match {
+        case Import =>
+          (json \ "goods" \ "goods").as[JsArray].value.map { json =>
+            val category = (json \ "categoryQuantityOfGoods" \ "category").as[String]
+            val goodsVatRate = (json \ "goodsVatRate").as[GoodsVatRate]
+            val producedInEu = (json \ "producedInEu").as[YesNoDontKnow]
+            val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
 
-          ImportGoods(category, goodsVatRate, producedInEu, purchaseDetails)
-        }
+            ImportGoods(category, goodsVatRate, producedInEu, purchaseDetails)
+          }
 
-      case Export =>
-        (json \ "goods" \ "goods").as[JsArray].value.map { json =>
-          val category = (json \ "categoryQuantityOfGoods" \ "category").as[String]
-          val country = (json \ "destination").as[Country]
-          val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
+        case Export =>
+          (json \ "goods" \ "goods").as[JsArray].value.map { json =>
+            val category = (json \ "categoryQuantityOfGoods" \ "category").as[String]
+            val country = (json \ "destination").as[Country]
+            val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
 
-          ExportGoods(category, country, purchaseDetails)
-        }
+            ExportGoods(category, country, purchaseDetails)
+          }
+      }
+
+      val maybeTotalCalculationResult = (json \ "maybeTotalCalculationResult").asOpt[JsObject] match {
+        case Some(jsObject) => Some(transformCalculationResult(jsObject))
+        case None           => None
+      }
+
+      val paymentStatus = (json \ "paymentStatus").asOpt[PaymentStatus]
+      val source = (json \ "source").asOpt[String]
+      val emailsSent = (json \ "emailsSent").as[Boolean]
+      val lang = (json \ "lang").as[String]
+
+      Json.toJson(
+        Amendment(
+          reference,
+          dateOfAmendment,
+          DeclarationGoods(goods),
+          maybeTotalCalculationResult,
+          paymentStatus,
+          source,
+          emailsSent,
+          lang))
     }
-
-    val maybeTotalCalculationResult = (json \ "maybeTotalCalculationResult").asOpt[JsObject] match {
-      case Some(jsObject) => Some(transformCalculationResult(jsObject))
-      case None           => None
-    }
-
-    val paymentStatus = (json \ "paymentStatus").asOpt[PaymentStatus]
-    val source = (json \ "source").asOpt[String]
-    val emailsSent = (json \ "emailsSent").as[Boolean]
-    val lang = (json \ "lang").as[String]
-
-    Json.toJson(
-      Amendment(reference, dateOfAmendment, DeclarationGoods(goods), maybeTotalCalculationResult, paymentStatus, source, emailsSent, lang))
-  }
 
   private def transformCalculationResult(obj: JsObject) = {
 
