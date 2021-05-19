@@ -17,7 +17,6 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.Goods.categoryReads
 
 sealed trait Goods {
   val category: String
@@ -32,24 +31,7 @@ final case class ImportGoods(
 ) extends Goods
 
 object ImportGoods {
-  //TODO: Custom reads until we cleanup production data MIBM-588
-  implicit val format: OFormat[ImportGoods] = new OFormat[ImportGoods] {
-    override def writes(o: ImportGoods): JsObject =
-      Json.obj(
-        "category"        -> o.category,
-        "goodsVatRate"    -> o.goodsVatRate,
-        "producedInEu"    -> o.producedInEu,
-        "purchaseDetails" -> o.purchaseDetails,
-      )
-
-    override def reads(json: JsValue): JsResult[ImportGoods] = {
-      val vatRate = (json \ "goodsVatRate").as[GoodsVatRate]
-      val producedInEu = (json \ "producedInEu").as[YesNoDontKnow]
-      val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
-
-      JsSuccess(ImportGoods(categoryReads(json), vatRate, producedInEu, purchaseDetails))
-    }
-  }
+  implicit val format: OFormat[ImportGoods] = Json.format[ImportGoods]
 }
 
 final case class ExportGoods(
@@ -59,21 +41,7 @@ final case class ExportGoods(
 ) extends Goods
 
 object ExportGoods {
-  implicit val format: OFormat[ExportGoods] = new OFormat[ExportGoods] {
-    override def writes(o: ExportGoods): JsObject =
-      Json.obj(
-        "category"        -> o.category,
-        "destination"     -> o.destination,
-        "purchaseDetails" -> o.purchaseDetails,
-      )
-
-    override def reads(json: JsValue): JsResult[ExportGoods] = {
-      val destination = (json \ "destination").as[Country]
-      val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
-
-      JsSuccess(ExportGoods(categoryReads(json), destination, purchaseDetails))
-    }
-  }
+  implicit val format: OFormat[ExportGoods] = Json.format[ExportGoods]
 }
 
 object Goods {
@@ -82,27 +50,12 @@ object Goods {
     case eg: ExportGoods => ExportGoods.format.writes(eg)
   }
 
-  //TODO: Custom reads until we cleanup production data MIBM-588
   implicit val reads = Reads[Goods] {
     case json: JsObject if json.keys.contains("producedInEu") =>
-      val vatRate = (json \ "goodsVatRate").as[GoodsVatRate]
-      val producedInEu = (json \ "producedInEu").as[YesNoDontKnow]
-      val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
-
-      JsSuccess(ImportGoods(categoryReads(json), vatRate, producedInEu, purchaseDetails))
-
+      JsSuccess(json.as[ImportGoods])
     case json: JsObject if json.keys.contains("destination") =>
-      val destination = (json \ "destination").as[Country]
-      val purchaseDetails = (json \ "purchaseDetails").as[PurchaseDetails]
-
-      JsSuccess(ExportGoods(categoryReads(json), destination, purchaseDetails))
+      JsSuccess(json.as[ExportGoods])
   }
-
-  def categoryReads(json: JsValue): String =
-    (json \ "category").asOpt[String] match {
-      case Some(category) => category
-      case None           => (json \ "categoryQuantityOfGoods" \ "category").as[String]
-    }
 }
 
 case class DeclarationGoods(goods: Seq[Goods])
