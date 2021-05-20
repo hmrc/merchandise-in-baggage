@@ -23,7 +23,7 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.crypto.DeclarationRepositoryCryptoImpl
+import uk.gov.hmrc.merchandiseinbaggage.repositories.crypto.DeclarationRepositoryCryptoWrapper
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -31,7 +31,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-@ImplementedBy(classOf[DeclarationRepositoryCryptoImpl])
+@ImplementedBy(classOf[DeclarationRepositoryCryptoWrapper])
 trait DeclarationRepository {
 
   def insertDeclaration(declaration: Declaration): Future[Declaration]

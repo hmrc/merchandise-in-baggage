@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.MongoConnector
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DeclarationRepositoryCryptoImplSpec
+class DeclarationRepositoryCryptoWrapperSpec
     extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach with MongoConfiguration {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
@@ -37,7 +37,7 @@ class DeclarationRepositoryCryptoImplSpec
   lazy val rep = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
   private val declarationCrypto = injector.instanceOf[DeclarationCrypto]
 
-  val cryptoRepository: DeclarationRepositoryCryptoImpl = new DeclarationRepositoryCryptoImpl(rep, declarationCrypto)
+  val cryptoRepository: DeclarationRepositoryCryptoWrapper = new DeclarationRepositoryCryptoWrapper(rep, declarationCrypto)
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration
@@ -140,54 +140,18 @@ class DeclarationRepositoryCryptoImplSpec
 
   "return the latest for session id in a multi declaration scenario" in {
     val declaration = aDeclaration
-    val declarationTwo = aDeclaration
+    val declarationTwo = aDeclaration.copy(dateOfDeclaration = declaration.dateOfDeclaration.plusDays(1))
     val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
-    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db) {
-      override def latest(declarations: List[Declaration]): Declaration = declarationTwo
-    }
 
     def insertThree(): Future[Declaration] =
       for {
-        _     <- repository.insertDeclaration(declaration)
-        _     <- repository.insertDeclaration(declarationTwo)
-        three <- repository.insertDeclaration(declarationWithDifferentSessionId)
+        _     <- cryptoRepository.insertDeclaration(declaration)
+        _     <- cryptoRepository.insertDeclaration(declarationTwo)
+        three <- cryptoRepository.insertDeclaration(declarationWithDifferentSessionId)
       } yield three
 
     insertThree().futureValue mustBe declarationWithDifferentSessionId
-    repository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
-  }
-
-  "test upgrade mongodb to encrypted" in {
-    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
-    val declaration = aDeclaration
-
-    // insert unencrypted dec into mongo
-
-    List
-      .fill(100)(declaration)
-      .zipWithIndex
-      .map { d =>
-        d._1.copy(declarationId = DeclarationId(s"idx-${d._2}"), mibReference = MibReference(s"idx-${d._2}"))
-      }
-      .foreach { d =>
-        whenReady(repository.insertDeclaration(d)) { e =>
-          e
-        }
-      }
-
-    whenReady(repository.insertDeclaration(declaration)) { insertResult =>
-      insertResult mustBe declaration
-    }
-
-    // upgrade
-    whenReady(cryptoRepository.upgradeCollectionToEncrypted()) { result =>
-      result mustBe true
-    }
-
-    // retrieve using encryped and check
-    whenReady(cryptoRepository.findBy(declaration.mibReference)) { findResult =>
-      findResult mustBe Some(declaration)
-    }
+    cryptoRepository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
   }
 
   override def beforeEach(): Unit = cryptoRepository.deleteAll()

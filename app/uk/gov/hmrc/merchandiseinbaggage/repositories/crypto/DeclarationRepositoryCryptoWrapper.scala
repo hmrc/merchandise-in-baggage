@@ -23,37 +23,36 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DeclarationRepositoryCryptoImpl @Inject()(dr: DeclarationRepositoryImpl, cryp: DeclarationCrypto)(implicit ec: ExecutionContext)
+class DeclarationRepositoryCryptoWrapper @Inject()(
+  declarationRepositoryImpl: DeclarationRepositoryImpl,
+  declarationCrypto: DeclarationCrypto)(implicit ec: ExecutionContext)
     extends DeclarationRepository {
 
-  import cryp._
+  import declarationCrypto._
 
   def insert(declaration: Declaration): Future[Declaration] = insertDeclaration(declaration)
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] =
-    dr.insertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
+    declarationRepositoryImpl.insertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
 
   override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
-    dr.upsertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
+    declarationRepositoryImpl.upsertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] =
-    dr.findByDeclarationId(declarationId).map(_.map(decryptDeclaration))
+    declarationRepositoryImpl.findByDeclarationId(declarationId).map(_.map(decryptDeclaration))
 
   override def findBy(mibReference: MibReference, amendmentReference: Option[Int]): Future[Option[Declaration]] =
-    dr.findBy(mibReference, amendmentReference).map(_.map(decryptDeclaration))
+    declarationRepositoryImpl.findBy(mibReference, amendmentReference).map(_.map(decryptDeclaration))
 
   override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] =
-    dr.findBy(mibReference, encryptEori(eori)).map(x => x.map(r => decryptDeclaration(r)))
+    declarationRepositoryImpl.findBy(mibReference, encryptEori(eori)).map(x => x.map(r => decryptDeclaration(r)))
 
   override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] =
-    dr.findLatestBySessionId(sessionId).map(decryptDeclaration)
+    declarationRepositoryImpl.findLatestBySessionId(sessionId).map(decryptDeclaration)
 
   override def findAll: Future[List[Declaration]] =
-    dr.findAll.map(_.map(decryptDeclaration))
+    declarationRepositoryImpl.findAll.map(_.map(decryptDeclaration))
 
-  override def deleteAll(): Future[Unit] = dr.deleteAll()
-
-  def upgradeCollectionToEncrypted(): Future[Boolean] =
-    dr.findAll.map { _.map { upsertDeclaration } }.map(_ => true)
+  override def deleteAll(): Future[Unit] = declarationRepositoryImpl.deleteAll()
 
 }

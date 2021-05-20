@@ -24,39 +24,41 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class DeclarationCrypto @Inject()(configuration: Configuration)(implicit ec: ExecutionContext) {
+class DeclarationCrypto @Inject()(configuration: Configuration)(implicit executionContext: ExecutionContext) {
   private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
 
-  def encryptDeclaration(declaration: Declaration): Declaration = cryptoDeclaration(declaration, encrypt)
+  def encryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration, encrypt)
 
-  def decryptDeclaration(declaration: Declaration): Declaration = cryptoDeclaration(declaration, decrypt)
+  def decryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration, decrypt)
 
   def encryptEori(eori: Eori): Eori = eori.copy(value = encrypt(eori.value))
 
-  private def cryptoDeclaration(declaration: Declaration, crypto: String => String): Declaration = {
-    val cyNname =
-      Name(crypto(declaration.nameOfPersonCarryingTheGoods.firstName), crypto(declaration.nameOfPersonCarryingTheGoods.lastName))
+  private def convertDeclaration(declaration: Declaration, convert: String => String): Declaration = {
+    val convertedName =
+      Name(convert(declaration.nameOfPersonCarryingTheGoods.firstName), convert(declaration.nameOfPersonCarryingTheGoods.lastName))
 
-    val cyEmail = declaration.email.map(e => e.copy(email = crypto(e.email)))
+    val convertedEmail = declaration.email.map(declarationEmail => declarationEmail.copy(email = convert(declarationEmail.email)))
 
-    val cyEori = declaration.eori.copy(value = crypto(declaration.eori.value))
+    val convertedEori = declaration.eori.copy(value = convert(declaration.eori.value))
 
-    val cyMaybeCustomsAgent = declaration.maybeCustomsAgent.map { agent =>
-      val cyAddr = agent.address.copy(lines = agent.address.lines.map(crypto), postcode = agent.address.postcode.map(crypto))
-      agent.copy(name = crypto(agent.name), address = cyAddr)
+    val convertedMaybeCustomsAgent = declaration.maybeCustomsAgent.map { agent =>
+      val convertedAddr =
+        agent.address.copy(lines = agent.address.lines.map(convert), postcode = agent.address.postcode.map(convert))
+      agent.copy(name = convert(agent.name), address = convertedAddr)
     }
 
-    val cyJourneyDetails = declaration.journeyDetails match {
-      case a: JourneyInSmallVehicle => a.copy(registrationNumber = crypto(a.registrationNumber))
-      case a                        => a
+    val convertedJourneyDetails = declaration.journeyDetails match {
+      case journeyInSmallVehicle: JourneyInSmallVehicle =>
+        journeyInSmallVehicle.copy(registrationNumber = convert(journeyInSmallVehicle.registrationNumber))
+      case otherJourney => otherJourney
     }
 
     declaration.copy(
-      nameOfPersonCarryingTheGoods = cyNname,
-      email = cyEmail,
-      eori = cyEori,
-      journeyDetails = cyJourneyDetails,
-      maybeCustomsAgent = cyMaybeCustomsAgent,
+      nameOfPersonCarryingTheGoods = convertedName,
+      email = convertedEmail,
+      eori = convertedEori,
+      journeyDetails = convertedJourneyDetails,
+      maybeCustomsAgent = convertedMaybeCustomsAgent,
     )
   }
 
