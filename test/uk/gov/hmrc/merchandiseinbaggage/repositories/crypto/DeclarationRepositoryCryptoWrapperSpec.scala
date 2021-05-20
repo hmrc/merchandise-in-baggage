@@ -60,7 +60,7 @@ class DeclarationRepositoryCryptoWrapperSpec
   }
 
   "find a declaration by declaration id" in {
-    val declarationOne = aDeclaration
+    val declarationOne = aDeclaration.copy(encrypted = Some(true))
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
     def insertTwo(): Future[Declaration] =
@@ -76,7 +76,7 @@ class DeclarationRepositoryCryptoWrapperSpec
   }
 
   "find a declaration by mibReference" in {
-    val declaration = aDeclaration
+    val declaration = aDeclaration.copy(encrypted = Some(true))
 
     def insert(): Future[Declaration] = cryptoRepository.insertDeclaration(declaration)
 
@@ -90,7 +90,7 @@ class DeclarationRepositoryCryptoWrapperSpec
   }
 
   "find a declaration by mibReference & Eori" in {
-    val declarationOne = aDeclaration
+    val declarationOne = aDeclaration.copy(encrypted = Some(true))
     val declarationTwo = declarationOne
       .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
 
@@ -139,8 +139,8 @@ class DeclarationRepositoryCryptoWrapperSpec
   }
 
   "return the latest for session id in a multi declaration scenario" in {
-    val declaration = aDeclaration
-    val declarationTwo = aDeclaration.copy(dateOfDeclaration = declaration.dateOfDeclaration.plusDays(1))
+    val declaration = aDeclaration.copy(encrypted = Some(true))
+    val declarationTwo = aDeclaration.copy(dateOfDeclaration = declaration.dateOfDeclaration.plusDays(1), encrypted = Some(true))
     val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
 
     def insertThree(): Future[Declaration] =
@@ -152,6 +152,38 @@ class DeclarationRepositoryCryptoWrapperSpec
 
     insertThree().futureValue mustBe declarationWithDifferentSessionId
     cryptoRepository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
+  }
+
+  "Update pre-encrypted declaration, simulate adding Amendment" in {
+    val declaration = aDeclaration
+    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
+
+    // Write a non-encrypted declaration
+    repository.insertDeclaration(declaration).futureValue.encrypted mustBe None
+
+    // Find declaration (ie start of amendment)
+    val declarationAfterFindBy = whenReady(cryptoRepository.findBy(declaration.mibReference)) { findResult =>
+      findResult mustBe Some(declaration)
+      findResult.map(_.encrypted mustBe None)
+      findResult.getOrElse(fail)
+    }
+
+    // Add Amendment and update declaration
+    val declarationAfterFindByWithAmendment = declarationAfterFindBy.copy(amendments = Seq(aAmendment))
+    whenReady(cryptoRepository.upsertDeclaration(declarationAfterFindByWithAmendment)) { findResult =>
+      findResult.encrypted mustBe None
+    }
+
+    // Find and check it is now encrypted
+    whenReady(cryptoRepository.findBy(declarationAfterFindBy.mibReference)) { findResult =>
+      findResult.map { declarationWithEncryption =>
+        declarationWithEncryption.encrypted mustBe Some(true)
+        declarationWithEncryption.nameOfPersonCarryingTheGoods.firstName mustBe declaration.nameOfPersonCarryingTheGoods.firstName
+        declarationWithEncryption.nameOfPersonCarryingTheGoods.lastName mustBe declaration.nameOfPersonCarryingTheGoods.lastName
+        declarationWithEncryption.email mustBe declaration.email
+        declarationWithEncryption.eori mustBe declaration.eori
+      }
+    }
   }
 
   override def beforeEach(): Unit = cryptoRepository.deleteAll()

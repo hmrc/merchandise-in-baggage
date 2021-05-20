@@ -27,9 +27,10 @@ import scala.concurrent.ExecutionContext
 class DeclarationCrypto @Inject()(configuration: Configuration)(implicit executionContext: ExecutionContext) {
   private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
 
-  def encryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration, encrypt)
+  def encryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration.copy(encrypted = Some(true)), encrypt)
 
-  def decryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration, decrypt)
+  def decryptDeclaration(declaration: Declaration): Declaration =
+    if (declaration.encrypted.contains(true)) convertDeclaration(declaration, decrypt) else declaration
 
   def encryptEori(eori: Eori): Eori = eori.copy(value = encrypt(eori.value))
 

@@ -26,8 +26,8 @@ class DeclarationCryptoSpec extends BaseSpecWithApplication with CoreTestData wi
   private val declarationCrypto = injector.instanceOf[DeclarationCrypto]
   private val declaration = aDeclaration
 
-  "encrypt -> decrypt must match the original" in {
-    declarationCrypto.decryptDeclaration(declarationCrypto.encryptDeclaration(declaration)) mustBe declaration
+  "encrypt -> decrypt must match the original with encrypted enabled" in {
+    declarationCrypto.decryptDeclaration(declarationCrypto.encryptDeclaration(declaration)) mustBe declaration.copy(encrypted = Some(true))
   }
 
   "encrypt name should be different from original" in {
