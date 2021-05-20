@@ -38,7 +38,8 @@ case class Declaration(
   paymentStatus: Option[PaymentStatus] = None,
   lang: String = "en",
   source: Option[String] = None,
-  amendments: Seq[Amendment] = Seq.empty)
+  amendments: Seq[Amendment] = Seq.empty,
+  piiEncrypted: Boolean = false)
 
 object Declaration {
   val id = "declarationId"

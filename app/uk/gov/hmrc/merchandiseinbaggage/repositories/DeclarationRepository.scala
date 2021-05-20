@@ -17,11 +17,13 @@
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
+import play.api.Configuration
 import play.api.libs.json.Json.{JsValueWrapper, _}
 import play.api.libs.json._
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
+import uk.gov.hmrc.crypto.{Crypted, CryptoWithKeysFromConfig, PlainText}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -51,9 +53,11 @@ trait DeclarationRepository {
 }
 
 @Singleton
-class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
+class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: ExecutionContext, configuration: Configuration)
     extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
     with DeclarationDateOrdering with DeclarationRepository {
+
+  private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
 
   implicit val jsObjectWriter: OWrites[JsObject] = new OWrites[JsObject] {
     override def writes(o: JsObject): JsObject = o
@@ -63,25 +67,33 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
-  override def insertDeclaration(declaration: Declaration): Future[Declaration] =
+  override def insertDeclaration(declaration: Declaration): Future[Declaration] = {
+    val encryptedDeclaration = encrypt(declaration)
     super
-      .insert(declaration)
-      .map(_ => declaration)
+      .insert(encryptedDeclaration)
+      .map(_ => encryptedDeclaration)
       .recover {
         case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
           //conflict - duplicate declaration with same declarationId
           declaration
       }
+  }
 
-  override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
+  override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
+    val encryptedDeclaration = encrypt(declaration)
     collection
       .update(ordered = false)
-      .one(Json.obj(Declaration.id -> declaration.declarationId.value), declaration, upsert = true)
-      .map(_ => declaration)
+      .one(Json.obj(Declaration.id -> declaration.declarationId.value), encryptedDeclaration, upsert = true)
+      .map(_ => encryptedDeclaration)
+  }
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
-    find(query).map(_.headOption)
+    find(query).map(_.headOption).map {
+      case Some(declaration) => Some(decrypt(declaration))
+      case None              => None
+
+    }
   }
 
   override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] = {
@@ -95,12 +107,15 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
         case None => Json.obj("mibReference" -> mibReference.value)
       }
 
-    collection.find(query, None).one[Declaration]
+    collection.find(query, None).one[Declaration].map {
+      case Some(declaration) => Some(decrypt(declaration))
+      case None              => None
+    }
   }
 
   override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
     val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
-    find(query).map(latest)
+    find(query).map(latest).map(decrypt)
   }
 
   override def findAll: Future[List[Declaration]] = super.findAll()
@@ -110,6 +125,59 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
 
   override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
     val query: Seq[(String, JsValueWrapper)] = Seq(("mibReference", JsString(mibReference.value)), ("eori.value", JsString(eori.value)))
-    find(query: _*).map(_.headOption)
+    find(query: _*).map(_.headOption).map {
+      case Some(declaration) => Some(decrypt(declaration))
+      case None              => None
+    }
+  }
+
+  private def encrypt(value: String): String =
+    crypto.encrypt(PlainText(value)).value
+
+  private def decrypt(encrypted: String): String =
+    crypto.decrypt(Crypted(encrypted)).value
+
+  private def encrypt(declaration: Declaration): Declaration = {
+    import declaration._
+
+    def encryptedName =
+      Name(encrypt(nameOfPersonCarryingTheGoods.firstName), encrypt(nameOfPersonCarryingTheGoods.lastName))
+
+    def encryptedEmail = email.map(declarationEmail => declarationEmail.copy(email = encrypt(declarationEmail.email)))
+
+    def encryptedEori = eori.copy(value = encrypt(eori.value))
+
+    def encryptedCustomsAgent = maybeCustomsAgent.map { agent =>
+      val encryptedAddress =
+        agent.address.copy(lines = agent.address.lines.map(encrypt), postcode = agent.address.postcode.map(encrypt))
+      agent.copy(name = encrypt(agent.name), address = encryptedAddress)
+    }
+
+    def encryptedJourneyDetails = journeyDetails match {
+      case journeyInSmallVehicle: JourneyInSmallVehicle =>
+        journeyInSmallVehicle.copy(registrationNumber = encrypt(journeyInSmallVehicle.registrationNumber))
+      case otherJourney => otherJourney
+    }
+
+    if (!declaration.piiEncrypted) {
+      declaration.copy(
+        nameOfPersonCarryingTheGoods = encryptedName,
+        email = encryptedEmail,
+        eori = encryptedEori,
+        journeyDetails = encryptedJourneyDetails,
+        maybeCustomsAgent = encryptedCustomsAgent,
+        piiEncrypted = true
+      )
+    } else {
+      declaration
+    }
+  }
+
+  private def decrypt(declaration: Declaration): Declaration = {
+    if (declaration.piiEncrypted) {
+      ???
+    } else {
+      declaration
+    }
   }
 }
