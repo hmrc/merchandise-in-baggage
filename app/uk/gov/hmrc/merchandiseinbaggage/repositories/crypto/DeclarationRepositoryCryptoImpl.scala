@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.repositories
+package uk.gov.hmrc.merchandiseinbaggage.repositories.crypto
 
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.repositories.{DeclarationRepository, DeclarationRepositoryImpl}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,6 +27,8 @@ class DeclarationRepositoryCryptoImpl @Inject()(dr: DeclarationRepositoryImpl, c
     extends DeclarationRepository {
 
   import cryp._
+
+  def insert(declaration: Declaration): Future[Declaration] = insertDeclaration(declaration)
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] =
     dr.insertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
@@ -40,7 +43,7 @@ class DeclarationRepositoryCryptoImpl @Inject()(dr: DeclarationRepositoryImpl, c
     dr.findBy(mibReference, amendmentReference).map(_.map(decryptDeclaration))
 
   override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] =
-    dr.findBy(mibReference, eori).map(_.map(decryptDeclaration))
+    dr.findBy(mibReference, encryptEori(eori)).map(x => x.map(r => decryptDeclaration(r)))
 
   override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] =
     dr.findLatestBySessionId(sessionId).map(decryptDeclaration)
@@ -49,4 +52,8 @@ class DeclarationRepositoryCryptoImpl @Inject()(dr: DeclarationRepositoryImpl, c
     dr.findAll.map(_.map(decryptDeclaration))
 
   override def deleteAll(): Future[Unit] = dr.deleteAll()
+
+  def upgradeCollectionToEncrypted(): Future[Boolean] =
+    dr.findAll.map { _.map { upsertDeclaration } }.map(_ => true)
+
 }

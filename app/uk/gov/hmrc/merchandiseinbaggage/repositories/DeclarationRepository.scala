@@ -23,6 +23,7 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.repositories.crypto.DeclarationRepositoryCryptoImpl
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
