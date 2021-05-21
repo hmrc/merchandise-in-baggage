@@ -14,17 +14,49 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.merchandiseinbaggage.repositories.crypto
+package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import play.api.Configuration
+import reactivemongo.api.DB
 import uk.gov.hmrc.crypto.{Crypted, CryptoWithKeysFromConfig, PlainText}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DeclarationCrypto @Inject()(configuration: Configuration)(implicit executionContext: ExecutionContext) {
+class CryptoDeclarationRepositoryImpl @Inject()(mongo: () => DB, configuration: Configuration)(implicit ec: ExecutionContext)
+    extends DeclarationRepositoryImpl(mongo) {
+
+  def insert(declaration: Declaration): Future[Declaration] = insertDeclaration(declaration)
+
+  override def insertDeclaration(declaration: Declaration): Future[Declaration] =
+    super.insertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
+
+  override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
+    super.upsertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
+
+  override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] =
+    super.findByDeclarationId(declarationId).map(_.map(decryptDeclaration))
+
+  override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] =
+    super.findBy(mibReference, amendmentReference).map(_.map(decryptDeclaration))
+
+  override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] =
+    super
+      .findBy(mibReference, eori, encryptEori(eori))
+      .map(x =>
+        x.map {
+          case r if r.eori == eori => r // mongo version was not encrypted
+          case r                   => decryptDeclaration(r)
+      })
+
+  override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] =
+    super.findLatestBySessionId(sessionId).map(decryptDeclaration)
+
+  override def findAll: Future[List[Declaration]] =
+    super.findAll.map(_.map(decryptDeclaration))
+
   private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
 
   def encryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration.copy(encrypted = Some(true)), encrypt)
@@ -68,4 +100,5 @@ class DeclarationCrypto @Inject()(configuration: Configuration)(implicit executi
 
   private def decrypt(encrypted: String): String =
     crypto.decrypt(Crypted(encrypted)).value
+
 }

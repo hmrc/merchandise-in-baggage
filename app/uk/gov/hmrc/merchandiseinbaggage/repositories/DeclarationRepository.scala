@@ -23,7 +23,6 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.repositories.crypto.DeclarationRepositoryCryptoWrapper
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -31,7 +30,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-@ImplementedBy(classOf[DeclarationRepositoryCryptoWrapper])
+@ImplementedBy(classOf[CryptoDeclarationRepositoryImpl])
 trait DeclarationRepository {
 
   def insertDeclaration(declaration: Declaration): Future[Declaration]
@@ -112,5 +111,16 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
   override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
     val query: Seq[(String, JsValueWrapper)] = Seq(("mibReference", JsString(mibReference.value)), ("eori.value", JsString(eori.value)))
     find(query: _*).map(_.headOption)
+  }
+
+  def findBy(mibReference: MibReference, eori: Eori, encryptedEori: Eori): Future[Option[Declaration]] = {
+    val query = Json.obj(
+      "mibReference" -> mibReference.value,
+      "eori.value"   -> Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))
+    )
+    collection.find(query, None).one[Declaration].map {
+      case Some(declaration) => Some(declaration)
+      case None              => None
+    }
   }
 }
