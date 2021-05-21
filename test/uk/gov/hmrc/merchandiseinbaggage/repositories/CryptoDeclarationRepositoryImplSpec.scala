@@ -36,7 +36,6 @@ class CryptoDeclarationRepositoryImplSpec
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
   private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri) }
   lazy val rep = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
-//  private val declarationCrypto = injector.instanceOf[DeclarationCrypto]
   private val configuration = injector.instanceOf[Configuration]
 
   val cryptoRepository: CryptoDeclarationRepositoryImpl =
