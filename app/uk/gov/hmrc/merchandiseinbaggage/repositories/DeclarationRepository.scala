@@ -63,25 +63,33 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
     Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
   )
 
-  override def insertDeclaration(declaration: Declaration): Future[Declaration] =
+  def encryptDeclaration(declaration: Declaration): Declaration = declaration
+  def decryptDeclaration(declaration: Declaration): Declaration = declaration
+  def encryptEori(eori: Eori): Eori = eori
+
+  override def insertDeclaration(declaration: Declaration): Future[Declaration] = {
+    val encryptedDeclaration = encryptDeclaration(declaration)
     super
-      .insert(declaration)
+      .insert(encryptedDeclaration)
       .map(_ => declaration)
       .recover {
         case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
           //conflict - duplicate declaration with same declarationId
           declaration
       }
+  }
 
-  override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
+  override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
+    val encryptedDeclaration = encryptDeclaration(declaration)
     collection
       .update(ordered = false)
-      .one(Json.obj(Declaration.id -> declaration.declarationId.value), declaration, upsert = true)
+      .one(Json.obj(Declaration.id -> encryptedDeclaration.declarationId.value), encryptedDeclaration, upsert = true)
       .map(_ => declaration)
+  }
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
     val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
-    find(query).map(_.headOption)
+    find(query).map(_.headOption).map(_.map(decryptDeclaration))
   }
 
   override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] = {
@@ -95,32 +103,29 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
         case None => Json.obj("mibReference" -> mibReference.value)
       }
 
-    collection.find(query, None).one[Declaration]
+    collection.find(query, None).one[Declaration].map(_.map(decryptDeclaration))
   }
 
   override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
     val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
-    find(query).map(latest)
+    find(query).map(latest).map(decryptDeclaration)
   }
 
-  override def findAll: Future[List[Declaration]] = super.findAll()
+  override def findAll: Future[List[Declaration]] = super.findAll().map(_.map(decryptDeclaration))
 
   //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 
-  override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
-    val query: Seq[(String, JsValueWrapper)] = Seq(("mibReference", JsString(mibReference.value)), ("eori.value", JsString(eori.value)))
-    find(query: _*).map(_.headOption)
-  }
-
-  def findBy(mibReference: MibReference, eori: Eori, encryptedEori: Eori): Future[Option[Declaration]] = {
+  def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
+    val encryptedEori: Eori = encryptEori(eori)
     val query = Json.obj(
       "mibReference" -> mibReference.value,
       "eori.value"   -> Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))
     )
     collection.find(query, None).one[Declaration].map {
-      case Some(declaration) => Some(declaration)
-      case None              => None
+      case Some(declaration) if eori == declaration.eori => Some(declaration)
+      case Some(declaration)                             => Some(decryptDeclaration(declaration))
+      case None                                          => None
     }
   }
 }

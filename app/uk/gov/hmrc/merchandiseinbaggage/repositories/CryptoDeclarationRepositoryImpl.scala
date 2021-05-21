@@ -22,49 +22,21 @@ import uk.gov.hmrc.crypto.{Crypted, CryptoWithKeysFromConfig, PlainText}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CryptoDeclarationRepositoryImpl @Inject()(mongo: () => DB, configuration: Configuration)(implicit ec: ExecutionContext)
     extends DeclarationRepositoryImpl(mongo) {
 
-  def insert(declaration: Declaration): Future[Declaration] = insertDeclaration(declaration)
-
-  override def insertDeclaration(declaration: Declaration): Future[Declaration] =
-    super.insertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
-
-  override def upsertDeclaration(declaration: Declaration): Future[Declaration] =
-    super.upsertDeclaration(encryptDeclaration(declaration)).map(_ => declaration)
-
-  override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] =
-    super.findByDeclarationId(declarationId).map(_.map(decryptDeclaration))
-
-  override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] =
-    super.findBy(mibReference, amendmentReference).map(_.map(decryptDeclaration))
-
-  override def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] =
-    super
-      .findBy(mibReference, eori, encryptEori(eori))
-      .map(x =>
-        x.map {
-          case r if r.eori == eori => r // mongo version was not encrypted
-          case r                   => decryptDeclaration(r)
-      })
-
-  override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] =
-    super.findLatestBySessionId(sessionId).map(decryptDeclaration)
-
-  override def findAll: Future[List[Declaration]] =
-    super.findAll.map(_.map(decryptDeclaration))
-
   private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
 
-  def encryptDeclaration(declaration: Declaration): Declaration = convertDeclaration(declaration.copy(encrypted = Some(true)), encrypt)
+  override def encryptDeclaration(declaration: Declaration): Declaration =
+    convertDeclaration(declaration.copy(encrypted = Some(true)), encrypt)
 
-  def decryptDeclaration(declaration: Declaration): Declaration =
+  override def decryptDeclaration(declaration: Declaration): Declaration =
     if (declaration.encrypted.contains(true)) convertDeclaration(declaration, decrypt) else declaration
 
-  def encryptEori(eori: Eori): Eori = eori.copy(value = encrypt(eori.value))
+  override def encryptEori(eori: Eori): Eori = eori.copy(value = encrypt(eori.value))
 
   private def convertDeclaration(declaration: Declaration, convert: String => String): Declaration = {
     val convertedName =
@@ -91,7 +63,7 @@ class CryptoDeclarationRepositoryImpl @Inject()(mongo: () => DB, configuration: 
       email = convertedEmail,
       eori = convertedEori,
       journeyDetails = convertedJourneyDetails,
-      maybeCustomsAgent = convertedMaybeCustomsAgent,
+      maybeCustomsAgent = convertedMaybeCustomsAgent
     )
   }
 
