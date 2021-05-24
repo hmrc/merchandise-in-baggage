@@ -142,22 +142,6 @@ class CryptoDeclarationRepositoryImplSpec
       }
     }
 
-    "return the latest for session id in a multi declaration scenario" in {
-      val declaration = aDeclaration.copy(encrypted = Some(true))
-      val declarationTwo = aDeclaration.copy(dateOfDeclaration = declaration.dateOfDeclaration.plusDays(1), encrypted = Some(true))
-      val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
-
-      def insertThree(): Future[Declaration] =
-        for {
-          _     <- cryptoRepository.insertDeclaration(declaration)
-          _     <- cryptoRepository.insertDeclaration(declarationTwo)
-          three <- cryptoRepository.insertDeclaration(declarationWithDifferentSessionId)
-        } yield three
-
-      insertThree().futureValue mustBe declarationWithDifferentSessionId
-      cryptoRepository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
-    }
-
     "Update pre-encrypted declaration, simulate adding Amendment" in {
       val declaration = aDeclaration
       val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
