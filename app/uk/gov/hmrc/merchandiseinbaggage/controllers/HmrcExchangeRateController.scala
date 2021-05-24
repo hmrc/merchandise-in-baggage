@@ -16,24 +16,22 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.merchandiseinbaggage.connectors.ExchangeRateConnector
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ExchangeRateURL
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ExchangeRateController @Inject()(cc: ControllerComponents, rates: ExchangeRateConnector)(implicit val ec: ExecutionContext)
-    extends BackendController(cc) {
+class HmrcExchangeRateController @Inject()(cc: ControllerComponents)(implicit val ec: ExecutionContext) extends BackendController(cc) {
 
-  def url: Action[AnyContent] = Action.async {
-    rates.getExchangeRateUrl().map { url =>
-      Ok(Json.toJson(ExchangeRateURL(url)))
-    }
+  private def hmrcYearlyUrl(year: Int = LocalDate.now.getYear) =
+    s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly"
+
+  def yearlyUrl: Action[AnyContent] = Action {
+    Ok(Json.toJson(ExchangeRateURL(hmrcYearlyUrl())))
   }
-
 }

@@ -27,11 +27,6 @@ object YesNo extends Enum[YesNo] {
 
   def from(bool: Boolean): YesNo = if (bool) Yes else No
 
-  def to(yesNo: YesNo): Boolean = yesNo match {
-    case Yes => true
-    case No  => false
-  }
-
   case object Yes extends YesNo
 
   case object No extends YesNo

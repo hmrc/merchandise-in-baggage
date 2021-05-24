@@ -2,6 +2,7 @@ import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
 
@@ -44,6 +45,12 @@ lazy val microservice = Project(appName, file("."))
       if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   })) //TODO make it work on pipeline.
   .disablePlugins(JUnitXmlReportPlugin)
+  .settings(
+    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
+    ScoverageKeys.coverageMinimum := 90,
+    ScoverageKeys.coverageFailOnMinimum := true,
+    ScoverageKeys.coverageHighlighting := true,
+  )
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
 

@@ -19,9 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import enumeratum.{EnumEntry, PlayEnum}
 import play.api.libs.json._
 
-trait Enum[A <: EnumEntry] extends PlayEnum[A] {
-  def forCode(code: String): Option[A] = values.find(_.toString == code)
-}
+trait Enum[A <: EnumEntry] extends PlayEnum[A]
 
 object EnumFormat {
   def apply[T <: EnumEntry](e: Enum[T]): Format[T] =
@@ -33,10 +31,4 @@ object EnumFormat {
       },
       Writes(v => JsString(v.entryName))
     )
-}
-
-trait EnumEntryRadioItemSupport {
-  this: EnumEntry =>
-
-  protected val maybeHintMessageKey: Option[String] = None
 }

@@ -45,7 +45,7 @@ trait CoreTestData {
   val aExportGoods =
     ExportGoods(
       "test good",
-      Country("ITA", "Itay", "IT", true, Nil),
+      Country("ITA", "Italy", "IT", true, Nil),
       aPurchaseDetails
     )
 

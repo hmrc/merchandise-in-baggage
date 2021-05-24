@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, PaymentCallbackRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -52,58 +52,34 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
   }
 
   def onRetrieve(declarationId: DeclarationId): Action[AnyContent] = Action.async {
-
     declarationService
       .findByDeclarationId(declarationId)
-      .fold(
-        {
-          case DeclarationNotFound =>
-            logger.warn(s"$declarationId not found")
-            NotFound
-          case e =>
-            logger.error(s"Error for $declarationId - [$e]]")
-            InternalServerError("Something went wrong")
-        },
-        foundDeclaration => {
-          Ok(toJson(foundDeclaration))
-        }
-      )
+      .fold(handleError(s"$declarationId not found"), foundDeclaration => {
+        Ok(toJson(foundDeclaration))
+      })
   }
 
   def findBy(mibReference: MibReference, eori: Eori): Action[AnyContent] = Action.async {
     declarationService
       .findBy(mibReference, eori)
-      .fold(
-        {
-          case DeclarationNotFound =>
-            logger.warn(s"Declaration not found for params: $mibReference, $eori")
-            NotFound
-          case e =>
-            logger.error(s"Error during findBy query - $e - params: $mibReference, $eori")
-            InternalServerError("Something went wrong")
-        },
-        foundDeclaration => {
-          Ok(toJson(foundDeclaration))
-        }
-      )
+      .fold(handleError(s"Declaration not found for params: $mibReference, $eori"), foundDeclaration => {
+        Ok(toJson(foundDeclaration))
+      })
   }
 
+  // called by payments team after payment success for an Import, so that we can now trigger emails and audit
   def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async { implicit request =>
     val callbackRequest = request.body
-    logger.warn(s"got the payment callback with request: $callbackRequest")
-
     declarationService
       .processPaymentCallback(callbackRequest)
-      .fold(
-        {
-          case DeclarationNotFound =>
-            logger.warn(s"Declaration with params [$callbackRequest] not found")
-            NotFound
-          case e =>
-            logger.error(s"Error for Declaration with params [$callbackRequest] - [$e]]")
-            InternalServerError("Something went wrong")
-        },
-        _ => Ok
-      )
+      .fold(handleError(s"Declaration with params [$callbackRequest] not found"), _ => Ok)
+  }
+
+  private def handleError(message: String): PartialFunction[BusinessError, Result] = {
+    case DeclarationNotFound =>
+      logger.warn(message)
+      NotFound
+    case e =>
+      InternalServerError(s"unexpected $e")
   }
 }

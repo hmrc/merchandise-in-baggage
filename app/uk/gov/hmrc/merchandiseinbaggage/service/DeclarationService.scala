@@ -59,6 +59,8 @@ class DeclarationService @Inject()(
       }
   }
 
+  //Exports and Imports with no payment can trigger emails & audit straightaway as soon as they are created
+  //Imports with Payment requires a successful payment in order to trigger emails & audit
   private def canTriggerEmailsAndAudit(declaration: Declaration): Boolean =
     declaration.declarationType == Export || importWithNoPayment(declaration)
 
