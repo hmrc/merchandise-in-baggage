@@ -123,9 +123,9 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
       "eori.value"   -> Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))
     )
     collection.find(query, None).one[Declaration].map {
-      case Some(declaration) if eori == declaration.eori => Some(declaration)
-      case Some(declaration)                             => Some(decryptDeclaration(declaration))
-      case None                                          => None
+      case Some(declaration) if declaration.encrypted.contains(true) => Some(decryptDeclaration(declaration))
+      case Some(declaration)                                         => Some(declaration)
+      case None                                                      => None
     }
   }
 }

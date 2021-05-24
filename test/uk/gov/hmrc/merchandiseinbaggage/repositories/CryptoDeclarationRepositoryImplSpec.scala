@@ -26,6 +26,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.mongo.MongoConnector
 import org.scalatest.matchers.should.Matchers._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -200,15 +201,17 @@ class CryptoDeclarationRepositoryImplSpec
     }
 
     "encrypt name should be different from original" in {
-      declarationCrypto.encryptDeclaration(declaration).nameOfPersonCarryingTheGoods should not be declaration.nameOfPersonCarryingTheGoods
+      declarationCrypto.encryptDeclaration(declaration).nameOfPersonCarryingTheGoods mustBe Name(
+        "5DAVpR9ozhA60/y+q9gHIA==",
+        "QoaA6uK44jJz9bOa1MFeSg==")
     }
 
     "encrypt email should be different from original" in {
-      declarationCrypto.encryptDeclaration(declaration).email should not be declaration.email
+      declarationCrypto.encryptDeclaration(declaration).email mustBe Some(Email("WNHUI7IOAftY2n4/WZ2MPQ=="))
     }
 
     "encrypt eori should be different from original" in {
-      declarationCrypto.encryptDeclaration(declaration).eori should not be declaration.eori
+      declarationCrypto.encryptDeclaration(declaration).eori mustBe Eori("LPanFBawrTuKZY5axJt3zA==")
     }
 
     "encrypt maybeCustomsAgent should be different from original" in {
@@ -216,7 +219,14 @@ class CryptoDeclarationRepositoryImplSpec
 
       declarationCrypto
         .encryptDeclaration(declarationWithCustomsAgent)
-        .maybeCustomsAgent should not be declarationWithCustomsAgent.maybeCustomsAgent
+        .maybeCustomsAgent mustBe Some(
+        CustomsAgent(
+          "ZjgQ7zTCvwpY/U+Kc7SnkA==",
+          Address(
+            List("rAIsO/sEpJi2Bo0w+cmYFw==", "+v5ElPX1X/ZRBtWQy9pWTw=="),
+            Some("xj3SFcsYP02+4ljJXml2Bw=="),
+            AddressLookupCountry("GB", Some("UK")))
+        ))
     }
 
     "encrypt journeyDetails should be different from original" in {
@@ -224,7 +234,10 @@ class CryptoDeclarationRepositoryImplSpec
 
       declarationCrypto
         .encryptDeclaration(declarationWithJourneyDetails)
-        .journeyDetails should not be declarationWithJourneyDetails.journeyDetails
+        .journeyDetails mustBe JourneyInSmallVehicle(
+        Port("DVR", "title.dover", true, List("Port of Dover")),
+        aJourneyInASmallVehicle.dateOfTravel,
+        "N/x/Y3gF3SqaY/RzJ4oIfQ==")
     }
 
   }
