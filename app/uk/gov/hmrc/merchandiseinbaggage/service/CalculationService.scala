@@ -101,7 +101,7 @@ class CalculationService @Inject()(connector: CurrencyConversionConnector, decla
     rate: BigDecimal,
     conversionRatePeriod: Option[ConversionRatePeriod]): CalculationResult = {
     import importGoods._
-    val converted: BigDecimal = (BigDecimal(purchaseDetails.amount) / rate).setScale(2, HALF_UP) //TODO handle possible failure
+    val converted: BigDecimal = (BigDecimal(purchaseDetails.amount) / rate).setScale(2, HALF_UP)
     val duty = calculateDuty(producedInEu, converted)
     val vatRate = BigDecimal(goodsVatRate.value / 100.0)
     val vat = ((converted + duty) * vatRate).setScale(2, HALF_UP)

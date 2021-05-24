@@ -19,11 +19,9 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.mongo.MongoConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,8 +30,6 @@ class DeclarationRepositorySpec
     extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach with MongoConfiguration {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
-  private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri) }
-  override lazy val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration
@@ -51,6 +47,14 @@ class DeclarationRepositorySpec
     }
 
     whenReady(repository.insertDeclaration(declaration)) { result =>
+      result mustBe declaration
+    }
+  }
+
+  "upsert a declaration object into MongoDB" in {
+    val declaration = aDeclaration
+
+    whenReady(repository.upsertDeclaration(declaration)) { result =>
       result mustBe declaration
     }
   }
@@ -115,6 +119,18 @@ class DeclarationRepositorySpec
     }
   }
 
+  "find a declaration by mibReference & Amendment Reference" in {
+    val declaration = aDeclarationWithAmendment
+    //insert first
+    whenReady(repository.insertDeclaration(declaration)) { result =>
+      result mustBe declaration
+    }
+
+    whenReady(repository.findBy(declaration.mibReference, declaration.amendments.headOption.map(_.reference))) { findResult =>
+      findResult mustBe Some(declaration)
+    }
+  }
+
   "delete all declarations for testing purpose" in {
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
@@ -132,25 +148,6 @@ class DeclarationRepositorySpec
     whenReady(collection) { deleteResult =>
       deleteResult mustBe Nil
     }
-  }
-
-  "return the latest for session id in a multi declaration scenario" in {
-    val declaration = aDeclaration
-    val declarationTwo = aDeclaration
-    val declarationWithDifferentSessionId = aDeclaration.copy(sessionId = SessionId("different"))
-    val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db) {
-      override def latest(declarations: List[Declaration]): Declaration = declarationTwo
-    }
-
-    def insertThree(): Future[Declaration] =
-      for {
-        _     <- repository.insertDeclaration(declaration)
-        _     <- repository.insertDeclaration(declarationTwo)
-        three <- repository.insertDeclaration(declarationWithDifferentSessionId)
-      } yield three
-
-    insertThree().futureValue mustBe declarationWithDifferentSessionId
-    repository.findLatestBySessionId(declaration.sessionId).futureValue mustBe declarationTwo
   }
 
   override def beforeEach(): Unit = repository.deleteAll()

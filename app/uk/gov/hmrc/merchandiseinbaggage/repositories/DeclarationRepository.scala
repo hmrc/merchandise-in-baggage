@@ -43,8 +43,6 @@ trait DeclarationRepository {
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]]
 
-  def findLatestBySessionId(sessionId: SessionId): Future[Declaration]
-
   def findAll: Future[List[Declaration]]
 
   def deleteAll(): Future[Unit]
@@ -106,14 +104,8 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
     collection.find(query, None).one[Declaration].map(_.map(decryptDeclaration))
   }
 
-  override def findLatestBySessionId(sessionId: SessionId): Future[Declaration] = {
-    val query: (String, JsValueWrapper) = s"${Declaration.sessionId}" -> JsString(sessionId.value)
-    find(query).map(latest).map(decryptDeclaration)
-  }
-
   override def findAll: Future[List[Declaration]] = super.findAll().map(_.map(decryptDeclaration))
 
-  //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {

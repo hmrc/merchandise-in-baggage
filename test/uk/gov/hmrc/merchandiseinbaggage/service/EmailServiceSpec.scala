@@ -22,7 +22,7 @@ import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Paid}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -58,14 +58,15 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should handle New Export declarations" in {
-    val declaration = aDeclaration.copy(declarationType = Export)
+    val declaration = aDeclaration.copy(declarationType = Export, declarationGoods = DeclarationGoods(Seq(aExportGoods)))
 
     val declarationWithEmailSent = declaration.copy(emailsSent = true)
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
       .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
         emailInfo.templateId == "mods_export_declaration" &&
-        !emailInfo.parameters.contains("total")
+        !emailInfo.parameters.contains("total") &&
+        emailInfo.parameters.get("goodsDestination_0").value == "Italy"
       })
       .returns(Future.successful(202))
       .twice()

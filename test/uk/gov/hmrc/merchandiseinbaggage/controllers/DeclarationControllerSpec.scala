@@ -66,17 +66,28 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
   }
 
-  "on retrieve will return declaration for a given id" in {
-    val declaration = aDeclaration
-    (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(declaration.asRight.asFuture))
+  "on retrieve" should {
+    "return declaration for a given id" in {
+      val declaration = aDeclaration
+      (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(declaration.asRight.asFuture))
 
-    val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
-    val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
+      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+      val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
 
-    status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(declaration)
+      status(eventualResult) mustBe 200
+      contentAsJson(eventualResult) mustBe Json.toJson(declaration)
+    }
+
+    "return 404 for a given id if declaration is not found in mongo" in {
+      val declaration = aDeclaration
+      (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(DeclarationNotFound.asLeft.asFuture))
+
+      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+      val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
+
+      status(eventualResult) mustBe 404
+    }
   }
-
   "findBy MibRef and Eori" should {
     "return a success response" in {
       val declaration = aDeclaration

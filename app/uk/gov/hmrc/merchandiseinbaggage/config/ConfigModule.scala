@@ -30,5 +30,6 @@ class ConfigModule(unused: Environment, configuration: Configuration) extends Ab
   override def configure(): Unit = {
     bindBaseUrl("currencyConversionBaseUrl", "currency-conversion")
     bindBaseUrl("eoriCheckBaseUrl", "eori-check")
+    bindBaseUrl("emailBaseUrl", "email")
   }
 }
