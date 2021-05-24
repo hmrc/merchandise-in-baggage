@@ -43,7 +43,7 @@ lazy val microservice = Project(appName, file("."))
       val pactDir = new File("../merchandise-in-baggage-frontend/pact")
       val noContracts = !pactDir.exists() || pactDir.listFiles().isEmpty
       if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
-  })) //TODO make it work on pipeline.
+  }))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",

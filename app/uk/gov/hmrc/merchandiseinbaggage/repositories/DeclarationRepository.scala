@@ -106,7 +106,6 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
 
   override def findAll: Future[List[Declaration]] = super.findAll().map(_.map(decryptDeclaration))
 
-  //TODO do we want to take some measure to stop getting called in prod!? Despite being in protected zone
   override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
