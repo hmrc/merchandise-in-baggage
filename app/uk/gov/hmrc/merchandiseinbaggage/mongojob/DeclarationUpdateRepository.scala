@@ -40,7 +40,8 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB, configuration: Conf
     val query =
       Json.obj(
         "dateOfDeclaration" -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}"""),
-        "encrypted"         -> Json.parse("""{"$exists": false}""")
+        "encrypted"         -> Json.parse("""{"$exists": false}"""),
+        "amendments.goods.goods.categoryQuantityOfGoods" -> Json.parse("""{"$exists": false}""")
       )
 
     Try {
