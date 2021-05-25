@@ -38,7 +38,10 @@ class DeclarationUpdateRepository @Inject()(mongo: () => DB, configuration: Conf
   def transformDeclarations(): Future[Unit] = {
     log.warn("inside transformDeclarations")
     val query =
-      Json.obj("encrypted" -> Json.parse("""{"$exists": false}"""), "paymentStatus" -> Json.parse("""{"$ne": "OUTSTANDING"}"""))
+      Json.obj(
+        "dateOfDeclaration" -> Json.parse("""{"$gte": "2021-01-01T00:00:00.001"}"""),
+        "encrypted"         -> Json.parse("""{"$exists": false}""")
+      )
 
     Try {
       collection
