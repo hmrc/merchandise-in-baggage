@@ -71,7 +71,7 @@ class TaskActor(
           if (uid == recordUid) {
             val newUid = UUID.randomUUID().toString
             val nextRunAt = (if (runAt.isBefore(now)) now else runAt)
-              .plusSeconds(repeatInterval.toSeconds + Random.nextInt(100))
+              .plusSeconds(repeatInterval.toSeconds + Random.nextInt(10))
             val delay = time.Duration.between(now, nextRunAt).getSeconds
             scheduleRepository
               .write(newUid, nextRunAt)
