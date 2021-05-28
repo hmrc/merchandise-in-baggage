@@ -3,6 +3,7 @@
 **Who uses the repo/service**
 
 This is the back-end service supporting two front-ends (one is public facing and one used internally through stride)
+The front-end services are: `merchandise-in-baggage-frontend` & `merchandise-in-baggage-internal-frontend`
 
 **How to start the service locally**
 
@@ -21,4 +22,20 @@ The tests contract verifier can be executed by running the script:
 `checkincheck.sh`. Note - currently contracts test only runs for local build.
 
 **Endpoints**
+POST        /declarations       _to persist a declaration_                
+
+PUT         /declarations       _to update_                
+
+GET         /declarations/:id   _find a declaration by id_                
+
+GET         /declarations       _get all declarations_                
+
+POST        /calculations       _calculates due payments if any_                
+POST        /amend-calculations _calculates due payments if any for amendment to an existing declaration_                
+
+POST        /payment-callback   _callback endpoint for payment service_                
+
+GET         /validate/eori/:eoriNumber  _validate eori by calling an API_        
+
+GET         /exchange-rate-url  _fetch available current exchange rate available by calling an API_                
 
