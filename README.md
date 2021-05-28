@@ -1,8 +1,24 @@
-
 # merchandise-in-baggage
 
-This is a placeholder README.md for a new repository. Need to Update it. 
+**Who uses the repo/service**
 
-### License
+This is the back-end service supporting two front-ends (one is public facing and one used internally through stride)
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+**How to start the service locally**
+
+`sbt run` This will only start the service as standalone but unable to interact with any other services including DataBase
+
+SM profile : MERCHANDISE_IN_BAGGAGE_ALL
+`sm MERCHANDISE_IN_BAGGAGE_ALL` This will start all the required services to complete a journey
+
+`local base url and port` http://localhost:8280/
+
+**How to run tests**
+
+`sbt test` will run all the tests, including unit and contract tests. The contract tests will use
+contract files stored in the project root directory folder `pact` of both front-ends.
+The tests contract verifier can be executed by running the script:
+`checkincheck.sh`. Note - currently contracts test only runs for local build.
+
+**Endpoints**
+
