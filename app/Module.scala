@@ -17,7 +17,6 @@
 import com.google.inject.{AbstractModule, Provides}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
-import uk.gov.hmrc.merchandiseinbaggage.mongojob.DeclarationUpdateScheduler
 
 import javax.inject.Singleton
 
@@ -26,7 +25,4 @@ class Module extends AbstractModule {
   @Provides
   @Singleton
   def mongoDB(reactiveMongoComponent: ReactiveMongoComponent): () => DB = reactiveMongoComponent.mongoConnector.db
-
-  override def configure(): Unit =
-    bind(classOf[DeclarationUpdateScheduler]).asEagerSingleton()
 }
