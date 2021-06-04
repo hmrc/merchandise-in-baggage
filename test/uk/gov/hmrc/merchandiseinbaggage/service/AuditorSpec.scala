@@ -16,98 +16,94 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import play.api.i18n.MessagesApi
-import play.api.libs.json.Json
-import play.api.libs.json.Json.toJson
+import play.api.libs.json.Json.{parse, toJson}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Disabled, Failure, Success}
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
+class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
   private val failed = Failure("failed")
+
+  private val mockAuditConnector = mock[AuditConnector]
+
+  private val auditor = new Auditor {
+    override val auditConnector: AuditConnector = mockAuditConnector
+    override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
+  }
 
   "auditDeclaration" should {
     Seq(Success, Disabled, failed).foreach { auditStatus =>
-      s"delegate to the auditConnector and return $auditStatus" in new Auditor {
-        private val declaration = aDeclaration
+      s"delegate to the auditConnector and return $auditStatus" in {
+        val declaration = aDeclaration
 
-        override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(auditStatus), injector)
-        override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
+        (mockAuditConnector
+          .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
+          .expects(where { (auditedEvent: ExtendedDataEvent, _: HeaderCarrier, _: ExecutionContext) =>
+            auditedEvent.auditSource == "merchandise-in-baggage" &&
+            auditedEvent.auditType == "DeclarationComplete" &&
+            auditedEvent.detail == toJson(declaration) &&
+            (auditedEvent.detail \ "source").as[String] == "Digital"
+          })
+          .returning(Future.successful(auditStatus))
 
-        auditDeclaration(declaration).futureValue mustBe (())
+        auditor.auditDeclaration(declaration).futureValue mustBe (())
 
-        private val auditedEvent = auditConnector.audited.get
-        auditedEvent.auditSource mustBe "merchandise-in-baggage"
-        auditedEvent.auditType mustBe "DeclarationComplete"
-        auditedEvent.detail mustBe toJson(declaration)
-
-        (auditedEvent.detail \ "source").as[String] mustBe "Digital"
       }
     }
 
-    "use DeclarationAmended event for amendments" in new Auditor {
-      private val declaration = aDeclarationWithAmendment
+    "use DeclarationAmended event for amendments" in {
+      val declaration = aDeclarationWithAmendment
+      (mockAuditConnector
+        .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(where { (auditedEvent: ExtendedDataEvent, _: HeaderCarrier, _: ExecutionContext) =>
+          auditedEvent.auditType == "DeclarationAmended"
+        })
+        .returning(Future.successful(AuditResult.Success))
 
-      override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
-
-      auditDeclaration(declaration).futureValue mustBe (())
-
-      private val auditedEvent = auditConnector.audited.get
-
-      auditedEvent.auditType mustBe "DeclarationAmended"
-    }
-
-    "handle auditConnector failure" in new Auditor {
-      override val auditConnector: TestAuditConnector =
-        TestAuditConnector(Future.failed(new RuntimeException("failed")), injector)
-
-      override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
-
-      auditDeclaration(aDeclaration).futureValue mustBe (())
+      auditor.auditDeclaration(declaration).futureValue mustBe (())
     }
   }
 
   "RefundableDeclaration" should {
-    s"trigger refund events for new declarations" in new Auditor {
-      private val declaration = aDeclaration
-
-      override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
-
-      auditRefundableDeclaration(declaration).futureValue mustBe (())
-
-      private val auditedEvent = auditConnector.audited.get
-
-      auditedEvent.auditSource mustBe "merchandise-in-baggage"
-      auditedEvent.auditType mustBe "RefundableDeclaration"
-
+    s"trigger refund events for new declarations" in {
+      val declaration = aDeclaration
       val refundJson =
         """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
-      auditedEvent.detail mustBe Json.parse(refundJson)
+      (mockAuditConnector
+        .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(where { (auditedEvent: ExtendedDataEvent, _: HeaderCarrier, _: ExecutionContext) =>
+          auditedEvent.auditType == "RefundableDeclaration" &&
+          auditedEvent.detail == parse(refundJson)
+        })
+        .returning(Future.successful(AuditResult.Success))
+
+      auditor.auditRefundableDeclaration(declaration).futureValue mustBe (())
+
     }
 
-    s"trigger refund events for amend declarations" in new Auditor {
-      private val declaration = aDeclarationWithAmendment
-
-      override val auditConnector: TestAuditConnector = TestAuditConnector(Future.successful(Success), injector)
-      override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
-
-      auditRefundableDeclaration(declaration, Some(aAmendment)).futureValue mustBe (())
-
-      private val auditedEvent = auditConnector.audited.get
-
-      auditedEvent.auditSource mustBe "merchandise-in-baggage"
-      auditedEvent.auditType mustBe "RefundableDeclaration"
-
+    s"trigger refund events for amend declarations" in {
+      val declaration = aDeclarationWithAmendment
       val refundJson =
         """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
-      auditedEvent.detail mustBe Json.parse(refundJson)
+      (mockAuditConnector
+        .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(where { (auditedEvent: ExtendedDataEvent, _: HeaderCarrier, _: ExecutionContext) =>
+          auditedEvent.auditType == "RefundableDeclaration" &&
+          auditedEvent.detail == parse(refundJson)
+        })
+        .returning(Future.successful(AuditResult.Success))
+
+      auditor.auditRefundableDeclaration(declaration).futureValue mustBe (())
     }
   }
 }

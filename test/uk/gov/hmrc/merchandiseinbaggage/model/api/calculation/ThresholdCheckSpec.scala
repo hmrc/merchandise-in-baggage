@@ -18,12 +18,13 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
 import play.api.libs.json._
 import uk.gov.hmrc.merchandiseinbaggage.BaseSpec
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.ThresholdCheck._
 
 class ThresholdCheckSpec extends BaseSpec {
 
   "serialise/de-serialise from/to json" in {
-    Json.toJson(WithinThreshold) mustBe JsString("WithinThreshold")
-    Json.toJson(OverThreshold) mustBe JsString("OverThreshold")
+    Json.toJson[ThresholdCheck](WithinThreshold) mustBe JsString("WithinThreshold")
+    Json.toJson[ThresholdCheck](OverThreshold) mustBe JsString("OverThreshold")
 
     JsString(WithinThreshold.toString).validate[ThresholdCheck].asOpt mustBe Some(WithinThreshold)
     JsString(OverThreshold.toString).validate[ThresholdCheck].asOpt mustBe Some(OverThreshold)

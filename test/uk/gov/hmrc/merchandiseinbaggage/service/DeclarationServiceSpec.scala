@@ -52,7 +52,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
         .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Success.asFuture)
-        .atLeastOnce()
+        .anyNumberOfTimes()
 
     def mockDeclarationInsert(declaration: Declaration) =
       (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
