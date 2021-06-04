@@ -13,7 +13,6 @@ object AppDependencies {
     "com.github.pureconfig"      %% "pureconfig"                 % "0.13.0",
     "org.typelevel"              %% "cats-core"                  % "2.0.0",
     "com.beachape"               %% "enumeratum-play"            % "1.5.13",
-    "org.jsoup"                   %  "jsoup"                     % "1.13.1",
     "uk.gov.hmrc"                %% "crypto"                     % "6.0.0",
     "com.softwaremill.quicklens" %% "quicklens"                  % "1.6.1"
   )
