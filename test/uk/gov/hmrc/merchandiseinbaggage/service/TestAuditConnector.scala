@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import akka.stream.Materializer
-import play.api.inject.{ApplicationLifecycle, Injector}
+import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, Materializer}
+import play.api.inject.{ApplicationLifecycle, DefaultApplicationLifecycle, Injector}
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.http.connector.{AuditChannel, AuditConnector, AuditCounter, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,8 +34,6 @@ trait TestAuditConnector extends AuditConnector {
 object TestAuditConnector {
   def apply(result: Future[AuditResult], injector: Injector): TestAuditConnector = new TestAuditConnector {
     override val auditingConfig: AuditingConfig = injector.instanceOf[AuditingConfig]
-    override val materializer: Materializer = injector.instanceOf[Materializer]
-    override val lifecycle: ApplicationLifecycle = injector.instanceOf[ApplicationLifecycle]
 
     private var auditedEvent: Option[ExtendedDataEvent] = None
 
@@ -42,6 +42,23 @@ object TestAuditConnector {
     override def sendExtendedEvent(event: ExtendedDataEvent)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] = {
       auditedEvent = Some(event)
       result
+    }
+
+    override def auditChannel: AuditChannel = new AuditChannel {
+      override def auditingConfig: AuditingConfig = AuditingConfig(
+        consumer = None,
+        enabled = false,
+        auditSource = "myApp",
+        auditSentHeaders = false
+      )
+
+      override def materializer: Materializer = ActorMaterializer()(ActorSystem())
+
+      override def lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
+    }
+
+    override def auditCounter: AuditCounter = new AuditCounter {
+      override def createMetadata(): JsObject = Json.obj()
     }
   }
 }

@@ -8,8 +8,8 @@ object AppDependencies {
   private val pactVersion = "3.2.0"
 
   val compile = Seq(
-    "uk.gov.hmrc"                %% "bootstrap-backend-play-27"  % "3.0.0",
-    "uk.gov.hmrc"                %% "simple-reactivemongo"       % "7.30.0-play-27",
+    "uk.gov.hmrc"                %% "bootstrap-backend-play-27"  % "5.3.0",
+    "uk.gov.hmrc"                %% "simple-reactivemongo"       % "8.0.0-play-27",
     "com.github.pureconfig"      %% "pureconfig"                 % "0.13.0",
     "org.typelevel"              %% "cats-core"                  % "2.0.0",
     "com.beachape"               %% "enumeratum-play"            % "1.5.13",
@@ -18,7 +18,7 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-27"   % "2.24.0"  % Test,
+    "uk.gov.hmrc"             %% "bootstrap-test-play-27"   % "5.3.0"  % Test,
     "org.scalatest"           %% "scalatest"                % "3.1.2"   % Test,
     "com.typesafe.play"       %% "play-test"                % current   % Test,
     "com.vladsch.flexmark"    %  "flexmark-all"             % "0.35.10" % "test, it",
