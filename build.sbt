@@ -1,6 +1,5 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import scoverage.ScoverageKeys
 
@@ -11,7 +10,7 @@ val silencerVersion = "1.7.0"
 val contractVerifier = taskKey[Unit]("Launch contract tests")
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory, ScalaPactPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, ScalaPactPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     majorVersion                     := 0,
