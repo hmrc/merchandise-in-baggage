@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,9 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
-import play.api.Configuration
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import uk.gov.hmrc.mongo.MongoConnector
 import org.scalatest.matchers.should.Matchers._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 
@@ -35,12 +32,6 @@ class CryptoDeclarationRepositoryImplSpec
     extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach with MongoConfiguration {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
-  private val reactiveMongo = new ReactiveMongoComponent { override def mongoConnector: MongoConnector = MongoConnector(mongoConf.uri) }
-  lazy val rep = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
-  private val configuration = injector.instanceOf[Configuration]
-
-  val cryptoRepository: CryptoDeclarationRepositoryImpl =
-    new CryptoDeclarationRepositoryImpl(reactiveMongo.mongoConnector.db, configuration)
 
   "with database we " should {
     "insert a declaration object into MongoDB" in {
@@ -144,7 +135,6 @@ class CryptoDeclarationRepositoryImplSpec
 
     "Update pre-encrypted declaration, simulate adding Amendment" in {
       val declaration = aDeclaration
-      val repository = new DeclarationRepositoryImpl(reactiveMongo.mongoConnector.db)
 
       // Write a non-encrypted declaration
       repository.insertDeclaration(declaration).futureValue.encrypted mustBe None

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
+import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import reactivemongo.api.DB
 import uk.gov.hmrc.crypto.{Crypted, CryptoWithKeysFromConfig, PlainText}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.mongo.MongoComponent
 
-import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class CryptoDeclarationRepositoryImpl @Inject()(mongo: () => DB, configuration: Configuration)(implicit ec: ExecutionContext)
+class CryptoDeclarationRepositoryImpl @Inject()(mongo: MongoComponent, configuration: Configuration)(implicit ec: ExecutionContext)
     extends DeclarationRepositoryImpl(mongo) {
 
   private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)

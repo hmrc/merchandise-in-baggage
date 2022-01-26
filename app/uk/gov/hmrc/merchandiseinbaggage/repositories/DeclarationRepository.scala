@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
-import play.api.libs.json.Json.{JsValueWrapper, _}
+import javax.inject.{Inject, Singleton}
+import org.mongodb.scala._
+import org.mongodb.scala.model.Filters.{and, elemMatch, empty, equal, in}
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
+import play.api.libs.json.Json._
 import play.api.libs.json._
-import reactivemongo.api.DB
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
+import _root_.scala.concurrent.{ExecutionContext, Future}
+import _root_.scala.util.control.NonFatal
 
 @ImplementedBy(classOf[CryptoDeclarationRepositoryImpl])
 trait DeclarationRepository {
@@ -49,17 +51,18 @@ trait DeclarationRepository {
 }
 
 @Singleton
-class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: ExecutionContext)
-    extends ReactiveRepository[Declaration, String]("declaration", mongo, Declaration.format, implicitly[Format[String]])
-    with DeclarationDateOrdering with DeclarationRepository {
+class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[Declaration](
+      collectionName = "declaration",
+      mongoComponent = mongo,
+      domainFormat = Declaration.format,
+      indexes = Seq(IndexModel(
+        ascending(s"${Declaration.id}"),
+        IndexOptions().name("primaryKey").unique(true))),
+      replaceIndexes = false
+    ) with DeclarationDateOrdering with DeclarationRepository {
 
-  implicit val jsObjectWriter: OWrites[JsObject] = new OWrites[JsObject] {
-    override def writes(o: JsObject): JsObject = o
-  }
-
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(s"${Declaration.id}" -> Ascending), Option("primaryKey"), unique = true)
-  )
+  implicit val jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
 
   def encryptDeclaration(declaration: Declaration): Declaration = declaration
   def decryptDeclaration(declaration: Declaration): Declaration = declaration
@@ -67,8 +70,10 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] = {
     val encryptedDeclaration = encryptDeclaration(declaration)
-    super
-      .insert(encryptedDeclaration)
+
+    collection
+      .insertOne(encryptedDeclaration)
+      .toFuture()
       .map(_ => declaration)
       .recover {
         case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
@@ -78,46 +83,47 @@ class DeclarationRepositoryImpl @Inject()(mongo: () => DB)(implicit ec: Executio
   }
 
   override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
+    val options = ReplaceOptions().upsert(true)
     val encryptedDeclaration = encryptDeclaration(declaration)
     collection
-      .update(ordered = false)
-      .one(Json.obj(Declaration.id -> encryptedDeclaration.declarationId.value), encryptedDeclaration, upsert = true)
+      .replaceOne(equal(Declaration.id, encryptedDeclaration.declarationId.value), encryptedDeclaration, options)
+      .toFuture()
       .map(_ => declaration)
   }
 
-  override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] = {
-    val query: (String, JsValueWrapper) = s"${Declaration.id}" -> JsString(declarationId.value)
-    find(query).map(_.headOption).map(_.map(decryptDeclaration))
-  }
+  override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] =
+    collection.find(equal(Declaration.id, declarationId.value)).toFuture().map(_.headOption).map(_.map(decryptDeclaration))
 
   override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] = {
     val query =
       amendmentReference match {
         case Some(reference) =>
-          Json.obj(
-            "mibReference" -> mibReference.value,
-            "amendments"   -> Json.obj("$elemMatch" -> Json.parse(s"""{"reference": $reference}"""))
+          and(
+            equal("mibReference", mibReference.value),
+            elemMatch("amendments", equal("reference", reference))
           )
-        case None => Json.obj("mibReference" -> mibReference.value)
+
+        case None => equal("mibReference", mibReference.value)
       }
-
-    collection.find(query, None).one[Declaration].map(_.map(decryptDeclaration))
+    collection.find(query).toFuture().map(_.headOption).map(_.map(decryptDeclaration))
   }
-
-  override def findAll: Future[List[Declaration]] = super.findAll().map(_.map(decryptDeclaration))
-
-  override def deleteAll(): Future[Unit] = super.removeAll().map(_ => ())
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
     val encryptedEori: Eori = encryptEori(eori)
-    val query = Json.obj(
-      "mibReference" -> mibReference.value,
-      "eori.value"   -> Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))
-    )
-    collection.find(query, None).one[Declaration].map {
+    val query =
+      and(
+        equal("mibReference", mibReference.value),
+        equal("eori.value", Codecs.toBson(Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))))
+      )
+
+    collection.find(query).toFuture().map(_.headOption).map {
       case Some(declaration) if declaration.encrypted.contains(true) => Some(decryptDeclaration(declaration))
       case Some(declaration)                                         => Some(declaration)
       case None                                                      => None
     }
   }
+
+  override def findAll: Future[List[Declaration]] = collection.find().toFuture().map(_.toList.map(decryptDeclaration))
+
+  override def deleteAll(): Future[Unit] = collection.deleteMany(empty()).toFuture().map(_ => ())
 }
