@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
-import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepositoryImpl
+import uk.gov.hmrc.merchandiseinbaggage.repositories.{CryptoDeclarationRepositoryImpl, DeclarationRepositoryImpl}
 
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
 
@@ -47,6 +47,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with 
   implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
   lazy val component = injector.instanceOf[MessagesControllerComponents]
   lazy val repository = injector.instanceOf[DeclarationRepositoryImpl]
+  lazy val cryptoRepository = injector.instanceOf[CryptoDeclarationRepositoryImpl]
 
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val injector: Injector = app.injector

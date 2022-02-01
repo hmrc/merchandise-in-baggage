@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-import com.google.inject.{AbstractModule, Provides}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-
-import javax.inject.Singleton
+import com.google.inject.{AbstractModule, Provides, Singleton}
+import org.mongodb.scala
+import uk.gov.hmrc.mongo.MongoComponent
 
 class Module extends AbstractModule {
 
   @Provides
   @Singleton
-  def mongoDB(reactiveMongoComponent: ReactiveMongoComponent): () => DB = reactiveMongoComponent.mongoConnector.db
+  def mongoDB(mongo: MongoComponent): scala.MongoDatabase = mongo.database
 }

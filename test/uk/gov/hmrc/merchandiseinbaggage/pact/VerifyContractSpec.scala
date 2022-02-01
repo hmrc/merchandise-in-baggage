@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, DeclarationId, Eori}
 import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
@@ -57,7 +56,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
           case state: String if state.split("XXX").head == "id1234" =>
             val declarationString = state.split("XXX").toList.drop(1).mkString
             val declaration = Json.parse(declarationString).as[Declaration]
-            repository.insert(declaration).futureValue
+            repository.insertDeclaration(declaration).futureValue
             ProviderStateResult(true, req => req)
 
           case "calculatePaymentsTest" =>
@@ -67,7 +66,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
           case state @ "id789" =>
             CurrencyConversionStub.givenCurrencyConversion()
             repository
-              .insert(aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty)))
+              .insertDeclaration(aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty)))
               .futureValue
             ProviderStateResult(true, req => req)
 
@@ -78,7 +77,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
           case state: String if state.split("XXX").head == "findByTest" =>
             val declarationString = state.split("XXX")(1)
             val declaration = Json.parse(declarationString).as[Declaration]
-            repository.insert(declaration).futureValue
+            repository.insertDeclaration(declaration).futureValue
             ProviderStateResult(true, req => req)
 
         }
@@ -86,8 +85,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
     }
   }
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     super.beforeEach()
-    repository.deleteAll()
-  }
+  repository.deleteAll()
 }
