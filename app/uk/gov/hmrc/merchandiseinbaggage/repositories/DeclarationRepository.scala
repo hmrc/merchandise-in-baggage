@@ -56,9 +56,7 @@ class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: Ex
       collectionName = "declaration",
       mongoComponent = mongo,
       domainFormat = Declaration.format,
-      indexes = Seq(IndexModel(
-        ascending(s"${Declaration.id}"),
-        IndexOptions().name("primaryKey").unique(true))),
+      indexes = Seq(IndexModel(ascending(s"${Declaration.id}"), IndexOptions().name("primaryKey").unique(true))),
       replaceIndexes = false
     ) with DeclarationDateOrdering with DeclarationRepository {
 

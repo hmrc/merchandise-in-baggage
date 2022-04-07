@@ -119,7 +119,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         .expects(*, *)
         .returning(EitherT(declaration.asRight.asFuture))
 
-      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback().url)
+      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback.url)
         .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
 
       val eventualResult = controller.handlePaymentCallback(postRequest)
@@ -133,7 +133,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
         .expects(*, *)
         .returning(EitherT(DeclarationNotFound.asLeft.asFuture))
 
-      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback().url)
+      val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback.url)
         .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
 
       val eventualResult = controller.handlePaymentCallback(postRequest)
