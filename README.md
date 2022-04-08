@@ -21,6 +21,10 @@ contract files stored in the project root directory folder `pact` of both front-
 The tests contract verifier can be executed by running the script:
 `checkincheck.sh`. Note - currently contracts test only runs for local build.
 
+
+The VerifyContractSpec test will pass locally if the pact test in merchandise-in-baggage-frontend is run first.
+The pact test in the frontend will populate the pact directory which it will use.
+
 **Endpoints**
 POST        /declarations       _to persist a declaration_                
 
