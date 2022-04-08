@@ -29,7 +29,7 @@ import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
-  private val pactDir = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-internal-frontend/pact/")
+  private val pactDir = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-frontend/pact/")
 
   println("Running pacttest for: " + pactDir)
 
