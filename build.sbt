@@ -27,13 +27,14 @@ lazy val microservice = Project(appName, file("."))
     // ***************
   )
   .settings(publishingSettings: _*)
+  .settings(inConfig(Test)(testSettings))
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     retrieveManaged := true,
-    scalafmtOnCompile in Compile := true,
-    scalafmtOnCompile in Test := true
+    Compile / scalafmtOnCompile := true,
+    Test / scalafmtOnCompile := true
   ).settings(
   routesImport ++= Seq("uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._", "uk.gov.hmrc.merchandiseinbaggage.model.core._", "uk.gov.hmrc.merchandiseinbaggage.model.api._"),
 )
@@ -50,6 +51,14 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
   )
+
+lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+  fork        := true,
+  javaOptions ++= Seq(
+    "-Dlogger.resource=logback-test.xml",
+    "-Dconfig.resource=test.application.conf"
+  )
+)
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
 
