@@ -7,7 +7,7 @@ object AppDependencies {
   private val hmrcMongoVersion = "0.62.0"
 
   val compile = Seq(
-    "uk.gov.hmrc"                %% "bootstrap-backend-play-28"  % "5.21.0",
+    "uk.gov.hmrc"                %% "bootstrap-backend-play-28"  % "5.24.0",
     "uk.gov.hmrc.mongo"          %% "hmrc-mongo-play-28"         % hmrcMongoVersion,
     "com.github.pureconfig"       %% "pureconfig"                % "0.17.1",
     "org.typelevel"              %% "cats-core"                  % "2.7.0",
@@ -17,7 +17,7 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-28"   % "5.21.0"  % Test,
+    "uk.gov.hmrc"             %% "bootstrap-test-play-28"   % "5.24.0"  % Test,
     "org.scalatest"           %% "scalatest"                % "3.2.11"   % Test,
     "com.typesafe.play"       %% "play-test"                % current   % Test,
     "com.vladsch.flexmark"     %  "flexmark-all"              % "0.35.10" % "test, it",
