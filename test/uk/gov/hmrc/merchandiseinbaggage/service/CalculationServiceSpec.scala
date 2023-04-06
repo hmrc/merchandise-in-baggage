@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDate.now
 import java.time.{LocalDate, LocalDateTime}
-
 import cats.data.EitherT
 import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
@@ -30,6 +29,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -267,7 +267,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       )
       .twice()
 
-    val amends = Amendment(111, LocalDateTime.now(), DeclarationGoods(Seq(importGoods)))
+    val amends = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(importGoods)))
     val eventualResult =
       service.calculateAmendPlusOriginal(CalculationAmendRequest(Some(amends), Some(GreatBritain), declaration.declarationId))
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import java.time.{LocalDate, LocalDateTime}
-
 import cats.data.OptionT
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Json
@@ -30,6 +29,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -59,7 +59,7 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
   s"handle amends calculations delegating to CalculationService" in {
     val controller = new CalculationController(mockService, component)
-    val amend = Amendment(111, LocalDateTime.now, DeclarationGoods(Seq(aImportGoods)))
+    val amend = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(aImportGoods)))
     val calculationRequest = CalculationAmendRequest(Some(amend), Some(GreatBritain), aDeclarationId)
 
     (mockService

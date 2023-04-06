@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package uk.gov.hmrc.merchandiseinbaggage
 
 import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID.randomUUID
-
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.{CheckEoriAddress, CheckResponse, CompanyDetails}
+
+import java.time.temporal.ChronoUnit
 
 trait CoreTestData {
 
@@ -84,7 +85,7 @@ trait CoreTestData {
       None,
       anEori,
       aJourneyDetails,
-      LocalDateTime.now,
+      LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS),
       aMibReference,
       Some(aTotalCalculationResult),
       paymentStatus = Some(Paid),
@@ -125,7 +126,7 @@ trait CoreTestData {
 
   val aAmendment = Amendment(
     1,
-    LocalDateTime.now,
+    LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS),
     aDeclarationGoods,
     Some(aTotalCalculationResult),
     None,
@@ -134,7 +135,7 @@ trait CoreTestData {
 
   val aAmendmentWithNoTax = Amendment(
     1,
-    LocalDateTime.now,
+    LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS),
     aDeclarationGoods,
     Some(zeroTotalCalculationResult),
     None,
@@ -153,7 +154,7 @@ trait CoreTestData {
       None,
       anEori,
       aJourneyDetails,
-      LocalDateTime.now,
+      LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS),
       aMibReference,
       Some(aTotalCalculationResult),
       paymentStatus = Some(Paid),
