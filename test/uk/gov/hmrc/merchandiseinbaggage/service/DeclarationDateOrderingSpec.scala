@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,17 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import java.time.LocalDateTime
-
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
+
+import java.time.temporal.ChronoUnit
 
 class DeclarationDateOrderingSpec extends BaseSpec with CoreTestData {
 
   "find latest of a list declaration created date" in new DeclarationDateOrdering {
     private val declaration = aDeclaration
     private val newest = 20
-    private val now = LocalDateTime.now
+    private val now = LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS)
     private val declarations = (1 to newest).toList.map(idx =>
       declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx)))
 

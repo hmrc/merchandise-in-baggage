@@ -1,6 +1,5 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
@@ -26,7 +25,6 @@ lazy val microservice = Project(appName, file("."))
     )
     // ***************
   )
-  .settings(publishingSettings: _*)
   .settings(inConfig(Test)(testSettings))
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
