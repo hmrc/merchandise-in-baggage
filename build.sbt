@@ -1,5 +1,4 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
@@ -26,8 +25,6 @@ lazy val microservice = Project(appName, file("."))
     // ***************
   )
   .settings(inConfig(Test)(testSettings))
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     retrieveManaged := true,
@@ -42,7 +39,6 @@ lazy val microservice = Project(appName, file("."))
       val noContracts = !pactDir.exists() || pactDir.listFiles().isEmpty
       if(noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }))
-  .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
     ScoverageKeys.coverageMinimumStmtTotal := 90,
@@ -59,4 +55,3 @@ lazy val testSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
-
