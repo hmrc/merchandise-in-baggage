@@ -25,11 +25,12 @@ import java.time.temporal.ChronoUnit
 class DeclarationDateOrderingSpec extends BaseSpec with CoreTestData {
 
   "find latest of a list declaration created date" in new DeclarationDateOrdering {
-    private val declaration = aDeclaration
-    private val newest = 20
-    private val now = LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS)
+    private val declaration  = aDeclaration
+    private val newest       = 20
+    private val now          = LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS)
     private val declarations = (1 to newest).toList.map(idx =>
-      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx)))
+      declaration.copy(declarationId = DeclarationId(idx.toString)).copy(dateOfDeclaration = now.plusMinutes(idx))
+    )
 
     latest(declarations).dateOfDeclaration.withSecond(0) mustBe now.plusMinutes(newest).withSecond(0)
   }

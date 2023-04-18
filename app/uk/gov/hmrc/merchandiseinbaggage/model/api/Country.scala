@@ -19,7 +19,13 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
 
-case class Country(code: String, countryName: String, alphaTwoCode: String, isEu: Boolean, countrySynonyms: List[String]) {
+case class Country(
+  code: String,
+  countryName: String,
+  alphaTwoCode: String,
+  isEu: Boolean,
+  countrySynonyms: List[String]
+) {
   def displayName(implicit messages: Messages): String = messages(countryName)
 }
 

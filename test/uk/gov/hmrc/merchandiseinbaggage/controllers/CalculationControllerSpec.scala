@@ -35,13 +35,14 @@ import scala.concurrent.Future
 
 class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
 
-  val today = LocalDate.now
-  val period = ConversionRatePeriod(today, today, "EUR", BigDecimal(1.1))
-  val expectedResult = CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
-  val mockService = mock[CalculationService]
+  val today          = LocalDate.now
+  val period         = ConversionRatePeriod(today, today, "EUR", BigDecimal(1.1))
+  val expectedResult =
+    CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
+  val mockService    = mock[CalculationService]
 
   s"handle multiple calculation requests delegating to CalculationService" in {
-    val controller = new CalculationController(mockService, component)
+    val controller          = new CalculationController(mockService, component)
     val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
 
     (mockService
@@ -49,17 +50,19 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       .expects(calculationRequests, *)
       .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
-    val request = buildPost(CalculationController.handleCalculations().url)
+    val request        = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
     val eventualResult = controller.handleCalculations(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold))
+    contentAsJson(eventualResult) mustBe Json.toJson(
+      CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)
+    )
   }
 
   s"handle amends calculations delegating to CalculationService" in {
-    val controller = new CalculationController(mockService, component)
-    val amend = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(aImportGoods)))
+    val controller         = new CalculationController(mockService, component)
+    val amend              = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(aImportGoods)))
     val calculationRequest = CalculationAmendRequest(Some(amend), Some(GreatBritain), aDeclarationId)
 
     (mockService
@@ -67,11 +70,13 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       .expects(calculationRequest, *)
       .returning(OptionT.pure[Future](CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
-    val request = buildPost(CalculationController.handleAmendCalculations().url)
+    val request        = buildPost(CalculationController.handleAmendCalculations().url)
       .withBody[CalculationAmendRequest](calculationRequest)
     val eventualResult = controller.handleAmendCalculations(request)
 
     status(eventualResult) mustBe 200
-    contentAsJson(eventualResult) mustBe Json.toJson(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold))
+    contentAsJson(eventualResult) mustBe Json.toJson(
+      CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)
+    )
   }
 }

@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
 
-  val client = app.injector.instanceOf[EoriCheckConnector]
+  val client      = app.injector.instanceOf[EoriCheckConnector]
   implicit val hc = HeaderCarrier()
 
   "handle a valid EORI by calling the API" in {
@@ -38,7 +38,7 @@ class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
   }
 
   "handle an invalid EORI by calling the API" in {
-    val eori = Eori("GB1234")
+    val eori    = Eori("GB1234")
     val invalid = Json.parse("""[{"eori": "GB1234","valid": false}]""".stripMargin).as[List[CheckResponse]]
     givenEoriCheck(eori, invalid)
 

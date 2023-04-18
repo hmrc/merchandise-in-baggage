@@ -38,34 +38,37 @@ import uk.gov.hmrc.merchandiseinbaggage.repositories.{CryptoDeclarationRepositor
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
 
 trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with ScalaFutures {
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1L, Second)))
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1L, Second)))
 
   lazy val testServerPort = port
 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
-  implicit val mat: Materializer = app.materializer
-  implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
-  lazy val component = injector.instanceOf[MessagesControllerComponents]
-  lazy val repository = injector.instanceOf[DeclarationRepositoryImpl]
-  lazy val cryptoRepository = injector.instanceOf[CryptoDeclarationRepositoryImpl]
+  implicit val mat: Materializer            = app.materializer
+  implicit val appConfig: AppConfig         = injector.instanceOf[AppConfig]
+  lazy val component                        = injector.instanceOf[MessagesControllerComponents]
+  lazy val repository                       = injector.instanceOf[DeclarationRepositoryImpl]
+  lazy val cryptoRepository                 = injector.instanceOf[CryptoDeclarationRepositoryImpl]
 
-  implicit val messagesApi = app.injector.instanceOf[MessagesApi]
+  implicit val messagesApi    = app.injector.instanceOf[MessagesApi]
   lazy val injector: Injector = app.injector
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .configure(Map(
-        "play.http.router"                               -> "testOnlyDoNotUseInAppConf.Routes",
-        "microservice.services.currency-conversion.port" -> WireMock.port,
-        "microservice.services.email.port"               -> WireMock.port,
-        "microservice.services.eori-check.port"          -> WireMock.port,
-        "mongodb.uri"                                    -> "mongodb://localhost:27017/merchandise-in-baggage-test"
-      ))
+      .configure(
+        Map(
+          "play.http.router"                               -> "testOnlyDoNotUseInAppConf.Routes",
+          "microservice.services.currency-conversion.port" -> WireMock.port,
+          "microservice.services.email.port"               -> WireMock.port,
+          "microservice.services.eori-check.port"          -> WireMock.port,
+          "mongodb.uri"                                    -> "mongodb://localhost:27017/merchandise-in-baggage-test"
+        )
+      )
       .build()
 
   lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest("", "").withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
-  implicit val messages: Messages = messagesApi.preferred(fakeRequest)
+  implicit val messages: Messages                           = messagesApi.preferred(fakeRequest)
 
   def buildPut(url: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(PUT, url).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]

@@ -25,9 +25,9 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
-class EoriCheckNumberController @Inject()(mcc: MessagesControllerComponents, connector: EoriCheckConnector)(
-  implicit val ec: ExecutionContext)
-    extends BackendController(mcc) {
+class EoriCheckNumberController @Inject() (mcc: MessagesControllerComponents, connector: EoriCheckConnector)(implicit
+  val ec: ExecutionContext
+) extends BackendController(mcc) {
 
   def checkEoriNumber(eoriNumber: String): Action[AnyContent] = Action.async { implicit request =>
     connector
@@ -39,8 +39,8 @@ class EoriCheckNumberController @Inject()(mcc: MessagesControllerComponents, con
             Ok(Json.toJson(response))
           }
       }
-      .recover {
-        case _ => NotFound
+      .recover { case _ =>
+        NotFound
       }
   }
 }

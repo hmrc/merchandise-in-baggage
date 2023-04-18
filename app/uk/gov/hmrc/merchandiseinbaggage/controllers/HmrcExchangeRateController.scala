@@ -26,7 +26,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HmrcExchangeRateController @Inject()(cc: ControllerComponents)(implicit val ec: ExecutionContext) extends BackendController(cc) {
+class HmrcExchangeRateController @Inject() (cc: ControllerComponents)(implicit val ec: ExecutionContext)
+    extends BackendController(cc) {
 
   private def hmrcYearlyUrl(year: Int = LocalDate.now.getYear) =
     s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-$year-monthly"

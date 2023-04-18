@@ -30,9 +30,12 @@ trait EmailConnector {
   def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int]
 }
 
-class EmailConnectorImpl @Inject()(http: HttpClient, @Named("emailBaseUrl") baseUrl: String)
-    extends EmailConnector with EmailConfiguration {
+class EmailConnectorImpl @Inject() (http: HttpClient, @Named("emailBaseUrl") baseUrl: String)
+    extends EmailConnector
+    with EmailConfiguration {
 
-  def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
+  def sendEmails(
+    emailInformation: DeclarationEmailInfo
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
     http.POST[DeclarationEmailInfo, HttpResponse](s"$baseUrl${emailConf.url}", emailInformation).map(_.status)
 }

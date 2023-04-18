@@ -26,7 +26,8 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EoriCheckConnector @Inject()(httpClient: HttpClient, @Named("eoriCheckBaseUrl") base: String) extends EoriCheckConfiguration {
+class EoriCheckConnector @Inject() (httpClient: HttpClient, @Named("eoriCheckBaseUrl") base: String)
+    extends EoriCheckConfiguration {
 
   def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =
     httpClient.GET[List[CheckResponse]](s"$base${eoriCheckConf.eoriCheckUrl}${eori.toString}")

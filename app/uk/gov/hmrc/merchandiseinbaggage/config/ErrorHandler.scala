@@ -29,7 +29,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ErrorHandler @Inject()(
+class ErrorHandler @Inject() (
   configuration: Configuration,
   auditConnector: AuditConnector,
   httpAuditEvent: HttpAuditEvent

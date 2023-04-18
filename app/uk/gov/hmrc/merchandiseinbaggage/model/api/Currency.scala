@@ -18,7 +18,12 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Json
 
-case class Currency(code: String, displayName: String, valueForConversion: Option[String], currencySynonyms: List[String])
+case class Currency(
+  code: String,
+  displayName: String,
+  valueForConversion: Option[String],
+  currencySynonyms: List[String]
+)
 
 object Currency {
   implicit val formats = Json.format[Currency]

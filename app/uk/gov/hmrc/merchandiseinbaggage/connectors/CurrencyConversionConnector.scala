@@ -26,13 +26,14 @@ import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CurrencyConversionConnector @Inject()(
+class CurrencyConversionConnector @Inject() (
   httpClient: HttpClient,
   @Named("currencyConversionBaseUrl") baseUrl: String
 ) extends CurrencyConversionConfiguration {
 
-  def getConversionRate(code: String, date: LocalDate = LocalDate.now())(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[ConversionRatePeriod]] =
+  def getConversionRate(code: String, date: LocalDate = LocalDate.now())(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Seq[ConversionRatePeriod]] =
     httpClient.GET[Seq[ConversionRatePeriod]](s"$baseUrl${currencyConversionConf.currencyConversionUrl}$date?cc=$code")
 }

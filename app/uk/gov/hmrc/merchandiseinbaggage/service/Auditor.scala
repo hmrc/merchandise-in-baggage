@@ -40,26 +40,31 @@ trait Auditor {
   def auditDeclaration(declaration: Declaration)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val eventType = if (declaration.amendments.isEmpty) "DeclarationComplete" else "DeclarationAmended"
     auditConnector
-      .sendExtendedEvent(ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = eventType, detail = toJson(declaration)))
-      .recover {
-        case NonFatal(e) => Failure(e.getMessage)
+      .sendExtendedEvent(
+        ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = eventType, detail = toJson(declaration))
+      )
+      .recover { case NonFatal(e) =>
+        Failure(e.getMessage)
       }
       .map { status =>
         status match {
-          case Success =>
+          case Success             =>
             logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
-          case Disabled =>
+          case Disabled            =>
             logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
           case Failure(message, _) =>
-            logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+            logger.error(
+              s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
+            )
         }
         ()
       }
   }
 
-  def auditRefundableDeclaration(declaration: Declaration, amendment: Option[Amendment] = None)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def auditRefundableDeclaration(declaration: Declaration, amendment: Option[Amendment] = None)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
     val refundableDeclarations: Option[Seq[RefundableDeclaration]] = {
       val maybeCalculationResults =
         amendment
@@ -91,18 +96,24 @@ trait Auditor {
       declarations.map { refund =>
         auditConnector
           .sendExtendedEvent(
-            ExtendedDataEvent(auditSource = "merchandise-in-baggage", auditType = "RefundableDeclaration", detail = toJson(refund))
+            ExtendedDataEvent(
+              auditSource = "merchandise-in-baggage",
+              auditType = "RefundableDeclaration",
+              detail = toJson(refund)
+            )
           )
-          .recover {
-            case NonFatal(e) => Failure(e.getMessage)
+          .recover { case NonFatal(e) =>
+            Failure(e.getMessage)
           }
           .map {
-            case Success =>
+            case Success             =>
               logger.info(s"Successful audit of declaration with id [${declaration.declarationId}]")
-            case Disabled =>
+            case Disabled            =>
               logger.warn(s"Audit of declaration with id [${declaration.declarationId}] returned Disabled")
             case Failure(message, _) =>
-              logger.error(s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]")
+              logger.error(
+                s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
+              )
           }
       }
     }

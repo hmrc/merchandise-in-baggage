@@ -33,6 +33,9 @@ class HmrcExchangeRateControllerSpec extends BaseSpecWithApplication {
 
     status(result) mustBe 200
     contentAsJson(result) mustBe Json.toJson(
-      ExchangeRateURL(s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-${LocalDate.now().getYear}-monthly"))
+      ExchangeRateURL(
+        s"https://www.gov.uk/government/publications/hmrc-exchange-rates-for-${LocalDate.now().getYear}-monthly"
+      )
+    )
   }
 }
