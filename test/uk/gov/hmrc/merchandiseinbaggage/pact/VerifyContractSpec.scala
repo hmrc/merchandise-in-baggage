@@ -33,7 +33,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
   println("Running pacttest for: " + pactDir)
 
-  private val contracts = new File(pactDir).listFiles()
+  private val contracts      = new File(pactDir).listFiles()
   val frontendContract: File = contracts
     .find(_.getAbsolutePath.contains(pactDir))
     .getOrElse(fail("contracts not found"))
@@ -55,7 +55,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
           case state: String if state.split("XXX").head == "id1234" =>
             val declarationString = state.split("XXX").toList.drop(1).mkString
-            val declaration = Json.parse(declarationString).as[Declaration]
+            val declaration       = Json.parse(declarationString).as[Declaration]
             repository.insertDeclaration(declaration).futureValue
             ProviderStateResult(true, req => req)
 
@@ -66,7 +66,9 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
           case state @ "id789" =>
             CurrencyConversionStub.givenCurrencyConversion()
             repository
-              .insertDeclaration(aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty)))
+              .insertDeclaration(
+                aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty))
+              )
               .futureValue
             ProviderStateResult(true, req => req)
 
@@ -76,7 +78,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
           case state: String if state.split("XXX").head == "findByTest" =>
             val declarationString = state.split("XXX")(1)
-            val declaration = Json.parse(declarationString).as[Declaration]
+            val declaration       = Json.parse(declarationString).as[Declaration]
             repository.insertDeclaration(declaration).futureValue
             ProviderStateResult(true, req => req)
 

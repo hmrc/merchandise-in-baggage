@@ -18,17 +18,19 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import uk.gov.hmrc.crypto.{Crypted, CryptoWithKeysFromConfig, PlainText}
+import uk.gov.hmrc.crypto.SymmetricCryptoFactory.aesCryptoFromConfig
+import uk.gov.hmrc.crypto.{Crypted, PlainText}
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class CryptoDeclarationRepositoryImpl @Inject()(mongo: MongoComponent, configuration: Configuration)(implicit ec: ExecutionContext)
-    extends DeclarationRepositoryImpl(mongo) {
+class CryptoDeclarationRepositoryImpl @Inject() (mongo: MongoComponent, configuration: Configuration)(implicit
+  ec: ExecutionContext
+) extends DeclarationRepositoryImpl(mongo) {
 
-  private lazy val crypto = new CryptoWithKeysFromConfig("mongodb.encryption", configuration.underlying)
+  private lazy val crypto = aesCryptoFromConfig("mongodb.encryption", configuration.underlying)
 
   override def encryptDeclaration(declaration: Declaration): Declaration =
     convertDeclaration(declaration.copy(encrypted = Some(true)), encrypt)
@@ -40,9 +42,13 @@ class CryptoDeclarationRepositoryImpl @Inject()(mongo: MongoComponent, configura
 
   private def convertDeclaration(declaration: Declaration, convert: String => String): Declaration = {
     val convertedName =
-      Name(convert(declaration.nameOfPersonCarryingTheGoods.firstName), convert(declaration.nameOfPersonCarryingTheGoods.lastName))
+      Name(
+        convert(declaration.nameOfPersonCarryingTheGoods.firstName),
+        convert(declaration.nameOfPersonCarryingTheGoods.lastName)
+      )
 
-    val convertedEmail = declaration.email.map(declarationEmail => declarationEmail.copy(email = convert(declarationEmail.email)))
+    val convertedEmail =
+      declaration.email.map(declarationEmail => declarationEmail.copy(email = convert(declarationEmail.email)))
 
     val convertedEori = declaration.eori.copy(value = convert(declaration.eori.value))
 
@@ -55,7 +61,7 @@ class CryptoDeclarationRepositoryImpl @Inject()(mongo: MongoComponent, configura
     val convertedJourneyDetails = declaration.journeyDetails match {
       case journeyInSmallVehicle: JourneyInSmallVehicle =>
         journeyInSmallVehicle.copy(registrationNumber = convert(journeyInSmallVehicle.registrationNumber))
-      case otherJourney => otherJourney
+      case otherJourney                                 => otherJourney
     }
 
     declaration.copy(

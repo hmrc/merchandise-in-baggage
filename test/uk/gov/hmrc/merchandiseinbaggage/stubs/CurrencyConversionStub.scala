@@ -34,6 +34,8 @@ object CurrencyConversionStub extends CurrencyConversionConfiguration with CoreT
         .willReturn(
           aResponse()
             .withStatus(200)
-            .withBody(Json.toJson(List(ConversionRatePeriod(now, now, code, BigDecimal(1.1)))).toString)))
+            .withBody(Json.toJson(List(ConversionRatePeriod(now, now, code, BigDecimal(1.1)))).toString)
+        )
+    )
 
 }

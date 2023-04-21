@@ -25,17 +25,19 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
-class CalculationController @Inject()(
+class CalculationController @Inject() (
   calculationService: CalculationService,
   cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def handleCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async { implicit request =>
-    calculationService.calculate(request.body).map(results => Ok(Json.toJson(results)))
+  def handleCalculations: Action[Seq[CalculationRequest]] = Action(parse.json[Seq[CalculationRequest]]).async {
+    implicit request =>
+      calculationService.calculate(request.body).map(results => Ok(Json.toJson(results)))
   }
 
-  def handleAmendCalculations: Action[CalculationAmendRequest] = Action(parse.json[CalculationAmendRequest]).async { implicit request =>
-    calculationService.calculateAmendPlusOriginal(request.body).value.map(results => Ok(Json.toJson(results)))
+  def handleAmendCalculations: Action[CalculationAmendRequest] = Action(parse.json[CalculationAmendRequest]).async {
+    implicit request =>
+      calculationService.calculateAmendPlusOriginal(request.body).value.map(results => Ok(Json.toJson(results)))
   }
 }

@@ -29,9 +29,9 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class DeclarationController @Inject()(declarationService: DeclarationService, mcc: MessagesControllerComponents)(
-  implicit val ec: ExecutionContext)
-    extends BackendController(mcc) {
+class DeclarationController @Inject() (declarationService: DeclarationService, mcc: MessagesControllerComponents)(
+  implicit val ec: ExecutionContext
+) extends BackendController(mcc) {
 
   implicit def messages(implicit request: Request[_]): Messages = mcc.messagesApi.preferred(request)
 
@@ -54,32 +54,32 @@ class DeclarationController @Inject()(declarationService: DeclarationService, mc
   def onRetrieve(declarationId: DeclarationId): Action[AnyContent] = Action.async {
     declarationService
       .findByDeclarationId(declarationId)
-      .fold(handleError(s"$declarationId not found"), foundDeclaration => {
-        Ok(toJson(foundDeclaration))
-      })
+      .fold(handleError(s"$declarationId not found"), foundDeclaration => Ok(toJson(foundDeclaration)))
   }
 
   def findBy(mibReference: MibReference, eori: Eori): Action[AnyContent] = Action.async {
     declarationService
       .findBy(mibReference, eori)
-      .fold(handleError(s"Declaration not found for params: $mibReference, $eori"), foundDeclaration => {
-        Ok(toJson(foundDeclaration))
-      })
+      .fold(
+        handleError(s"Declaration not found for params: $mibReference, $eori"),
+        foundDeclaration => Ok(toJson(foundDeclaration))
+      )
   }
 
   // called by payments team after payment success for an Import, so that we can now trigger emails and audit
-  def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async { implicit request =>
-    val callbackRequest = request.body
-    declarationService
-      .processPaymentCallback(callbackRequest)
-      .fold(handleError(s"Declaration with params [$callbackRequest] not found"), _ => Ok)
+  def handlePaymentCallback: Action[PaymentCallbackRequest] = Action(parse.json[PaymentCallbackRequest]).async {
+    implicit request =>
+      val callbackRequest = request.body
+      declarationService
+        .processPaymentCallback(callbackRequest)
+        .fold(handleError(s"Declaration with params [$callbackRequest] not found"), _ => Ok)
   }
 
   private def handleError(message: String): PartialFunction[BusinessError, Result] = {
     case DeclarationNotFound =>
       logger.warn(message)
       NotFound
-    case e =>
+    case e                   =>
       InternalServerError(s"unexpected $e")
   }
 }

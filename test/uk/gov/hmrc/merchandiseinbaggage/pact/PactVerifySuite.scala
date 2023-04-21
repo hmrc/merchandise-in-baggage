@@ -21,4 +21,9 @@ import com.itv.scalapact.circe13.JsonInstances
 import com.itv.scalapact.http4s21.impl.HttpInstances
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
-trait PactVerifySuite extends BaseSpecWithApplication with ScalaPactVerifyDsl with HttpInstances with JsonInstances with WireMock
+trait PactVerifySuite
+    extends BaseSpecWithApplication
+    with ScalaPactVerifyDsl
+    with HttpInstances
+    with JsonInstances
+    with WireMock

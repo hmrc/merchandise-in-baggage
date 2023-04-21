@@ -31,8 +31,8 @@ trait CoreTestData {
 
   def aDeclarationId: DeclarationId = DeclarationId(randomUUID().toString)
 
-  private val aSessionId = SessionId("123456789")
-  private val aGoodDestination = GreatBritain
+  private val aSessionId        = SessionId("123456789")
+  private val aGoodDestination  = GreatBritain
   val aImportGoods: ImportGoods = ImportGoods(
     "test",
     GoodsVatRates.Five,
@@ -50,20 +50,23 @@ trait CoreTestData {
       aPurchaseDetails
     )
 
-  private val aDeclarationGoods = DeclarationGoods(Seq(aImportGoods))
-  private val aName = Name("Terry", "Crews")
-  private val anEori = Eori("eori-test")
-  private val anEmail = Email("someone@")
-  private val aJourneyDetails = JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
-  private val aMibReference = MibReference("mib-ref-1234")
-  private val aCalculationResult = CalculationResult(aImportGoods, AmountInPence(100), AmountInPence(100), AmountInPence(100), None)
+  private val aDeclarationGoods       = DeclarationGoods(Seq(aImportGoods))
+  private val aName                   = Name("Terry", "Crews")
+  private val anEori                  = Eori("eori-test")
+  private val anEmail                 = Email("someone@")
+  private val aJourneyDetails         =
+    JourneyOnFoot(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now())
+  private val aMibReference           = MibReference("mib-ref-1234")
+  private val aCalculationResult      =
+    CalculationResult(aImportGoods, AmountInPence(100), AmountInPence(100), AmountInPence(100), None)
   private val aTotalCalculationResult =
     TotalCalculationResult(
       CalculationResults(Seq(aCalculationResult)),
       AmountInPence(100),
       AmountInPence(100),
       AmountInPence(100),
-      AmountInPence(100))
+      AmountInPence(100)
+    )
 
   val zeroTotalCalculationResult =
     TotalCalculationResult(
@@ -71,7 +74,8 @@ trait CoreTestData {
       AmountInPence(0),
       AmountInPence(0),
       AmountInPence(0),
-      AmountInPence(0))
+      AmountInPence(0)
+    )
 
   def aDeclaration: Declaration =
     Declaration(
@@ -93,13 +97,16 @@ trait CoreTestData {
     )
 
   val aCustomsAgent: CustomsAgent =
-    CustomsAgent("Andy Agent", Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), AddressLookupCountry("GB", Some("UK"))))
+    CustomsAgent(
+      "Andy Agent",
+      Address(Seq("1 Agent Drive", "Agent Town"), Some("AG1 5NT"), AddressLookupCountry("GB", Some("UK")))
+    )
 
   val aJourneyInASmallVehicle: JourneyInSmallVehicle =
     JourneyInSmallVehicle(Port("DVR", "title.dover", isGB = true, List("Port of Dover")), LocalDate.now(), "licence")
 
   val aCheckEoriAddress = CheckEoriAddress("999 High Street", "CityName", "SS99 1AA")
-  val aCompanyDetails = CompanyDetails("Firstname LastName", aCheckEoriAddress)
+  val aCompanyDetails   = CompanyDetails("Firstname LastName", aCheckEoriAddress)
 
   val aCheckResponse = CheckResponse("GB025115110987654", true, Some(aCompanyDetails))
 

@@ -39,10 +39,11 @@ case class Declaration(
   lang: String = "en",
   source: Option[String] = None,
   amendments: Seq[Amendment] = Seq.empty,
-  encrypted: Option[Boolean] = None)
+  encrypted: Option[Boolean] = None
+)
 
 object Declaration {
-  val id = "declarationId"
-  val sessionId = "sessionId"
+  val id                                    = "declarationId"
+  val sessionId                             = "sessionId"
   implicit val format: OFormat[Declaration] = Json.using[Json.WithDefaultValues].format[Declaration]
 }

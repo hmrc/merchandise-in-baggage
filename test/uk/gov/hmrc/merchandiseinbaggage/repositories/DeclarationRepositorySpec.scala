@@ -27,9 +27,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DeclarationRepositorySpec
-    extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach with MongoConfiguration {
+    extends BaseSpecWithApplication
+    with CoreTestData
+    with ScalaFutures
+    with BeforeAndAfterEach
+    with MongoConfiguration {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 
   "insert a declaration object into MongoDB" in {
     val declaration = aDeclaration
@@ -92,7 +97,11 @@ class DeclarationRepositorySpec
   "find a declaration by mibReference & Eori" in {
     val declarationOne = aDeclaration
     val declarationTwo = declarationOne
-      .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
+      .copy(
+        declarationId = DeclarationId("something different"),
+        mibReference = MibReference("another-mib"),
+        eori = Eori("another-eori")
+      )
 
     def insertTwo(): Future[List[Declaration]] =
       for {
@@ -126,8 +135,9 @@ class DeclarationRepositorySpec
       result mustBe declaration
     }
 
-    whenReady(repository.findBy(declaration.mibReference, declaration.amendments.headOption.map(_.reference))) { findResult =>
-      findResult mustBe Some(declaration)
+    whenReady(repository.findBy(declaration.mibReference, declaration.amendments.headOption.map(_.reference))) {
+      findResult =>
+        findResult mustBe Some(declaration)
     }
   }
 
@@ -151,5 +161,5 @@ class DeclarationRepositorySpec
   }
 
   override def beforeEach(): Unit = repository.deleteAll()
-  override def afterEach(): Unit = repository.deleteAll()
+  override def afterEach(): Unit  = repository.deleteAll()
 }

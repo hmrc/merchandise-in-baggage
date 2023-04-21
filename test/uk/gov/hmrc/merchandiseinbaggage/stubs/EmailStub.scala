@@ -29,6 +29,9 @@ object EmailStub extends EmailConfiguration {
     server.stubFor(
       post(urlPathEqualTo("/transactionengine/email"))
         .withRequestBody(equalToJson(Json.toJson(declarationEmailInfo).toString()))
-        .willReturn(aResponse()
-          .withStatus(200)))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+        )
+    )
 }

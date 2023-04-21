@@ -24,7 +24,8 @@ case class DeclarationEmailInfo(
   parameters: Map[String, String],
   force: Boolean = false,
   eventUrl: Option[String] = None,
-  onSendUrl: Option[String] = None)
+  onSendUrl: Option[String] = None
+)
 
 object DeclarationEmailInfo {
   implicit val formats = Json.format[DeclarationEmailInfo]

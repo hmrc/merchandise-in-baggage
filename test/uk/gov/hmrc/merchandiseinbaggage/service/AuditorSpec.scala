@@ -36,7 +36,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
 
   private val auditor = new Auditor {
     override val auditConnector: AuditConnector = mockAuditConnector
-    override val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
+    override val messagesApi: MessagesApi       = app.injector.instanceOf[MessagesApi]
   }
 
   "auditDeclaration" should {
@@ -75,7 +75,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
   "RefundableDeclaration" should {
     s"trigger refund events for new declarations" in {
       val declaration = aDeclaration
-      val refundJson =
+      val refundJson  =
         """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
       (mockAuditConnector
@@ -92,7 +92,7 @@ class AuditorSpec extends BaseSpecWithApplication with CoreTestData with ScalaFu
 
     s"trigger refund events for amend declarations" in {
       val declaration = aDeclarationWithAmendment
-      val refundJson =
+      val refundJson  =
         """{"mibReference":"mib-ref-1234","name":"Terry Crews","eori":"eori-test","goodsCategory":"test","gbpValue":"£1.00","customsDuty":"£1.00","vat":"£1.00","vatRate":"5%","paymentAmount":"£2.00","producedInEu":"Yes","purchaseAmount":"100","currencyCode":"GBP","exchangeRate":"1.00"}"""
 
       (mockAuditConnector

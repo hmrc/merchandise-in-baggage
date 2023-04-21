@@ -33,5 +33,7 @@ object EoriCheckStub extends EoriCheckConfiguration with CoreTestData {
         .willReturn(
           aResponse()
             .withStatus(200)
-            .withBody(Json.toJson(checkResponse).toString)))
+            .withBody(Json.toJson(checkResponse).toString)
+        )
+    )
 }

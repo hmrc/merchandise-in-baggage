@@ -24,7 +24,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.{DeclarationNotFound, PaymentCallbackRequest}
+import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -32,7 +32,11 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MongoConfiguration with MockFactory {
+class DeclarationControllerSpec
+    extends BaseSpecWithApplication
+    with CoreTestData
+    with MongoConfiguration
+    with MockFactory {
 
   private val declarationService = mock[DeclarationService]
 
@@ -45,7 +49,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       .expects(*, *, *)
       .returning(declaration.asFuture)
 
-    val postRequest = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
+    val postRequest    = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
     val eventualResult = controller.onDeclarations()(postRequest)
 
     status(eventualResult) mustBe 201
@@ -59,19 +63,22 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       .expects(*, *, *)
       .returning(declaration.asFuture)
 
-    val postRequest = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
+    val postRequest    = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
     val eventualResult = controller.amendDeclaration()(postRequest)
 
     status(eventualResult) mustBe 200
     contentAsJson(eventualResult) mustBe Json.toJson(declaration.declarationId)
   }
 
-  "on retrieve" should {
+  "on retrieve"            should {
     "return declaration for a given id" in {
       val declaration = aDeclaration
-      (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(declaration.asRight.asFuture))
+      (declarationService
+        .findByDeclarationId(_: DeclarationId))
+        .expects(*)
+        .returning(EitherT(declaration.asRight.asFuture))
 
-      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+      val getRequest     = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
 
       status(eventualResult) mustBe 200
@@ -80,9 +87,12 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     "return 404 for a given id if declaration is not found in mongo" in {
       val declaration = aDeclaration
-      (declarationService.findByDeclarationId(_: DeclarationId)).expects(*).returning(EitherT(DeclarationNotFound.asLeft.asFuture))
+      (declarationService
+        .findByDeclarationId(_: DeclarationId))
+        .expects(*)
+        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
-      val getRequest = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
+      val getRequest     = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
 
       status(eventualResult) mustBe 404
@@ -91,9 +101,12 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "findBy MibRef and Eori" should {
     "return a success response" in {
       val declaration = aDeclaration
-      (declarationService.findBy(_: MibReference, _: Eori)).expects(*, *).returning(EitherT(declaration.asRight.asFuture))
+      (declarationService
+        .findBy(_: MibReference, _: Eori))
+        .expects(*, *)
+        .returning(EitherT(declaration.asRight.asFuture))
 
-      val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+      val getRequest     = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
       val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
 
       status(eventualResult) mustBe 200
@@ -102,9 +115,12 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     "return 404 if not found for a given mibRef and Eori" in {
       val declaration = aDeclaration
-      (declarationService.findBy(_: MibReference, _: Eori)).expects(*, *).returning(EitherT(DeclarationNotFound.asLeft.asFuture))
+      (declarationService
+        .findBy(_: MibReference, _: Eori))
+        .expects(*, *)
+        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
-      val getRequest = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
+      val getRequest     = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
       val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
 
       status(eventualResult) mustBe 404
@@ -131,7 +147,7 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
       (declarationService
         .processPaymentCallback(_: PaymentCallbackRequest)(_: HeaderCarrier))
         .expects(*, *)
-        .returning(EitherT(DeclarationNotFound.asLeft.asFuture))
+        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
       val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback.url)
         .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))

@@ -30,15 +30,20 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory with OptionValues {
+class EmailServiceSpec
+    extends BaseSpecWithApplication
+    with CoreTestData
+    with ScalaFutures
+    with MockFactory
+    with OptionValues {
 
   val declarationRepo = mock[DeclarationRepository]
-  val emailConnector = mock[EmailConnector]
+  val emailConnector  = mock[EmailConnector]
 
   val emailService = new EmailService(emailConnector, declarationRepo)
 
   "sendEmails should handle New Import declarations" in {
-    val declaration = aDeclaration
+    val declaration              = aDeclaration
     val declarationWithEmailSent = declaration.copy(emailsSent = true)
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
@@ -58,7 +63,8 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should handle New Export declarations" in {
-    val declaration = aDeclaration.copy(declarationType = Export, declarationGoods = DeclarationGoods(Seq(aExportGoods)))
+    val declaration =
+      aDeclaration.copy(declarationType = Export, declarationGoods = DeclarationGoods(Seq(aExportGoods)))
 
     val declarationWithEmailSent = declaration.copy(emailsSent = true)
     (emailConnector
@@ -80,8 +86,8 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should handle Amended Import declarations" in {
-    val declaration = aDeclarationWithAmendment
-    val updatedAmendment = aAmendment.copy(emailsSent = true)
+    val declaration                     = aDeclarationWithAmendment
+    val updatedAmendment                = aAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
@@ -101,9 +107,9 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should consider only paid amendments" in {
-    val paidAmendment = aAmendment.copy(paymentStatus = Some(Paid))
-    val declaration = aDeclaration.copy(amendments = Seq(paidAmendment))
-    val updatedAmendment = paidAmendment.copy(emailsSent = true)
+    val paidAmendment                   = aAmendment.copy(paymentStatus = Some(Paid))
+    val declaration                     = aDeclaration.copy(amendments = Seq(paidAmendment))
+    val updatedAmendment                = paidAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
@@ -123,8 +129,8 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should handle Amended Export declarations" in {
-    val declaration = aDeclarationWithAmendment.copy(declarationType = Export)
-    val updatedAmendment = aAmendment.copy(emailsSent = true)
+    val declaration                     = aDeclarationWithAmendment.copy(declarationType = Export)
+    val updatedAmendment                = aAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
@@ -144,9 +150,9 @@ class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with Sc
   }
 
   "sendEmails should use the correct language" in {
-    val amendment = aAmendment.copy(lang = "cy")
-    val declaration = aDeclaration.copy(declarationType = Export, amendments = Seq(amendment))
-    val updatedAmendment = amendment.copy(emailsSent = true)
+    val amendment                       = aAmendment.copy(lang = "cy")
+    val declaration                     = aDeclaration.copy(declarationType = Export, amendments = Seq(amendment))
+    val updatedAmendment                = amendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
     (emailConnector
       .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))

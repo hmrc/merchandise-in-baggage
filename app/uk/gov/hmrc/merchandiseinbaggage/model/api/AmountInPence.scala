@@ -23,7 +23,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Format
 
 case class AmountInPence(value: Long) {
-  val inPounds: BigDecimal = (BigDecimal(value) / 100).setScale(2)
+  val inPounds: BigDecimal      = (BigDecimal(value) / 100).setScale(2)
   val formattedInPounds: String = getCurrencyInstance(UK).format(inPounds)
 }
 

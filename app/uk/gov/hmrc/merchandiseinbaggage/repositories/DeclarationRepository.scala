@@ -51,20 +51,22 @@ trait DeclarationRepository {
 }
 
 @Singleton
-class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[Declaration](
       collectionName = "declaration",
       mongoComponent = mongo,
       domainFormat = Declaration.format,
       indexes = Seq(IndexModel(ascending(s"${Declaration.id}"), IndexOptions().name("primaryKey").unique(true))),
       replaceIndexes = false
-    ) with DeclarationDateOrdering with DeclarationRepository {
+    )
+    with DeclarationDateOrdering
+    with DeclarationRepository {
 
   implicit val jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
 
   def encryptDeclaration(declaration: Declaration): Declaration = declaration
   def decryptDeclaration(declaration: Declaration): Declaration = declaration
-  def encryptEori(eori: Eori): Eori = eori
+  def encryptEori(eori: Eori): Eori                             = eori
 
   override def insertDeclaration(declaration: Declaration): Future[Declaration] = {
     val encryptedDeclaration = encryptDeclaration(declaration)
@@ -74,14 +76,15 @@ class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: Ex
       .toFuture()
       .map(_ => declaration)
       .recover {
-        case NonFatal(ex) if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
+        case NonFatal(ex)
+            if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
           //conflict - duplicate declaration with same declarationId
           declaration
       }
   }
 
   override def upsertDeclaration(declaration: Declaration): Future[Declaration] = {
-    val options = ReplaceOptions().upsert(true)
+    val options              = ReplaceOptions().upsert(true)
     val encryptedDeclaration = encryptDeclaration(declaration)
     collection
       .replaceOne(equal(Declaration.id, encryptedDeclaration.declarationId.value), encryptedDeclaration, options)
@@ -90,9 +93,16 @@ class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: Ex
   }
 
   override def findByDeclarationId(declarationId: DeclarationId): Future[Option[Declaration]] =
-    collection.find(equal(Declaration.id, declarationId.value)).toFuture().map(_.headOption).map(_.map(decryptDeclaration))
+    collection
+      .find(equal(Declaration.id, declarationId.value))
+      .toFuture()
+      .map(_.headOption)
+      .map(_.map(decryptDeclaration))
 
-  override def findBy(mibReference: MibReference, amendmentReference: Option[Int] = None): Future[Option[Declaration]] = {
+  override def findBy(
+    mibReference: MibReference,
+    amendmentReference: Option[Int] = None
+  ): Future[Option[Declaration]] = {
     val query =
       amendmentReference match {
         case Some(reference) =>
@@ -108,7 +118,7 @@ class DeclarationRepositoryImpl @Inject()(mongo: MongoComponent)(implicit ec: Ex
 
   def findBy(mibReference: MibReference, eori: Eori): Future[Option[Declaration]] = {
     val encryptedEori: Eori = encryptEori(eori)
-    val query =
+    val query               =
       and(
         equal("mibReference", mibReference.value),
         equal("eori.value", Codecs.toBson(Json.obj("$in" -> Json.arr(eori.value, encryptedEori.value))))

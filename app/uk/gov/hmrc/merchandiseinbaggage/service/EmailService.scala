@@ -36,17 +36,18 @@ import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailService @Inject()(emailConnector: EmailConnector, declarationRepository: DeclarationRepository)(
-  implicit val appConfig: AppConfig,
+class EmailService @Inject() (emailConnector: EmailConnector, declarationRepository: DeclarationRepository)(implicit
+  val appConfig: AppConfig,
   messagesApi: MessagesApi,
-  ec: ExecutionContext)
-    extends Logging {
+  ec: ExecutionContext
+) extends Logging {
 
   val messagesEN: Messages = MessagesImpl(Lang("en"), messagesApi)
   val messagesCY: Messages = MessagesImpl(Lang("cy"), messagesApi)
 
-  def sendEmails(declaration: Declaration, amendmentReference: Option[Int] = None)(
-    implicit hc: HeaderCarrier): EitherT[Future, BusinessError, Declaration] = {
+  def sendEmails(declaration: Declaration, amendmentReference: Option[Int] = None)(implicit
+    hc: HeaderCarrier
+  ): EitherT[Future, BusinessError, Declaration] = {
 
     implicit val messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
 
@@ -55,9 +56,11 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
         logger.warn(s"emails are already sent for declaration: ${declaration.mibReference.value}")
         declaration.asRight.asFuture
       } else {
-        val emailToBF = emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce", amendmentReference))
+        val emailToBF     =
+          emailConnector.sendEmails(toEmailInfo(declaration, appConfig.bfEmail, "BorderForce", amendmentReference))
         val emailToTrader = declaration.email match {
-          case Some(email) => emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader", amendmentReference))
+          case Some(email) =>
+            emailConnector.sendEmails(toEmailInfo(declaration, email.email, "Trader", amendmentReference))
           case None        => ACCEPTED.asFuture
         }
 
@@ -65,7 +68,7 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
           (bfResponse, trResponse) match {
             case (ACCEPTED, ACCEPTED) =>
               updateDeclarationWithEmailSent(declaration, amendmentReference).map(_.asRight)
-            case (s1, s2) =>
+            case (s1, s2)             =>
               val message = s"Error in sending emails, bfResponse:$s1, trResponse:$s2"
               PagerDutyHelper.alert(Some(message))
               EmailSentError(message).asLeft.asFuture
@@ -75,7 +78,10 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
     )
   }
 
-  private def updateDeclarationWithEmailSent(declaration: Declaration, amendmentReference: Option[Int]): Future[Declaration] = {
+  private def updateDeclarationWithEmailSent(
+    declaration: Declaration,
+    amendmentReference: Option[Int]
+  ): Future[Declaration] = {
     val updatedDeclaration = amendmentReference match {
       case Some(reference) =>
         val updatedAmendments = declaration.amendments.map { amendment =>
@@ -99,13 +105,17 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
           case Some(amendment) => amendment.emailsSent
           case None            => true //no amendment found for given amendmentReference, do not trigger emails
         }
-      case None =>
+      case None            =>
         //first check for latest `amend` journey, then fallback to `new` journey
         declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
     }
 
-  private def toEmailInfo(declaration: Declaration, emailTo: String, emailType: String, amendmentReference: Option[Int])(
-    implicit messages: Messages): DeclarationEmailInfo = {
+  private def toEmailInfo(
+    declaration: Declaration,
+    emailTo: String,
+    emailType: String,
+    amendmentReference: Option[Int]
+  )(implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
     val amendmentGoods = {
@@ -163,7 +173,7 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
           case Some(amendment) => amendment.lang
           case None            => declaration.lang
         }
-      case None => declaration.lang
+      case None            => declaration.lang
     }
 
     DeclarationEmailInfo(
@@ -205,11 +215,11 @@ class EmailService @Inject()(emailConnector: EmailConnector, declarationReposito
       .filter(a => a.paymentStatus.contains(Paid) || a.paymentStatus.contains(NotRequired))
       .map(a => paymentForCalculation(a.maybeTotalCalculationResult))
 
-    val totalPaymentsMade = (declarationPayment +: amendmentPayments)
+    val totalPaymentsMade = declarationPayment +: amendmentPayments
 
     val totalCustomsDuty = AmountInPence(totalPaymentsMade.map(_.totalDutyDue.value).sum)
-    val totalVat = AmountInPence(totalPaymentsMade.map(_.totalVatDue.value).sum)
-    val totalTax = AmountInPence(totalPaymentsMade.map(_.totalTaxDue.value).sum)
+    val totalVat         = AmountInPence(totalPaymentsMade.map(_.totalVatDue.value).sum)
+    val totalTax         = AmountInPence(totalPaymentsMade.map(_.totalTaxDue.value).sum)
 
     Map(
       "customsDuty" -> totalCustomsDuty.formattedInPounds,

@@ -29,9 +29,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CryptoDeclarationRepositoryImplSpec
-    extends BaseSpecWithApplication with CoreTestData with ScalaFutures with BeforeAndAfterEach with MongoConfiguration {
+    extends BaseSpecWithApplication
+    with CoreTestData
+    with ScalaFutures
+    with BeforeAndAfterEach
+    with MongoConfiguration {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
 
   "with database we " should {
     "insert a declaration object into MongoDB" in {
@@ -59,7 +64,9 @@ class CryptoDeclarationRepositoryImplSpec
       val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
       def insertTwo(): Future[Declaration] =
-        cryptoRepository.insertDeclaration(declarationOne).flatMap(_ => cryptoRepository.insertDeclaration(declarationTwo))
+        cryptoRepository
+          .insertDeclaration(declarationOne)
+          .flatMap(_ => cryptoRepository.insertDeclaration(declarationTwo))
 
       whenReady(insertTwo()) { insertResult =>
         insertResult mustBe declarationTwo
@@ -87,7 +94,11 @@ class CryptoDeclarationRepositoryImplSpec
     "find a declaration by mibReference & Eori" in {
       val declarationOne = aDeclaration.copy(encrypted = Some(true))
       val declarationTwo = declarationOne
-        .copy(declarationId = DeclarationId("something different"), mibReference = MibReference("another-mib"), eori = Eori("another-eori"))
+        .copy(
+          declarationId = DeclarationId("something different"),
+          mibReference = MibReference("another-mib"),
+          eori = Eori("another-eori")
+        )
 
       def insertTwo(): Future[List[Declaration]] =
         for {
@@ -119,7 +130,9 @@ class CryptoDeclarationRepositoryImplSpec
       val declarationTwo = declarationOne.copy(declarationId = DeclarationId("something different"))
 
       def insertTwo(): Future[Declaration] =
-        cryptoRepository.insertDeclaration(declarationOne).flatMap(_ => cryptoRepository.insertDeclaration(declarationTwo))
+        cryptoRepository
+          .insertDeclaration(declarationOne)
+          .flatMap(_ => cryptoRepository.insertDeclaration(declarationTwo))
 
       val collection = for {
         _   <- cryptoRepository.deleteAll()
@@ -143,7 +156,7 @@ class CryptoDeclarationRepositoryImplSpec
       val declarationAfterFindBy = whenReady(cryptoRepository.findBy(declaration.mibReference)) { findResult =>
         findResult mustBe Some(declaration)
         findResult.map(_.encrypted mustBe None)
-        findResult.getOrElse(fail)
+        findResult.getOrElse(fail())
       }
 
       // Add Amendment and update declaration
@@ -167,17 +180,19 @@ class CryptoDeclarationRepositoryImplSpec
 
   "crypto " should {
     val declarationCrypto = injector.instanceOf[CryptoDeclarationRepositoryImpl]
-    val declaration = aDeclaration
+    val declaration       = aDeclaration
 
     "encrypt -> decrypt must match the original with encrypted enabled" in {
       declarationCrypto.decryptDeclaration(declarationCrypto.encryptDeclaration(declaration)) mustBe declaration.copy(
-        encrypted = Some(true))
+        encrypted = Some(true)
+      )
     }
 
     "encrypt name should be different from original" in {
       declarationCrypto.encryptDeclaration(declaration).nameOfPersonCarryingTheGoods mustBe Name(
         "5DAVpR9ozhA60/y+q9gHIA==",
-        "QoaA6uK44jJz9bOa1MFeSg==")
+        "QoaA6uK44jJz9bOa1MFeSg=="
+      )
     }
 
     "encrypt email should be different from original" in {
@@ -199,8 +214,10 @@ class CryptoDeclarationRepositoryImplSpec
           Address(
             List("rAIsO/sEpJi2Bo0w+cmYFw==", "+v5ElPX1X/ZRBtWQy9pWTw=="),
             Some("xj3SFcsYP02+4ljJXml2Bw=="),
-            AddressLookupCountry("GB", Some("UK")))
-        ))
+            AddressLookupCountry("GB", Some("UK"))
+          )
+        )
+      )
     }
 
     "encrypt journeyDetails should be different from original" in {
@@ -211,11 +228,12 @@ class CryptoDeclarationRepositoryImplSpec
         .journeyDetails mustBe JourneyInSmallVehicle(
         Port("DVR", "title.dover", true, List("Port of Dover")),
         aJourneyInASmallVehicle.dateOfTravel,
-        "N/x/Y3gF3SqaY/RzJ4oIfQ==")
+        "N/x/Y3gF3SqaY/RzJ4oIfQ=="
+      )
     }
 
   }
 
   override def beforeEach(): Unit = cryptoRepository.deleteAll()
-  override def afterEach(): Unit = cryptoRepository.deleteAll()
+  override def afterEach(): Unit  = cryptoRepository.deleteAll()
 }

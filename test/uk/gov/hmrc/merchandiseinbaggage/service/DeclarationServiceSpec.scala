@@ -36,8 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
   trait Fixture {
     val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
-    val emailService: EmailService = mock[EmailService]
-    val auditConnector: AuditConnector = mock[AuditConnector]
+    val emailService: EmailService             = mock[EmailService]
+    val auditConnector: AuditConnector         = mock[AuditConnector]
 
     val declarationService = new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
@@ -57,7 +57,11 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     def mockDeclarationInsert(declaration: Declaration) =
       (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
-    def mockFindBy(declaration: Option[Declaration], mibReference: MibReference, amendmentReference: Option[Int] = None) =
+    def mockFindBy(
+      declaration: Option[Declaration],
+      mibReference: MibReference,
+      amendmentReference: Option[Int] = None
+    ) =
       (declarationRepo
         .findBy(_: MibReference, _: Option[Int]))
         .expects(mibReference, amendmentReference)
@@ -83,7 +87,8 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     }
 
     "persist an Import and trigger Audit and Emails for zero payments" in new Fixture {
-      val declaration = aDeclaration.copy(declarationType = Import, maybeTotalCalculationResult = Some(zeroTotalCalculationResult))
+      val declaration =
+        aDeclaration.copy(declarationType = Import, maybeTotalCalculationResult = Some(zeroTotalCalculationResult))
 
       mockDeclarationInsert(declaration)
       mockEmails(declaration)
@@ -120,10 +125,16 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "find a declaration by id or returns not found" in new Fixture {
     val declaration: Declaration = aDeclaration
 
-    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(Some(declaration)))
+    (declarationRepo
+      .findByDeclarationId(_: DeclarationId))
+      .expects(declaration.declarationId)
+      .returns(Future.successful(Some(declaration)))
     declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Right(declaration)
 
-    (declarationRepo.findByDeclarationId(_: DeclarationId)).expects(declaration.declarationId).returns(Future.successful(None))
+    (declarationRepo
+      .findByDeclarationId(_: DeclarationId))
+      .expects(declaration.declarationId)
+      .returns(Future.successful(None))
     declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
   }
 

@@ -21,7 +21,11 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
 import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig() extends MongoConfiguration with EmailConfiguration with EoriCheckConfiguration with CurrencyConversionConfiguration {
+class AppConfig()
+    extends MongoConfiguration
+    with EmailConfiguration
+    with EoriCheckConfiguration
+    with CurrencyConversionConfiguration {
   lazy val bfEmail: String = configSource("BF.email").loadOrThrow[String]
 }
 
@@ -29,7 +33,12 @@ trait MongoConfiguration {
   lazy val mongoConf: MongoConf = configSource("mongodb").loadOrThrow[MongoConf]
 }
 
-final case class MongoConf(uri: String, host: String = "localhost", port: Int = 27017, collectionName: String = "declaration")
+final case class MongoConf(
+  uri: String,
+  host: String = "localhost",
+  port: Int = 27017,
+  collectionName: String = "declaration"
+)
 
 trait EmailConfiguration {
   lazy val emailConf: EmailConf = configSource("microservice.services.email").loadOrThrow[EmailConf]
