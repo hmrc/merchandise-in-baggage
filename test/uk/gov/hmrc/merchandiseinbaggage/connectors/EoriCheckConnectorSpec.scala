@@ -23,8 +23,6 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
 
   val client      = app.injector.instanceOf[EoriCheckConnector]

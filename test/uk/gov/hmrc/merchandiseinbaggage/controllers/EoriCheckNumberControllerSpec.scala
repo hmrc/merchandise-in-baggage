@@ -25,7 +25,6 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTestData {
 

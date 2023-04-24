@@ -35,6 +35,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.repositories.{CryptoDeclarationRepositoryImpl, DeclarationRepositoryImpl}
 
+import scala.concurrent.ExecutionContext
+
 trait BaseSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with Eventually
 
 trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with ScalaFutures {
@@ -46,6 +48,7 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   implicit val mat: Materializer            = app.materializer
   implicit val appConfig: AppConfig         = injector.instanceOf[AppConfig]
+  implicit val ec: ExecutionContext         = injector.instanceOf[ExecutionContext]
   lazy val component                        = injector.instanceOf[MessagesControllerComponents]
   lazy val repository                       = injector.instanceOf[DeclarationRepositoryImpl]
   lazy val cryptoRepository                 = injector.instanceOf[CryptoDeclarationRepositoryImpl]
