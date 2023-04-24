@@ -21,7 +21,6 @@ import uk.gov.hmrc.merchandiseinbaggage.stubs.CurrencyConversionStub
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
 import java.time.LocalDate
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with WireMock {
   private val connector = app.injector.instanceOf[CurrencyConversionConnector]

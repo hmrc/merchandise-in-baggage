@@ -30,7 +30,6 @@ import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class DeclarationControllerSpec
     extends BaseSpecWithApplication

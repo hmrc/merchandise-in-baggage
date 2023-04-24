@@ -20,8 +20,6 @@ import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.stubs.EmailStub.givenEmailSuccess
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class EmailConnectorSpec extends BaseSpecWithApplication with WireMock {
   private val emailConnector = app.injector.instanceOf[EmailConnector]
 

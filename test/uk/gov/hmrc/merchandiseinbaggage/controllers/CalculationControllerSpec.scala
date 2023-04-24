@@ -30,7 +30,6 @@ import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import java.time.temporal.ChronoUnit
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
