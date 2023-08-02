@@ -5,8 +5,8 @@ import sbt._
 object AppDependencies {
 
   private val pactVersion          = "4.4.0"
-  private val hmrcMongoVersion     = "0.68.0"
-  private val bootstrapPlayVersion = "7.15.0"
+  private val hmrcMongoVersion     = "1.3.0"
+  private val bootstrapPlayVersion = "7.20.0"
 
   val compile = Seq(
     ws,
