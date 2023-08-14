@@ -11,20 +11,20 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     majorVersion := 0,
-    scalaVersion := "2.13.10",
+    scalaVersion := "2.13.11",
     // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     playDefaultPort := 8280,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= Seq(
       "-Wconf:src=routes/.*:s",
-      "-Wconf:cat=unused-imports&src=views/.*:s"
+      "-Wconf:cat=unused-imports&src=views/.*:s",
+      "-Xlint:-byname-implicit" //to silence: Block result was adapted via implicit conversion warnings: https://github.com/scala/bug/issues/12072
     )
   )
   .settings(inConfig(Test)(testSettings))
   .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
-  .settings(resolvers += Resolver.jcenterRepo)
+  .settings(integrationTestSettings())
   .settings(
     retrieveManaged := true,
     Compile / scalafmtOnCompile := true,
@@ -42,7 +42,6 @@ lazy val microservice = Project(appName, file("."))
     val noContracts = !pactDir.exists() || pactDir.listFiles().isEmpty
     if (noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }))
-  .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
     ScoverageKeys.coverageMinimumStmtTotal := 90,
@@ -50,7 +49,7 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageHighlighting := true
   )
 
-lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+lazy val testSettings: Seq[Def.Setting[?]] = Seq(
   fork := true,
   javaOptions ++= Seq(
     "-Dlogger.resource=logback-test.xml",

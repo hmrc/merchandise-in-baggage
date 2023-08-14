@@ -10,13 +10,13 @@ The front-end services are: `merchandise-in-baggage-frontend` & `merchandise-in-
 `sbt run` This will only start the service as standalone but unable to interact with any other services including DataBase
 
 SM profile : MERCHANDISE_IN_BAGGAGE_ALL
-`sm MERCHANDISE_IN_BAGGAGE_ALL` This will start all the required services to complete a journey
+`sm2 --start MERCHANDISE_IN_BAGGAGE_ALL` This will start all the required services to complete a journey
 
 `local base url and port` http://localhost:8280/
 
 **How to run tests**
 
-`sbt test` will run all the tests, including unit and contract tests. The contract tests will use
+`./run_all_tests.sh` will run all the tests, including unit and contract tests. The contract tests will use
 contract files stored in the project root directory folder `pact` of both front-ends.
 The tests contract verifier can be executed by running the script:
 `checkincheck.sh`. Note - currently contracts test only runs for local build.
@@ -41,5 +41,5 @@ POST        /payment-callback   _callback endpoint for payment service_
 
 GET         /validate/eori/:eoriNumber  _validate eori by calling an API_        
 
-GET         /exchange-rate-url  _fetch available current exchange rate available by calling an API_                
+GET         /exchange-rate-url  _fetch available current exchange rate available by calling an API_
 

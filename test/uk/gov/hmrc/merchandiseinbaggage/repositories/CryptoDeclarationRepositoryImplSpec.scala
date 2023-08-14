@@ -18,12 +18,13 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest.time.{Milliseconds, Seconds, Span}
+import play.api.test.Helpers._
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import org.scalatest.matchers.should.Matchers._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
+import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.Future
 
@@ -35,7 +36,7 @@ class CryptoDeclarationRepositoryImplSpec
     with MongoConfiguration {
 
   override implicit val patienceConfig: PatienceConfig =
-    PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))
+    PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(1000L, Milliseconds)))
 
   "with database we " should {
     "insert a declaration object into MongoDB" in {
@@ -233,6 +234,7 @@ class CryptoDeclarationRepositoryImplSpec
 
   }
 
-  override def beforeEach(): Unit = cryptoRepository.deleteAll()
-  override def afterEach(): Unit  = cryptoRepository.deleteAll()
+  override def beforeEach(): Unit = await(repository.deleteAll())
+
+  override def afterEach(): Unit = await(repository.deleteAll())
 }

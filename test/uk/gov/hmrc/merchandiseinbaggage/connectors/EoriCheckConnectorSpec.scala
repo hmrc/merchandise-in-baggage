@@ -25,8 +25,8 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
 class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
 
-  val client      = app.injector.instanceOf[EoriCheckConnector]
-  implicit val hc = HeaderCarrier()
+  val client: EoriCheckConnector = app.injector.instanceOf[EoriCheckConnector]
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "handle a valid EORI by calling the API" in {
     val eori = Eori("GB1234")

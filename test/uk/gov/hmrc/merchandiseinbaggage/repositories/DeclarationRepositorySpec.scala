@@ -19,6 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
+import play.api.test.Helpers._
 import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -159,6 +160,7 @@ class DeclarationRepositorySpec
     }
   }
 
-  override def beforeEach(): Unit = repository.deleteAll()
-  override def afterEach(): Unit  = repository.deleteAll()
+  override def beforeEach(): Unit = await(repository.deleteAll())
+
+  override def afterEach(): Unit = await(repository.deleteAll())
 }
