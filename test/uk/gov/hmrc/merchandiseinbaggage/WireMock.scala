@@ -21,7 +21,7 @@ import org.scalatest.{BeforeAndAfterEach, Suite}
 
 trait WireMock extends BeforeAndAfterEach { this: Suite =>
 
-  implicit val wireMockServer = new WireMockServer(WireMock.port)
+  implicit val wireMockServer: WireMockServer = new WireMockServer(WireMock.port)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

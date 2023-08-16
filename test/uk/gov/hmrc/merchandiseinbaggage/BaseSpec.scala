@@ -53,8 +53,8 @@ trait BaseSpecWithApplication extends BaseSpec with GuiceOneServerPerSuite with 
   lazy val repository                       = injector.instanceOf[DeclarationRepositoryImpl]
   lazy val cryptoRepository                 = injector.instanceOf[CryptoDeclarationRepositoryImpl]
 
-  implicit val messagesApi    = app.injector.instanceOf[MessagesApi]
-  lazy val injector: Injector = app.injector
+  implicit val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
+  lazy val injector: Injector           = app.injector
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()

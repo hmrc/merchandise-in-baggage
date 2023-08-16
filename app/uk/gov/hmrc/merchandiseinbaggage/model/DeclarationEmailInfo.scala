@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class DeclarationEmailInfo(
   to: Seq[String],
@@ -28,5 +28,5 @@ case class DeclarationEmailInfo(
 )
 
 object DeclarationEmailInfo {
-  implicit val formats = Json.format[DeclarationEmailInfo]
+  implicit val formats: OFormat[DeclarationEmailInfo] = Json.format[DeclarationEmailInfo]
 }
