@@ -1,5 +1,4 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
@@ -12,6 +11,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     majorVersion := 0,
     scalaVersion := "2.13.11",
+    retrieveManaged := true,
     // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     playDefaultPort := 8280,
@@ -23,13 +23,6 @@ lazy val microservice = Project(appName, file("."))
     )
   )
   .settings(inConfig(Test)(testSettings))
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings())
-  .settings(
-    retrieveManaged := true,
-    Compile / scalafmtOnCompile := true,
-    Test / scalafmtOnCompile := true
-  )
   .settings(
     routesImport ++= Seq(
       "uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._",
