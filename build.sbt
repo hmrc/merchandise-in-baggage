@@ -1,4 +1,5 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
+import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
@@ -41,6 +42,7 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
+  .settings(addTestReportOption(Test, "test-reports"))
 
 lazy val testSettings: Seq[Def.Setting[?]] = Seq(
   fork := true,
