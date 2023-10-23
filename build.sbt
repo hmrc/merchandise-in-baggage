@@ -1,6 +1,4 @@
-import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
-import scoverage.ScoverageKeys
 
 val appName = "merchandise-in-baggage"
 
@@ -11,12 +9,11 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     majorVersion := 0,
-    scalaVersion := "2.13.11",
-    retrieveManaged := true,
+    scalaVersion := "2.13.12",
     // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
-    playDefaultPort := 8280,
-    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    PlayKeys.playDefaultPort := 8280,
+    libraryDependencies ++= AppDependencies(),
     scalacOptions ++= Seq(
       "-Wconf:src=routes/.*:s",
       "-Wconf:cat=unused-imports&src=views/.*:s",
@@ -37,10 +34,10 @@ lazy val microservice = Project(appName, file("."))
     if (noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }))
   .settings(
-    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
+    coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
+    coverageMinimumStmtTotal := 90,
+    coverageFailOnMinimum := true,
+    coverageHighlighting := true
   )
   .settings(addTestReportOption(Test, "test-reports"))
 
