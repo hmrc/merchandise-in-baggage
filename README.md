@@ -37,7 +37,8 @@ GET         /declarations       _get all declarations_
 POST        /calculations       _calculates due payments if any_                
 POST        /amend-calculations _calculates due payments if any for amendment to an existing declaration_                
 
-POST        /payment-callback   _callback endpoint for payment service_                
+POST        /payment-callback   _callback endpoint for payment service_       
+
 
 GET         /validate/eori/:eoriNumber  _validate eori by calling an API_        
 
