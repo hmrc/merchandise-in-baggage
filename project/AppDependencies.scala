@@ -4,7 +4,7 @@ object AppDependencies {
 
   private val pactVersion          = "4.4.0"
   private val hmrcMongoVersion     = "1.3.0"
-  private val bootstrapPlayVersion = "7.22.0"
+  private val bootstrapPlayVersion = "7.23.0"
 
   private val compile: Seq[ModuleID] = Seq(
     play.sbt.PlayImport.ws,
@@ -21,9 +21,9 @@ object AppDependencies {
     "org.scalatest"              %% "scalatest"               % "3.2.17",
     "com.vladsch.flexmark"        % "flexmark-all"            % "0.64.8",
     "org.scalatestplus.play"     %% "scalatestplus-play"      % "5.1.0",
-    "org.mockito"                %% "mockito-scala-scalatest" % "1.17.27",
+    "org.mockito"                %% "mockito-scala-scalatest" % "1.17.30",
     "org.scalamock"              %% "scalamock"               % "5.2.0",
-    "org.wiremock"                % "wiremock-standalone"     % "3.2.0",
+    "org.wiremock"                % "wiremock-standalone"     % "3.3.1",
     "com.itv"                    %% "scalapact-circe-0-13"    % pactVersion,
     "com.itv"                    %% "scalapact-http4s-0-21"   % pactVersion,
     "com.itv"                    %% "scalapact-scalatest"     % pactVersion,

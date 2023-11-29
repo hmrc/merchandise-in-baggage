@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDate
-
 import cats.data.OptionT
-import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
@@ -27,6 +24,8 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.util.DataModelEnriched._
 
+import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode.HALF_UP
 
@@ -90,17 +89,21 @@ class CalculationService @Inject() (connector: CurrencyConversionConnector, decl
     calculationResults: Seq[CalculationResult],
     destination: Option[GoodsDestination]
   ): ThresholdCheck =
-    if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value)
+    if (calculationResults.map(_.gbpAmount.value).sum > destination.getOrElse(GreatBritain).threshold.value) {
       OverThreshold
-    else WithinThreshold
+    } else {
+      WithinThreshold
+    }
 
   private[service] def calculateThresholdExport(
     goods: Seq[Goods],
     destination: Option[GoodsDestination]
   ): ThresholdCheck =
-    if (goods.map(_.purchaseDetails.numericAmount).sum > destination.map(_.threshold.inPounds).getOrElse(0))
+    if (goods.map(_.purchaseDetails.numericAmount).sum > destination.map(_.threshold.inPounds).getOrElse(0)) {
       OverThreshold
-    else WithinThreshold
+    } else {
+      WithinThreshold
+    }
 
   private def findRateAndCalculate(importGoods: ImportGoods, code: String, date: LocalDate)(implicit
     hc: HeaderCarrier
