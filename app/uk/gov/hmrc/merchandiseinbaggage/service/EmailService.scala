@@ -160,12 +160,18 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     )
 
     val allParams =
-      if (declarationType == DeclarationType.Import)
+      if (declarationType == DeclarationType.Import) {
         goodsParams ++ commonParams ++ paymentParams(declaration)
-      else
+      } else {
         goodsParams ++ commonParams
+      }
 
-    val journeyType = if (amendments.isEmpty) New else Amend
+    val journeyType =
+      if (amendments.isEmpty) {
+        New
+      } else {
+        Amend
+      }
 
     val lang = amendmentReference match {
       case Some(reference) =>

@@ -2,15 +2,20 @@
 
 **Who uses the repo/service**
 
-This is the back-end service supporting two front-ends (one is public facing and one used internally through stride)
-The front-end services are: `merchandise-in-baggage-frontend` & `merchandise-in-baggage-internal-frontend`
+This is the backend service supporting two frontends (public facing and internally for administration through stride).
+
+Both frontend services are maintained from the [merchandise-in-baggage-frontend](https://github.com/hmrc/merchandise-in-baggage-frontend) repository
+and are deployed as separate instances `merchandise-in-baggage-frontend` & `merchandise-in-baggage-admin-frontend`.
 
 **How to start the service locally**
 
 `sbt run` This will only start the service as standalone but unable to interact with any other services including DataBase
 
-SM profile : MERCHANDISE_IN_BAGGAGE_ALL
-`sm2 --start MERCHANDISE_IN_BAGGAGE_ALL` This will start all the required services to complete a journey
+To complete a journey locally run the services (minus the frontend) via [service manager 2](https://github.com/hmrc/sm2) with the following profile:
+```bash
+sm2 --start MERCHANDISE_IN_BAGGAGE_ALL
+sm2 --stop MERCHANDISE_IN_BAGGAGE
+```
 
 `local base url and port` http://localhost:8280/
 

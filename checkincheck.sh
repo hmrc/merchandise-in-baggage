@@ -3,7 +3,7 @@
 chmod a+x checkincheck.sh
 
 
-pactlist=("../merchandise-in-baggage-frontend" "../merchandise-in-baggage-internal-frontend")
+pactlist=("../merchandise-in-baggage-frontend")
 
 
 contractsList() {
