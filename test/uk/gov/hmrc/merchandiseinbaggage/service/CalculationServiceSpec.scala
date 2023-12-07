@@ -142,7 +142,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       .head mustBe calculationResult
   }
 
-  s"calculate $ThresholdCheck" in {
+  s"calculate $ThresholdCheck for Import goods" in {
     val importGoods                     = aImportGoods
     val results: Seq[CalculationResult] =
       Seq(
@@ -152,14 +152,14 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     service.calculateThresholdImport(results, Some(GreatBritain)) mustBe WithinThreshold
     service.calculateThresholdImport(
-      results.modify(_.each.gbpAmount.value).setTo(150001),
+      results.modify(_.each.gbpAmount.value).setTo(250001),
       Some(GreatBritain)
     ) mustBe OverThreshold
   }
 
   s"calculate $ThresholdCheck for Export goods" in {
     val declarationGoods              = Seq(aExportGoods)
-    val declarationGoodsOverThreshold = Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("1501"))
+    val declarationGoodsOverThreshold = Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("2501"))
 
     service.calculateThresholdExport(declarationGoods, Some(GreatBritain)) mustBe WithinThreshold
     service.calculateThresholdExport(declarationGoodsOverThreshold, Some(GreatBritain)) mustBe OverThreshold
@@ -254,7 +254,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   s"handle calculation requests for $ExportGoods $OverThreshold" in {
-    val exportGoods         = aExportGoods.modify(_.purchaseDetails.amount).setTo("150001")
+    val exportGoods         = aExportGoods.modify(_.purchaseDetails.amount).setTo("250001")
     val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
     val eventualResult      = service.calculate(calculationRequests)
 
