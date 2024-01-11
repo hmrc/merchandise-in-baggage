@@ -37,6 +37,6 @@ object GoodsDestinations extends Enum[GoodsDestination] {
   }
 
   case object GreatBritain extends GoodsDestination {
-    override val threshold: AmountInPence = AmountInPence(150000)
+    override val threshold: AmountInPence = AmountInPence(250000)
   }
 }
