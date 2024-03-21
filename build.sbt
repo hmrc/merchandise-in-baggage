@@ -1,15 +1,16 @@
+import uk.gov.hmrc.DefaultBuildSettings
 import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 
 val appName = "merchandise-in-baggage"
 
-val contractVerifier = taskKey[Unit]("Launch contract tests")
+ThisBuild / scalaVersion := "2.13.13"
+ThisBuild / majorVersion := 0
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, ScalaPactPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
+  .settings(CodeCoverageSettings.settings)
   .settings(
-    majorVersion := 0,
-    scalaVersion := "2.13.12",
     // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     PlayKeys.playDefaultPort := 8280,
@@ -20,7 +21,6 @@ lazy val microservice = Project(appName, file("."))
       "-Xlint:-byname-implicit" //to silence: Block result was adapted via implicit conversion warnings: https://github.com/scala/bug/issues/12072
     )
   )
-  .settings(inConfig(Test)(testSettings))
   .settings(
     routesImport ++= Seq(
       "uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._",
@@ -33,23 +33,19 @@ lazy val microservice = Project(appName, file("."))
     val noContracts = !pactDir.exists() || pactDir.listFiles().isEmpty
     if (noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }))
-  .settings(
-    coverageExcludedFiles := "<empty>;Reverse.*;.*BuildInfo.*;.*javascript.*;.*Routes.*;.*testonly.*;.*mongojob.*;.*binders.*;.*.config.*;.*PagerDutyHelper.*",
-    coverageMinimumStmtTotal := 90,
-    coverageFailOnMinimum := true,
-    coverageHighlighting := true
-  )
   .settings(addTestReportOption(Test, "test-reports"))
 
-lazy val testSettings: Seq[Def.Setting[?]] = Seq(
-  fork := true,
-  javaOptions ++= Seq(
-    "-Dlogger.resource=logback-test.xml",
-    "-Dconfig.resource=test.application.conf"
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test")
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(
+    Test / fork := true
   )
-)
+
+val contractVerifier = taskKey[Unit]("Launch contract tests")
 
 contractVerifier := (Test / testOnly).toTask(" *VerifyContractSpec").value
 
-addCommandAlias("scalafmtAll", "all scalafmtSbt scalafmt Test/scalafmt")
-addCommandAlias("scalastyleAll", "all scalastyle Test/scalastyle")
+addCommandAlias("scalafmtAll", "all scalafmtSbt scalafmt Test/scalafmt it/Test/scalafmt")
+addCommandAlias("scalastyleAll", "all scalastyle Test/scalastyle it/Test/scalastyle")

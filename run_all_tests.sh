@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sbt clean scalafmtAll scalastyleAll compile coverage test coverageOff dependencyUpdates coverageReport
+sbt clean compile scalafmtAll scalastyleAll coverage Test/test it/test dependencyUpdates coverageReport

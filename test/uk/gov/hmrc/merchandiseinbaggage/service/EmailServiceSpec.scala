@@ -19,6 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
+import play.api.http.Status.ACCEPTED
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
@@ -36,8 +37,8 @@ class EmailServiceSpec
     with MockFactory
     with OptionValues {
 
-  val declarationRepo = mock[DeclarationRepository]
-  val emailConnector  = mock[EmailConnector]
+  val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
+  val emailConnector: EmailConnector         = mock[EmailConnector]
 
   val emailService = new EmailService(emailConnector, declarationRepo)
 
@@ -50,7 +51,7 @@ class EmailServiceSpec
         emailInfo.templateId == "mods_import_declaration" &&
         emailInfo.parameters.get("total").value == "£1.00"
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo
@@ -73,7 +74,7 @@ class EmailServiceSpec
         !emailInfo.parameters.contains("total") &&
         emailInfo.parameters.get("goodsDestination_0").value == "Italy"
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo
@@ -94,7 +95,7 @@ class EmailServiceSpec
         emailInfo.templateId == "mods_amend_import_declaration" &&
         emailInfo.parameters.get("total").value == "£1.00"
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo
@@ -116,7 +117,7 @@ class EmailServiceSpec
         emailInfo.templateId == "mods_amend_import_declaration" &&
         emailInfo.parameters.get("total").value == "£2.00"
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo
@@ -137,7 +138,7 @@ class EmailServiceSpec
         emailInfo.templateId == "mods_amend_export_declaration" &&
         !emailInfo.parameters.contains("total")
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo
@@ -158,7 +159,7 @@ class EmailServiceSpec
       .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
         emailInfo.templateId == "mods_amend_export_declaration_cy"
       })
-      .returns(Future.successful(202))
+      .returns(Future.successful(ACCEPTED))
       .twice()
 
     (declarationRepo

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
+import org.scalamock.handlers.CallHandler1
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
@@ -53,7 +54,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
         .returning(Success.asFuture)
         .anyNumberOfTimes()
 
-    def mockDeclarationInsert(declaration: Declaration) =
+    def mockDeclarationInsert(declaration: Declaration): CallHandler1[Declaration, Future[Declaration]] =
       (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
 
     def mockFindBy(
