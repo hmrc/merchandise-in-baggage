@@ -13,7 +13,7 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"     %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
     "com.github.pureconfig" %% "pureconfig"                % "0.17.6",
     "org.typelevel"         %% "cats-core"                 % "2.10.0",
-    "com.beachape"          %% "enumeratum-play"           % "1.8.0" //versions 1.7.1+ are not binary compatible with previous ones
+    "com.beachape"          %% "enumeratum-play"           % "1.8.0"
   )
 
   private val test: Seq[ModuleID] = Seq(
