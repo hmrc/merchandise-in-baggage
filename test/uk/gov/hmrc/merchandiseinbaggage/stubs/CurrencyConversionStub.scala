@@ -17,10 +17,10 @@
 package uk.gov.hmrc.merchandiseinbaggage.stubs
 
 import java.time.LocalDate.now
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlMatching}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import play.api.http.Status.OK
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
@@ -33,7 +33,7 @@ object CurrencyConversionStub extends CurrencyConversionConfiguration with CoreT
       get(urlMatching(s"${currencyConversionConf.currencyConversionUrl}(.*)?cc=$code"))
         .willReturn(
           aResponse()
-            .withStatus(200)
+            .withStatus(OK)
             .withBody(Json.toJson(List(ConversionRatePeriod(now, now, code, BigDecimal(1.1)))).toString)
         )
     )

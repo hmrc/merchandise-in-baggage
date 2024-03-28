@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Second, Seconds, Span}
