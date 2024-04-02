@@ -6,11 +6,14 @@ val appName = "merchandise-in-baggage"
 ThisBuild / scalaVersion := "2.13.13"
 ThisBuild / majorVersion := 0
 
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, ScalaPactPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(CodeCoverageSettings.settings)
   .settings(
+    // this scala-xml version scheme is to get around some library dependency conflicts
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     PlayKeys.playDefaultPort := 8280,
     libraryDependencies ++= AppDependencies(),
     scalacOptions ++= Seq(
@@ -31,14 +34,6 @@ lazy val microservice = Project(appName, file("."))
     if (noContracts) !name.endsWith("VerifyContractSpec") else name.endsWith("Spec")
   }))
   .settings(addTestReportOption(Test, "test-reports"))
-
-lazy val it = project
-  .enablePlugins(PlayScala)
-  .dependsOn(microservice % "test->test")
-  .settings(DefaultBuildSettings.itSettings())
-  .settings(
-    Test / fork := true
-  )
 
 val contractVerifier = taskKey[Unit]("Launch contract tests")
 
