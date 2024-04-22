@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import java.time.LocalDate.now
 import java.time.{LocalDate, LocalDateTime}
 import cats.data.EitherT
-import com.softwaremill.quicklens._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.http.HeaderCarrier
@@ -47,13 +46,18 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         Future.successful(Seq(period))
       )
 
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.No)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("USD")
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("USD")
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.No,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "USD",
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("USD")
+            )
+        )
+      )
+    )
 
     val calculationResult =
       CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
@@ -75,13 +79,18 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         Future.successful(Seq(period))
       )
 
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.DontKnow)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("USD")
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("USD")
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.DontKnow,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "USD",
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("USD")
+            )
+        )
+      )
+    )
 
     val calculationResult =
       CalculationResult(importGoods, AmountInPence(9091), AmountInPence(300), AmountInPence(470), Some(period))
@@ -103,13 +112,18 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
         Future.successful(Seq(period))
       )
 
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.Yes)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("EUR")
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("EUR")
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.Yes,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "EUR",
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("EUR")
+            )
+        )
+      )
+    )
 
     val calculationResult =
       CalculationResult(importGoods, AmountInPence(9091), AmountInPence(0), AmountInPence(455), Some(period))
@@ -123,13 +137,15 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   "calculate duty and vat for an item from a country that uses a GBP 1:1 currency" in {
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.Yes)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("EUR")
-      .modify(_.purchaseDetails.currency.valueForConversion)
-      .setTo(Option.empty)
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.Yes,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "EUR",
+          valueForConversion = Option.empty
+        )
+      )
+    )
 
     val calculationResult =
       CalculationResult(importGoods, AmountInPence(10000), AmountInPence(0), AmountInPence(500), None)
@@ -152,14 +168,17 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     service.calculateThresholdImport(results, Some(GreatBritain)) mustBe WithinThreshold
     service.calculateThresholdImport(
-      results.modify(_.each.gbpAmount.value).setTo(250001),
+      results.map { calculationResult =>
+        calculationResult.copy(gbpAmount = AmountInPence(250001))
+      },
       Some(GreatBritain)
     ) mustBe OverThreshold
   }
 
   s"calculate $ThresholdCheck for Export goods" in {
     val declarationGoods              = Seq(aExportGoods)
-    val declarationGoodsOverThreshold = Seq(aExportGoods.modify(_.purchaseDetails.amount).setTo("2501"))
+    val declarationGoodsOverThreshold =
+      Seq(aExportGoods.copy(purchaseDetails = aExportGoods.purchaseDetails.copy(amount = "2501")))
 
     service.calculateThresholdExport(declarationGoods, Some(GreatBritain)) mustBe WithinThreshold
     service.calculateThresholdExport(declarationGoodsOverThreshold, Some(GreatBritain)) mustBe OverThreshold
@@ -172,13 +191,18 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   "handle multiple calculation requests" in {
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.No)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("USD")
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("USD")
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.No,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "USD",
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("USD")
+            )
+        )
+      )
+    )
 
     val calculationRequests =
       Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
@@ -202,15 +226,19 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   s"handle multiple calculation requests returning $CalculationResults $OverThreshold" in {
-    val importGoods = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.No)
-      .modify(_.purchaseDetails.currency.code)
-      .setTo("USD")
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("USD")
-      .modify(_.purchaseDetails.amount)
-      .setTo("75100")
+    val importGoods = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.No,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          code = "USD",
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("USD")
+            )
+        ),
+        amount = "75100"
+      )
+    )
 
     val calculationRequests =
       Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
@@ -254,7 +282,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
   }
 
   s"handle calculation requests for $ExportGoods $OverThreshold" in {
-    val exportGoods         = aExportGoods.modify(_.purchaseDetails.amount).setTo("250001")
+    val exportGoods         = aExportGoods.copy(purchaseDetails = aExportGoods.purchaseDetails.copy(amount = "250001"))
     val calculationRequests = Seq(CalculationRequest(exportGoods, GreatBritain))
     val eventualResult      = service.calculate(calculationRequests)
 
@@ -263,16 +291,22 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
   s"handle calculation for $Amendment $ImportGoods by adding both goods original + amend" in {
     val conversionRatePeriod = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
-    val importGoods          = aImportGoods
-      .modify(_.producedInEu)
-      .setTo(YesNoDontKnow.No)
-      .modify(_.purchaseDetails.currency.valueForConversion.each)
-      .setTo("USD")
-      .modify(_.purchaseDetails.amount)
-      .setTo("100")
+    val importGoods          = aImportGoods.copy(
+      producedInEu = YesNoDontKnow.No,
+      purchaseDetails = aImportGoods.purchaseDetails.copy(
+        currency = aImportGoods.purchaseDetails.currency.copy(
+          valueForConversion =
+            aImportGoods.purchaseDetails.currency.valueForConversion.fold[Option[String]](Option.empty)(_ =>
+              Some("USD")
+            )
+        ),
+        amount = "100"
+      )
+    )
 
-    val originalGoods = importGoods.modify(_.purchaseDetails.amount).setTo("200")
-    val declaration   = aDeclaration.modify(_.declarationGoods.goods).setTo(Seq(originalGoods))
+    val originalGoods = importGoods.copy(purchaseDetails = importGoods.purchaseDetails.copy(amount = "200"))
+    val declaration   =
+      aDeclaration.copy(declarationGoods = aDeclaration.declarationGoods.copy(goods = Seq(originalGoods)))
 
     (mockDeclarationService
       .findByDeclarationId(_: DeclarationId))
