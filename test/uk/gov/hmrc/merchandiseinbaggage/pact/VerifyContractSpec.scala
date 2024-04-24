@@ -29,7 +29,9 @@ import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
-  private val pactDir = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-frontend/pact/")
+  private val pactDir                = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-frontend/pact/")
+  private val currencyConversionStub = app.injector.instanceOf[CurrencyConversionStub]
+  private val eoriCheckStub          = app.injector.instanceOf[EoriCheckStub]
 
   println("Running pacttest for: " + pactDir)
 
@@ -60,11 +62,11 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "calculatePaymentsTest" =>
-            CurrencyConversionStub.givenCurrencyConversion()
+            currencyConversionStub.givenCurrencyConversion()
             ProviderStateResult(true, req => req)
 
           case state @ "id789" =>
-            CurrencyConversionStub.givenCurrencyConversion()
+            currencyConversionStub.givenCurrencyConversion()
             repository
               .insertDeclaration(
                 aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty))
@@ -73,7 +75,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "checkEoriNumberTest" =>
-            EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
+            eoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
 
           case state: String if state.split("XXX").head == "findByTest" =>

@@ -11,7 +11,6 @@ object AppDependencies {
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"           %% "bootstrap-backend-play-30" % bootstrapPlayVersion,
     "uk.gov.hmrc.mongo"     %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
-    "com.github.pureconfig" %% "pureconfig"                % "0.17.6",
     "org.typelevel"         %% "cats-core"                 % "2.10.0",
     "com.beachape"          %% "enumeratum-play"           % "1.8.0"
   )

@@ -16,51 +16,44 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.config
 
+import com.google.inject.Inject
+import play.api.Configuration
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig._
 import javax.inject.Singleton
-import uk.gov.hmrc.merchandiseinbaggage.config.AppConfigSource._
-import pureconfig.generic.auto._ // Do not remove this
 
 @Singleton
-class AppConfig()
-    extends MongoConfiguration
-    with EmailConfiguration
-    with EoriCheckConfiguration
-    with CurrencyConversionConfiguration {
-  lazy val bfEmail: String = configSource("BF.email").loadOrThrow[String]
+class AppConfig @Inject() (val config: Configuration)() {
+  lazy val bfEmail: String = config.get[String]("BF.email")
+
+  lazy val emailConf: EmailConf = EmailConf(
+    protocol = config.get[String]("microservice.services.email.protocol")
+  )
+
+  lazy val eoriCheckConf: EoriCheckConf = EoriCheckConf(
+    protocol = config.get[String]("microservice.services.eori-check.protocol"),
+    host = config.get[String]("microservice.services.eori-check.host"),
+    port = config.get[Int]("microservice.services.eori-check.port")
+  )
+
+  lazy val currencyConversionConf: CurrencyConversionConf = CurrencyConversionConf(
+    protocol = config.get[String]("microservice.services.currency-conversion.protocol"),
+    port = config.get[Int]("microservice.services.currency-conversion.port")
+  )
 }
 
-trait MongoConfiguration {
-  lazy val mongoConf: MongoConf = configSource("mongodb").loadOrThrow[MongoConf]
-}
+object AppConfig {
 
-final case class MongoConf(
-  uri: String,
-  host: String = "localhost",
-  port: Int = 27017,
-  collectionName: String = "declaration"
-)
+  private val emailDefaultPort = 8300
 
-trait EmailConfiguration {
-  lazy val emailConf: EmailConf = configSource("microservice.services.email").loadOrThrow[EmailConf]
-}
+  final case class EmailConf(host: String = "localhost", port: Int = emailDefaultPort, protocol: String) {
+    val url = "/transactionengine/email"
+  }
 
-final case class EmailConf(host: String = "localhost", port: Int = 8300, protocol: String) {
-  val url = "/transactionengine/email"
-}
+  final case class EoriCheckConf(protocol: String, host: String = "localhost", port: Int) {
+    val eoriCheckUrl = s"/check-eori-number/check-eori/"
+  }
 
-trait EoriCheckConfiguration {
-  lazy val eoriCheckConf: EoriCheckConf = configSource("microservice.services.eori-check").loadOrThrow[EoriCheckConf]
-}
-
-final case class EoriCheckConf(protocol: String, host: String = "localhost", port: Int) {
-  val eoriCheckUrl = s"/check-eori-number/check-eori/"
-}
-
-trait CurrencyConversionConfiguration {
-  lazy val currencyConversionConf: CurrencyConversionConf = configSource("microservice.services.currency-conversion")
-    .loadOrThrow[CurrencyConversionConf]
-}
-
-final case class CurrencyConversionConf(protocol: String, host: String = "localhost", port: Int) {
-  val currencyConversionUrl = s"/currency-conversion/rates/"
+  final case class CurrencyConversionConf(protocol: String, host: String = "localhost", port: Int) {
+    val currencyConversionUrl = s"/currency-conversion/rates/"
+  }
 }

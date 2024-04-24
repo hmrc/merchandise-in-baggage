@@ -20,10 +20,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalToJson, post, urlPathEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.config.EmailConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 
-object EmailStub extends EmailConfiguration {
+object EmailStub {
 
   def givenEmailSuccess(declarationEmailInfo: DeclarationEmailInfo)(implicit server: WireMockServer): StubMapping =
     server.stubFor(

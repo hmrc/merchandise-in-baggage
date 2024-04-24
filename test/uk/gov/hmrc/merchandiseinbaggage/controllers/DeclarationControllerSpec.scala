@@ -22,7 +22,6 @@ import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
@@ -31,11 +30,7 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext
 
-class DeclarationControllerSpec
-    extends BaseSpecWithApplication
-    with CoreTestData
-    with MongoConfiguration
-    with MockFactory {
+class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
 
   private val declarationService = mock[DeclarationService]
 

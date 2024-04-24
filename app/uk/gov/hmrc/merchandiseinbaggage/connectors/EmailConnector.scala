@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.connectors
 import com.google.inject.{ImplementedBy, Inject}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.merchandiseinbaggage.config.EmailConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 
 import javax.inject.Named
@@ -30,12 +30,11 @@ trait EmailConnector {
   def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int]
 }
 
-class EmailConnectorImpl @Inject() (http: HttpClient, @Named("emailBaseUrl") baseUrl: String)
-    extends EmailConnector
-    with EmailConfiguration {
+class EmailConnectorImpl @Inject() (config: AppConfig, http: HttpClient, @Named("emailBaseUrl") baseUrl: String)
+    extends EmailConnector {
 
   def sendEmails(
     emailInformation: DeclarationEmailInfo
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
-    http.POST[DeclarationEmailInfo, HttpResponse](s"$baseUrl${emailConf.url}", emailInformation).map(_.status)
+    http.POST[DeclarationEmailInfo, HttpResponse](s"$baseUrl${config.emailConf.url}", emailInformation).map(_.status)
 }

@@ -20,25 +20,26 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
-import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub._
+import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
 class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {
 
   val client: EoriCheckConnector = app.injector.instanceOf[EoriCheckConnector]
+  val stub: EoriCheckStub        = app.injector.instanceOf[EoriCheckStub]
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "handle a valid EORI by calling the API" in {
     val eori = Eori("GB1234")
-    givenEoriCheck(eori, Json.parse(aSuccessCheckResponse).as[List[CheckResponse]])
+    stub.givenEoriCheck(eori, Json.parse(stub.aSuccessCheckResponse).as[List[CheckResponse]])
 
-    client.checkEori(eori).futureValue mustBe aCheckResponse :: Nil
+    client.checkEori(eori).futureValue mustBe stub.aCheckResponse :: Nil
   }
 
   "handle an invalid EORI by calling the API" in {
     val eori    = Eori("GB1234")
     val invalid = Json.parse("""[{"eori": "GB1234","valid": false}]""".stripMargin).as[List[CheckResponse]]
-    givenEoriCheck(eori, invalid)
+    stub.givenEoriCheck(eori, invalid)
 
     client.checkEori(eori).futureValue mustBe invalid
   }

@@ -24,9 +24,10 @@ import java.time.LocalDate
 
 class CurrencyConversionConnectorSpec extends BaseSpecWithApplication with WireMock {
   private val connector = app.injector.instanceOf[CurrencyConversionConnector]
+  private val stub      = app.injector.instanceOf[CurrencyConversionStub]
 
   "handles email requests" in {
-    CurrencyConversionStub.givenCurrencyConversion("USD")
+    stub.givenCurrencyConversion("USD")
     val date = LocalDate.now()
     connector.getConversionRate("USD").futureValue mustBe Seq(ConversionRatePeriod(date, date, "USD", 1.1))
   }
