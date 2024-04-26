@@ -19,7 +19,7 @@ object AppDependencies {
   private val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc.mongo"          %% "hmrc-mongo-test-play-30" % hmrcMongoVersion,
     "uk.gov.hmrc"                %% "bootstrap-test-play-30"  % bootstrapPlayVersion,
-    "org.scalamock"              %% "scalamock"               % "5.2.0",
+    "org.scalamock"              %% "scalamock"               % "6.0.0",
     "com.itv"                    %% "scalapact-circe-0-13"    % pactVersion,
     "com.itv"                    %% "scalapact-http4s-0-21"   % pactVersion,
     "com.itv"                    %% "scalapact-scalatest"     % pactVersion,
