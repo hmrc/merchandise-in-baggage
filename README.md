@@ -5,9 +5,9 @@ stride).
 
 ## Start service locally
 
-`sbt run` This will only start the service as standalone but unable to interact with any other services
+`sbt run` will only start the service as standalone.
 
-To complete a journey locally run the services via [service manager 2](https://github.com/hmrc/sm2)
+To complete a journey locally, run the services via [service manager 2](https://github.com/hmrc/sm2)
 with the following profile:
 
 ```bash
