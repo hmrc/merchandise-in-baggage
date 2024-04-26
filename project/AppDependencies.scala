@@ -22,8 +22,7 @@ object AppDependencies {
     "org.scalamock"              %% "scalamock"               % "6.0.0",
     "com.itv"                    %% "scalapact-circe-0-13"    % pactVersion,
     "com.itv"                    %% "scalapact-http4s-0-21"   % pactVersion,
-    "com.itv"                    %% "scalapact-scalatest"     % pactVersion,
-    "com.softwaremill.quicklens" %% "quicklens"               % "1.9.7"
+    "com.itv"                    %% "scalapact-scalatest"     % pactVersion
   ).map(_ % "test")
 
   def apply(): Seq[ModuleID]      = compile ++ test
