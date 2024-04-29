@@ -16,31 +16,28 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.config
 
-import org.scalatest.matchers.must.Matchers
-import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
-import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig.{CurrencyConversionConf, EmailConf, EoriCheckConf}
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.merchandiseinbaggage.BaseSpecWithApplication
 
-class AppConfigSpec extends BaseSpecWithApplication with Matchers {
+class AppConfigSpec extends BaseSpecWithApplication {
+
+  override def fakeApplication(): Application = new GuiceApplicationBuilder().build()
 
   "AppConfig" should {
     "return the correct values" in {
       appConfig.bfEmail mustBe "foo@bar.com"
-
-      appConfig.eoriCheckConf mustBe EoriCheckConf(protocol = "http", port = WireMock.port)
-
-      appConfig.currencyConversionConf mustBe CurrencyConversionConf(protocol = "http", port = WireMock.port)
-
-      appConfig.emailConf mustBe EmailConf(protocol = "http")
+      appConfig.emailUrl mustBe "http://localhost:8300"
+      appConfig.eoriCheckUrl mustBe "http://localhost:8351"
+      appConfig.currencyConversionUrl mustBe "http://localhost:9016"
     }
 
     "throw an exception when the config value is not found" in {
-      val conf: AppConfig = app.injector.instanceOf[AppConfig]
       val exception = intercept[RuntimeException] {
-        conf.config.get[String]("non-existent-key")
+        appConfig.config.get[String]("non-existent-key")
       }
 
       exception.getMessage must include("No configuration setting found for key 'non-existent-key'")
     }
   }
-
 }

@@ -22,21 +22,17 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 
 import java.time.LocalDate
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CurrencyConversionConnector @Inject() (
-  val appConfig: AppConfig,
-  httpClient: HttpClient,
-  @Named("currencyConversionBaseUrl") baseUrl: String
-) {
+class CurrencyConversionConnector @Inject() (appConfig: AppConfig, httpClient: HttpClient) {
 
   def getConversionRate(code: String, date: LocalDate = LocalDate.now())(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Seq[ConversionRatePeriod]] =
     httpClient.GET[Seq[ConversionRatePeriod]](
-      s"$baseUrl${appConfig.currencyConversionConf.currencyConversionUrl}$date?cc=$code"
+      s"${appConfig.currencyConversionUrl}/currency-conversion/rates/$date?cc=$code"
     )
 }

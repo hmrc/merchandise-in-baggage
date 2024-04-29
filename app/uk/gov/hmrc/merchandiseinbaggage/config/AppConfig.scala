@@ -16,44 +16,15 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.config
 
-import com.google.inject.Inject
 import play.api.Configuration
-import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig._
-import javax.inject.Singleton
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject() (val config: Configuration)() {
-  lazy val bfEmail: String = config.get[String]("BF.email")
-
-  lazy val emailConf: EmailConf = EmailConf(
-    protocol = config.get[String]("microservice.services.email.protocol")
-  )
-
-  lazy val eoriCheckConf: EoriCheckConf = EoriCheckConf(
-    protocol = config.get[String]("microservice.services.eori-check.protocol"),
-    host = config.get[String]("microservice.services.eori-check.host"),
-    port = config.get[Int]("microservice.services.eori-check.port")
-  )
-
-  lazy val currencyConversionConf: CurrencyConversionConf = CurrencyConversionConf(
-    protocol = config.get[String]("microservice.services.currency-conversion.protocol"),
-    port = config.get[Int]("microservice.services.currency-conversion.port")
-  )
-}
-
-object AppConfig {
-
-  private val emailDefaultPort = 8300
-
-  final case class EmailConf(host: String = "localhost", port: Int = emailDefaultPort, protocol: String) {
-    val url = "/transactionengine/email"
-  }
-
-  final case class EoriCheckConf(protocol: String, host: String = "localhost", port: Int) {
-    val eoriCheckUrl = s"/check-eori-number/check-eori/"
-  }
-
-  final case class CurrencyConversionConf(protocol: String, host: String = "localhost", port: Int) {
-    val currencyConversionUrl = s"/currency-conversion/rates/"
-  }
+class AppConfig @Inject() (val config: Configuration, servicesConfig: ServicesConfig)() {
+  lazy val bfEmail: String               = config.get[String]("BF.email")
+  lazy val emailUrl: String              = servicesConfig.baseUrl("email")
+  lazy val eoriCheckUrl: String          = servicesConfig.baseUrl("eori-check")
+  lazy val currencyConversionUrl: String = servicesConfig.baseUrl("currency-conversion")
 }

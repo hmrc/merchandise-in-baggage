@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
 import cats.implicits._
-import com.google.inject.Inject
+import javax.inject.Inject
 import play.api.Logging
 import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.mvc.Http.Status.ACCEPTED

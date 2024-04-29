@@ -17,21 +17,19 @@
 package uk.gov.hmrc.merchandiseinbaggage.pact
 
 import java.io.File
-
 import com.itv.scalapact.shared.ProviderStateResult
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, DeclarationId, Eori}
-import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
+import uk.gov.hmrc.merchandiseinbaggage.stubs.CurrencyConversionStub.givenCurrencyConversion
+import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub.givenEoriCheck
 
 import scala.concurrent.duration._
 
 class VerifyContractSpec extends PactVerifySuite with CoreTestData {
 
-  private val pactDir                = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-frontend/pact/")
-  private val currencyConversionStub = app.injector.instanceOf[CurrencyConversionStub]
-  private val eoriCheckStub          = app.injector.instanceOf[EoriCheckStub]
+  private val pactDir = scala.util.Properties.envOrElse("PACTTEST", "../merchandise-in-baggage-frontend/pact/")
 
   println("Running pacttest for: " + pactDir)
 
@@ -62,11 +60,11 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "calculatePaymentsTest" =>
-            currencyConversionStub.givenCurrencyConversion()
+            givenCurrencyConversion()
             ProviderStateResult(true, req => req)
 
           case state @ "id789" =>
-            currencyConversionStub.givenCurrencyConversion()
+            givenCurrencyConversion()
             repository
               .insertDeclaration(
                 aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty))
@@ -75,7 +73,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "checkEoriNumberTest" =>
-            eoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
+            givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
 
           case state: String if state.split("XXX").head == "findByTest" =>
