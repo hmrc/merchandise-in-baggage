@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
-import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub._
+import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub.{aCheckResponse, aSuccessCheckResponse, givenEoriCheck}
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, WireMock}
 
 class EoriCheckConnectorSpec extends BaseSpecWithApplication with WireMock {

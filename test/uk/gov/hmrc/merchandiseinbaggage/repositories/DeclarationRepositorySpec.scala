@@ -20,7 +20,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.api.test.Helpers._
-import uk.gov.hmrc.merchandiseinbaggage.config.MongoConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
@@ -30,8 +29,7 @@ class DeclarationRepositorySpec
     extends BaseSpecWithApplication
     with CoreTestData
     with ScalaFutures
-    with BeforeAndAfterEach
-    with MongoConfiguration {
+    with BeforeAndAfterEach {
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(scaled(Span(5L, Seconds)), scaled(Span(500L, Milliseconds)))

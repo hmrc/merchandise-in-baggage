@@ -31,7 +31,7 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
   private val client = injector.instanceOf[HttpClient]
 
   "handle a EORI check request by making a call to check number API" in {
-    val connector      = new EoriCheckConnector(client, "") {
+    val connector      = new EoriCheckConnector(appConfig, client) {
       override def checkEori(eori: Eori)(implicit
         hc: HeaderCarrier,
         ec: ExecutionContext
@@ -48,7 +48,7 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
   }
 
   "handle EORI not existing in CheckResponse" in {
-    val connector = new EoriCheckConnector(client, "") {
+    val connector = new EoriCheckConnector(appConfig, client) {
       override def checkEori(eori: Eori)(implicit
         hc: HeaderCarrier,
         ec: ExecutionContext
@@ -65,7 +65,7 @@ class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTes
   }
 
   "handle a EORI check request call failure" in {
-    val connector      = new EoriCheckConnector(client, "") {
+    val connector      = new EoriCheckConnector(appConfig, client) {
       override def checkEori(eori: Eori)(implicit
         hc: HeaderCarrier,
         ec: ExecutionContext

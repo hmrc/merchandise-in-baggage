@@ -16,26 +16,21 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
-import com.google.inject.{ImplementedBy, Inject}
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.merchandiseinbaggage.config.EmailConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 
-import javax.inject.Named
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[EmailConnectorImpl])
-trait EmailConnector {
-  def sendEmails(emailInformation: DeclarationEmailInfo)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int]
-}
-
-class EmailConnectorImpl @Inject() (http: HttpClient, @Named("emailBaseUrl") baseUrl: String)
-    extends EmailConnector
-    with EmailConfiguration {
+@Singleton
+class EmailConnector @Inject() (appConfig: AppConfig, http: HttpClient) {
 
   def sendEmails(
     emailInformation: DeclarationEmailInfo
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
-    http.POST[DeclarationEmailInfo, HttpResponse](s"$baseUrl${emailConf.url}", emailInformation).map(_.status)
+    http
+      .POST[DeclarationEmailInfo, HttpResponse](s"${appConfig.emailUrl}/transactionengine/email", emailInformation)
+      .map(_.status)
 }

@@ -18,22 +18,21 @@ package uk.gov.hmrc.merchandiseinbaggage.connectors
 
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 
 import java.time.LocalDate
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CurrencyConversionConnector @Inject() (
-  httpClient: HttpClient,
-  @Named("currencyConversionBaseUrl") baseUrl: String
-) extends CurrencyConversionConfiguration {
+class CurrencyConversionConnector @Inject() (appConfig: AppConfig, httpClient: HttpClient) {
 
   def getConversionRate(code: String, date: LocalDate = LocalDate.now())(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Seq[ConversionRatePeriod]] =
-    httpClient.GET[Seq[ConversionRatePeriod]](s"$baseUrl${currencyConversionConf.currencyConversionUrl}$date?cc=$code")
+    httpClient.GET[Seq[ConversionRatePeriod]](
+      s"${appConfig.currencyConversionUrl}/currency-conversion/rates/$date?cc=$code"
+    )
 }

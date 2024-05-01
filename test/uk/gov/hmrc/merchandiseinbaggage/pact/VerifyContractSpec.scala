@@ -17,13 +17,13 @@
 package uk.gov.hmrc.merchandiseinbaggage.pact
 
 import java.io.File
-
 import com.itv.scalapact.shared.ProviderStateResult
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, DeclarationId, Eori}
-import uk.gov.hmrc.merchandiseinbaggage.stubs.{CurrencyConversionStub, EoriCheckStub}
+import uk.gov.hmrc.merchandiseinbaggage.stubs.CurrencyConversionStub.givenCurrencyConversion
+import uk.gov.hmrc.merchandiseinbaggage.stubs.EoriCheckStub.givenEoriCheck
 
 import scala.concurrent.duration._
 
@@ -60,11 +60,11 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "calculatePaymentsTest" =>
-            CurrencyConversionStub.givenCurrencyConversion()
+            givenCurrencyConversion()
             ProviderStateResult(true, req => req)
 
           case state @ "id789" =>
-            CurrencyConversionStub.givenCurrencyConversion()
+            givenCurrencyConversion()
             repository
               .insertDeclaration(
                 aDeclaration.copy(declarationId = DeclarationId(state), declarationGoods = DeclarationGoods(Seq.empty))
@@ -73,7 +73,7 @@ class VerifyContractSpec extends PactVerifySuite with CoreTestData {
             ProviderStateResult(true, req => req)
 
           case "checkEoriNumberTest" =>
-            EoriCheckStub.givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
+            givenEoriCheck(Eori("GB123"), List(CheckResponse("GB123", true, None)))
             ProviderStateResult(true, req => req)
 
           case state: String if state.split("XXX").head == "findByTest" =>

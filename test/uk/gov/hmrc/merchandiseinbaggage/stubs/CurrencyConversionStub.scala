@@ -22,20 +22,17 @@ import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlMatch
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.http.Status.OK
 import play.api.libs.json.Json
-import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
-import uk.gov.hmrc.merchandiseinbaggage.config.CurrencyConversionConfiguration
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
 
-object CurrencyConversionStub extends CurrencyConversionConfiguration with CoreTestData {
+object CurrencyConversionStub {
 
   def givenCurrencyConversion(code: String = "EUR")(implicit server: WireMockServer): StubMapping =
     server.stubFor(
-      get(urlMatching(s"${currencyConversionConf.currencyConversionUrl}(.*)?cc=$code"))
+      get(urlMatching(s"/currency-conversion/rates/(.*)?cc=$code"))
         .willReturn(
           aResponse()
             .withStatus(OK)
             .withBody(Json.toJson(List(ConversionRatePeriod(now, now, code, BigDecimal(1.1)))).toString)
         )
     )
-
 }
