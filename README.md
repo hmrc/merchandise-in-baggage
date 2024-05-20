@@ -16,7 +16,7 @@ sm2 --start MERCHANDISE_IN_BAGGAGE_ALL
 
 ## Run tests
 
-`./run_all_tests.sh` will run all the tests, including unit and contract tests.
+`./run_all_tests.sh` will run all the tests, including unit and integration tests.
 
 ## License
 This code is open source software licensed under the Apache 2.0 License.
