@@ -18,7 +18,8 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
 import cats.implicits._
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,18 +31,23 @@ import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.ExecutionContext
 
-class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
+class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestData {
 
-  private val declarationService = mock[DeclarationService]
+  private val declarationService = mock(classOf[DeclarationService])
 
   val controller = new DeclarationController(declarationService, component)
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    reset(declarationService)
+  }
+
   "on submit will persist the declaration returning 201 + declaration id" in {
     val declaration = aDeclaration
-    (declarationService
-      .persistDeclaration(_: Declaration)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *)
-      .returning(declaration.asFuture)
+
+    when(declarationService.persistDeclaration(any[Declaration])(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(declaration.asFuture)
 
     val postRequest    = buildPost(routes.DeclarationController.onDeclarations().url).withBody[Declaration](declaration)
     val eventualResult = controller.onDeclarations()(postRequest)
@@ -52,10 +58,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
   "amendDeclaration will persist the declaration returning 200 + declaration id" in {
     val declaration = aDeclarationWithAmendment
-    (declarationService
-      .amendDeclaration(_: Declaration)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *)
-      .returning(declaration.asFuture)
+
+    when(declarationService.amendDeclaration(any[Declaration])(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(declaration.asFuture)
 
     val postRequest    = buildPut(routes.DeclarationController.amendDeclaration().url).withBody[Declaration](declaration)
     val eventualResult = controller.amendDeclaration()(postRequest)
@@ -67,10 +72,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "on retrieve"            should {
     "return declaration for a given id" in {
       val declaration = aDeclaration
-      (declarationService
-        .findByDeclarationId(_: DeclarationId))
-        .expects(*)
-        .returning(EitherT(declaration.asRight.asFuture))
+
+      when(declarationService.findByDeclarationId(any())).thenReturn(EitherT(declaration.asRight.asFuture))
 
       val getRequest     = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
@@ -81,10 +84,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     "return 404 for a given id if declaration is not found in mongo" in {
       val declaration = aDeclaration
-      (declarationService
-        .findByDeclarationId(_: DeclarationId))
-        .expects(*)
-        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
+
+      when(declarationService.findByDeclarationId(any()))
+        .thenReturn(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
       val getRequest     = buildGet(routes.DeclarationController.onRetrieve(declaration.declarationId).url)
       val eventualResult = controller.onRetrieve(declaration.declarationId)(getRequest)
@@ -95,10 +97,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "findBy MibRef and Eori" should {
     "return a success response" in {
       val declaration = aDeclaration
-      (declarationService
-        .findBy(_: MibReference, _: Eori))
-        .expects(*, *)
-        .returning(EitherT(declaration.asRight.asFuture))
+
+      when(declarationService.findBy(any(), any[Eori])).thenReturn(EitherT(declaration.asRight.asFuture))
 
       val getRequest     = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
       val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
@@ -109,10 +109,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
 
     "return 404 if not found for a given mibRef and Eori" in {
       val declaration = aDeclaration
-      (declarationService
-        .findBy(_: MibReference, _: Eori))
-        .expects(*, *)
-        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
+
+      when(declarationService.findBy(any(), any[Eori]))
+        .thenReturn(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
       val getRequest     = buildGet(routes.DeclarationController.findBy(declaration.mibReference, declaration.eori).url)
       val eventualResult = controller.findBy(declaration.mibReference, declaration.eori)(getRequest)
@@ -124,10 +123,9 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
   "POST /payment-callback" should {
     "return 200 when declaration is found" in {
       val declaration = aDeclaration
-      (declarationService
-        .processPaymentCallback(_: PaymentCallbackRequest)(_: HeaderCarrier))
-        .expects(*, *)
-        .returning(EitherT(declaration.asRight.asFuture))
+
+      when(declarationService.processPaymentCallback(any())(any()))
+        .thenReturn(EitherT(declaration.asRight.asFuture))
 
       val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback.url)
         .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
@@ -138,10 +136,8 @@ class DeclarationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     }
 
     "return 404 when declaration is not found" in {
-      (declarationService
-        .processPaymentCallback(_: PaymentCallbackRequest)(_: HeaderCarrier))
-        .expects(*, *)
-        .returning(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
+      when(declarationService.processPaymentCallback(any())(any()))
+        .thenReturn(EitherT(DeclarationNotFound.asInstanceOf[BusinessError].asLeft.asFuture))
 
       val postRequest = buildPost(routes.DeclarationController.handlePaymentCallback.url)
         .withBody[PaymentCallbackRequest](PaymentCallbackRequest("XJMB8495682992"))
