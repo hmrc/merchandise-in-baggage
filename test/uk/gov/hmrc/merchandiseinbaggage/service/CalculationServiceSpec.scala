@@ -16,35 +16,37 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDate.now
-import java.time.{LocalDate, LocalDateTime}
 import cats.data.EitherT
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.{any, anyString}
+import org.mockito.Mockito.{mock, reset, times, verify, when}
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
+import java.time.LocalDate.now
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with MockFactory with CoreTestData {
+class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures with CoreTestData {
 
-  val connector: CurrencyConversionConnector     = mock[CurrencyConversionConnector]
-  val mockDeclarationService: DeclarationService = mock[DeclarationService]
+  val connector: CurrencyConversionConnector     = mock(classOf[CurrencyConversionConnector])
+  val mockDeclarationService: DeclarationService = mock(classOf[DeclarationService])
   val service                                    = new CalculationService(connector, mockDeclarationService)
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    reset(connector)
+    reset(mockDeclarationService)
+  }
 
   "convert currency and calculate duty and vat for an item from outside the EU" in {
     val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(period))
-      )
+    when(connector.getConversionRate(anyString(), any())(any(), any())).thenReturn(Future.successful(Seq(period)))
 
     val importGoods = aImportGoods.copy(
       producedInEu = YesNoDontKnow.No,
@@ -72,12 +74,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
   "convert currency and calculate duty and vat for an item where origin is unknown" in {
     val period = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(period))
-      )
+    when(connector.getConversionRate(anyString(), any())(any(), any())).thenReturn(Future.successful(Seq(period)))
 
     val importGoods = aImportGoods.copy(
       producedInEu = YesNoDontKnow.DontKnow,
@@ -105,12 +102,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
   "convert currency and calculate duty and vat for an item from inside the EU" in {
     val period = ConversionRatePeriod(now(), now(), "EUR", BigDecimal(1.1))
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(period))
-      )
+    when(connector.getConversionRate(anyString(), any())(any(), any())).thenReturn(Future.successful(Seq(period)))
 
     val importGoods = aImportGoods.copy(
       producedInEu = YesNoDontKnow.Yes,
@@ -208,13 +200,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
     val period              = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
 
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(period))
-      )
-      .twice()
+    when(connector.getConversionRate(anyString(), any())(any(), any())).thenReturn(Future.successful(Seq(period)))
 
     val eventualResult  = service.calculate(calculationRequests)
     val expectedResults = Seq(
@@ -223,6 +209,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     )
 
     eventualResult.futureValue mustBe CalculationResponse(CalculationResults(expectedResults), WithinThreshold)
+
+    verify(connector, times(2)).getConversionRate(any(), any())(any(), any())
   }
 
   s"handle multiple calculation requests returning $CalculationResults $OverThreshold" in {
@@ -244,13 +232,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
       Seq(CalculationRequest(importGoods, GreatBritain), CalculationRequest(importGoods, GreatBritain))
     val period              = ConversionRatePeriod(now(), now(), "USD", BigDecimal(1.1))
 
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(period))
-      )
-      .twice()
+    when(connector.getConversionRate(anyString(), any())(any(), any())).thenReturn(Future.successful(Seq(period)))
 
     val eventualResult  = service.calculate(calculationRequests)
     val expectedResults = Seq(
@@ -271,6 +253,8 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     )
 
     eventualResult.futureValue mustBe CalculationResponse(CalculationResults(expectedResults), OverThreshold)
+
+    verify(connector, times(2)).getConversionRate(any(), any())(any(), any())
   }
 
   s"handle calculation requests for $ExportGoods $WithinThreshold" in {
@@ -308,18 +292,9 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val declaration   =
       aDeclaration.copy(declarationGoods = aDeclaration.declarationGoods.copy(goods = Seq(originalGoods)))
 
-    (mockDeclarationService
-      .findByDeclarationId(_: DeclarationId))
-      .expects(declaration.declarationId)
-      .returning(EitherT.pure(declaration))
-
-    (connector
-      .getConversionRate(_: String, _: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returns(
-        Future.successful(Seq(conversionRatePeriod))
-      )
-      .twice()
+    when(mockDeclarationService.findByDeclarationId(any())).thenReturn(EitherT.pure(declaration))
+    when(connector.getConversionRate(anyString(), any())(any(), any()))
+      .thenReturn(Future.successful(Seq(conversionRatePeriod)))
 
     val amends         = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(importGoods)))
     val eventualResult =
@@ -347,5 +322,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
 
     expected.results mustBe CalculationResults(expectedResults)
     expected.thresholdCheck mustBe WithinThreshold
+
+    verify(connector, times(2)).getConversionRate(any(), any())(any(), any())
   }
 }

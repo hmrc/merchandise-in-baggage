@@ -16,38 +16,42 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import java.time.{LocalDate, LocalDateTime}
 import cats.data.OptionT
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.controllers.routes._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, ConversionRatePeriod, DeclarationGoods}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, ConversionRatePeriod, DeclarationGoods}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import java.time.temporal.ChronoUnit
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.Future
 
-class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData with MockFactory {
+class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestData {
 
   val today          = LocalDate.now
   val period         = ConversionRatePeriod(today, today, "EUR", BigDecimal(1.1))
   val expectedResult =
     CalculationResult(aImportGoods, 10000.toAmountInPence, 0.toAmountInPence, 2000.toAmountInPence, Some(period))
-  val mockService    = mock[CalculationService]
+  val mockService    = mock(classOf[CalculationService])
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    reset(mockService)
+  }
 
   s"handle multiple calculation requests delegating to CalculationService" in {
     val controller          = new CalculationController(mockService, component)
     val calculationRequests = Seq(CalculationRequest(aImportGoods, GreatBritain))
 
-    (mockService
-      .calculate(_: Seq[CalculationRequest])(_: HeaderCarrier))
-      .expects(calculationRequests, *)
-      .returning(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
+    when(mockService.calculate(any())(any()))
+      .thenReturn(Future.successful(CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
     val request        = buildPost(CalculationController.handleCalculations().url)
       .withBody[Seq[CalculationRequest]](calculationRequests)
@@ -64,10 +68,8 @@ class CalculationControllerSpec extends BaseSpecWithApplication with CoreTestDat
     val amend              = Amendment(111, LocalDateTime.now.truncatedTo(ChronoUnit.MILLIS), DeclarationGoods(Seq(aImportGoods)))
     val calculationRequest = CalculationAmendRequest(Some(amend), Some(GreatBritain), aDeclarationId)
 
-    (mockService
-      .calculateAmendPlusOriginal(_: CalculationAmendRequest)(_: HeaderCarrier))
-      .expects(calculationRequest, *)
-      .returning(OptionT.pure[Future](CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
+    when(mockService.calculateAmendPlusOriginal(any())(any()))
+      .thenReturn(OptionT.pure[Future](CalculationResponse(CalculationResults(Seq(expectedResult)), WithinThreshold)))
 
     val request        = buildPost(CalculationController.handleAmendCalculations().url)
       .withBody[CalculationAmendRequest](calculationRequest)

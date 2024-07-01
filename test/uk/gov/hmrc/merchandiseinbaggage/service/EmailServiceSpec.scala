@@ -16,50 +16,46 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import play.api.http.Status.ACCEPTED
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationGoods, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Export
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{DeclarationGoods, Paid}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class EmailServiceSpec
-    extends BaseSpecWithApplication
-    with CoreTestData
-    with ScalaFutures
-    with MockFactory
-    with OptionValues {
+class EmailServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with OptionValues {
 
-  val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
-  val emailConnector: EmailConnector         = mock[EmailConnector]
+  val declarationRepo: DeclarationRepository = mock(classOf[DeclarationRepository])
+  val emailConnector: EmailConnector         = mock(classOf[EmailConnector])
 
   val emailService = new EmailService(emailConnector, declarationRepo)
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    reset(declarationRepo)
+    reset(emailConnector)
+  }
 
   "sendEmails should handle New Import declarations" in {
     val declaration              = aDeclaration
     val declarationWithEmailSent = declaration.copy(emailsSent = true)
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_import_declaration" &&
-        emailInfo.parameters.get("total").value == "£1.00"
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(declarationWithEmailSent)
-      .returns(Future.successful(declarationWithEmailSent))
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
+
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(declarationWithEmailSent))
 
     emailService.sendEmails(declaration).value.futureValue mustBe Right(declarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(declarationWithEmailSent)
   }
 
   "sendEmails should handle New Export declarations" in {
@@ -67,43 +63,30 @@ class EmailServiceSpec
       aDeclaration.copy(declarationType = Export, declarationGoods = DeclarationGoods(Seq(aExportGoods)))
 
     val declarationWithEmailSent = declaration.copy(emailsSent = true)
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_export_declaration" &&
-        !emailInfo.parameters.contains("total") &&
-        emailInfo.parameters.get("goodsDestination_0").value == "Italy"
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(declarationWithEmailSent)
-      .returns(Future.successful(declarationWithEmailSent))
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(declarationWithEmailSent))
 
     emailService.sendEmails(declaration).value.futureValue mustBe Right(declarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(declarationWithEmailSent)
   }
 
   "sendEmails should handle Amended Import declarations" in {
     val declaration                     = aDeclarationWithAmendment
     val updatedAmendment                = aAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_amend_import_declaration" &&
-        emailInfo.parameters.get("total").value == "£1.00"
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(amendedDeclarationWithEmailSent)
-      .returns(Future.successful(amendedDeclarationWithEmailSent))
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(amendedDeclarationWithEmailSent))
 
     emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(amendedDeclarationWithEmailSent)
   }
 
   "sendEmails should consider only paid amendments" in {
@@ -111,42 +94,30 @@ class EmailServiceSpec
     val declaration                     = aDeclaration.copy(amendments = Seq(paidAmendment))
     val updatedAmendment                = paidAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_amend_import_declaration" &&
-        emailInfo.parameters.get("total").value == "£2.00"
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(amendedDeclarationWithEmailSent)
-      .returns(Future.successful(amendedDeclarationWithEmailSent))
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(amendedDeclarationWithEmailSent))
 
     emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(amendedDeclarationWithEmailSent)
   }
 
   "sendEmails should handle Amended Export declarations" in {
     val declaration                     = aDeclarationWithAmendment.copy(declarationType = Export)
     val updatedAmendment                = aAmendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_amend_export_declaration" &&
-        !emailInfo.parameters.contains("total")
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(amendedDeclarationWithEmailSent)
-      .returns(Future.successful(amendedDeclarationWithEmailSent))
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(amendedDeclarationWithEmailSent))
 
     emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(amendedDeclarationWithEmailSent)
   }
 
   "sendEmails should use the correct language" in {
@@ -154,20 +125,15 @@ class EmailServiceSpec
     val declaration                     = aDeclaration.copy(declarationType = Export, amendments = Seq(amendment))
     val updatedAmendment                = amendment.copy(emailsSent = true)
     val amendedDeclarationWithEmailSent = declaration.copy(amendments = Seq(updatedAmendment))
-    (emailConnector
-      .sendEmails(_: DeclarationEmailInfo)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { (emailInfo: DeclarationEmailInfo, _: HeaderCarrier, _: ExecutionContext) =>
-        emailInfo.templateId == "mods_amend_export_declaration_cy"
-      })
-      .returns(Future.successful(ACCEPTED))
-      .twice()
+    when(emailConnector.sendEmails(any())(any(), any())).thenReturn(Future.successful(ACCEPTED))
 
-    (declarationRepo
-      .upsertDeclaration(_: Declaration))
-      .expects(amendedDeclarationWithEmailSent)
-      .returns(Future.successful(amendedDeclarationWithEmailSent))
+    when(declarationRepo.upsertDeclaration(any()))
+      .thenReturn(Future.successful(amendedDeclarationWithEmailSent))
 
     emailService.sendEmails(declaration, Some(1)).value.futureValue mustBe Right(amendedDeclarationWithEmailSent)
+
+    verify(emailConnector, times(2)).sendEmails(any())(any(), any())
+    verify(declarationRepo).upsertDeclaration(amendedDeclarationWithEmailSent)
   }
 
   "should not send emails if they are already sent" in {

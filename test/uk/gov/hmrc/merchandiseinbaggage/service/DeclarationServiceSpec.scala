@@ -17,55 +17,50 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
-import org.scalamock.handlers.CallHandler1
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{mock, reset, when}
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core._
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
-import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures with MockFactory {
+class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData with ScalaFutures {
   trait Fixture {
-    val declarationRepo: DeclarationRepository = mock[DeclarationRepository]
-    val emailService: EmailService             = mock[EmailService]
-    val auditConnector: AuditConnector         = mock[AuditConnector]
+    val declarationRepo: DeclarationRepository = mock(classOf[DeclarationRepository])
+    val emailService: EmailService             = mock(classOf[EmailService])
+    val auditConnector: AuditConnector         = mock(classOf[AuditConnector])
 
     val declarationService = new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
     def mockEmails(declaration: Declaration) =
-      (emailService
-        .sendEmails(_: Declaration, _: Option[Int])(_: HeaderCarrier))
-        .expects(*, *, *)
-        .returns(EitherT[Future, BusinessError, Declaration](Future.successful(Right(declaration))))
+      when(emailService.sendEmails(any(), any())(any())).thenReturn(EitherT.rightT(declaration))
 
     def mockAudit() =
-      (auditConnector
-        .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(*, *, *)
-        .returning(Success.asFuture)
-        .anyNumberOfTimes()
+      when(
+        auditConnector
+          .sendExtendedEvent(any())(any(), any())
+      )
+        .thenReturn(Success.asFuture)
 
-    def mockDeclarationInsert(declaration: Declaration): CallHandler1[Declaration, Future[Declaration]] =
-      (declarationRepo.insertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+    def mockDeclarationInsert(declaration: Declaration) =
+      when(declarationRepo.insertDeclaration(any())).thenReturn(Future.successful(declaration))
 
     def mockFindBy(
       declaration: Option[Declaration],
       mibReference: MibReference,
       amendmentReference: Option[Int] = None
     ) =
-      (declarationRepo
-        .findBy(_: MibReference, _: Option[Int]))
-        .expects(mibReference, amendmentReference)
-        .returns(Future.successful(declaration))
+      when(declarationRepo.findBy(ArgumentMatchers.eq(mibReference), ArgumentMatchers.eq(amendmentReference)))
+        .thenReturn(Future.successful(declaration))
+
   }
 
   "persistDeclaration" should {
@@ -101,7 +96,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     "persist an Export and trigger email and audit" in new Fixture {
       val declaration = aDeclarationWithAmendment.copy(declarationType = Export)
 
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      when(declarationRepo.upsertDeclaration(any())).thenReturn(Future.successful(declaration))
       mockEmails(declaration)
 
       declarationService.amendDeclaration(declaration).futureValue mustBe declaration
@@ -109,15 +104,18 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
 
     "NOT trigger Audit and Emails for non zero amendment payments" in new Fixture {
       val declaration = aDeclarationWithAmendment
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+
+      when(declarationRepo.upsertDeclaration(any())).thenReturn(Future.successful(declaration))
+
       declarationService.amendDeclaration(declaration).futureValue mustBe declaration
     }
 
     "trigger Audit and Emails for zero payments" in new Fixture {
       val declaration = aDeclarationWithAmendment.copy(amendments = Seq(aAmendmentWithNoTax))
 
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      when(declarationRepo.upsertDeclaration(any())).thenReturn(Future.successful(declaration))
       mockEmails(declaration)
+
       declarationService.amendDeclaration(declaration).futureValue mustBe declaration
     }
   }
@@ -125,16 +123,13 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
   "find a declaration by id or returns not found" in new Fixture {
     val declaration: Declaration = aDeclaration
 
-    (declarationRepo
-      .findByDeclarationId(_: DeclarationId))
-      .expects(declaration.declarationId)
-      .returns(Future.successful(Some(declaration)))
+    when(declarationRepo.findByDeclarationId(any())).thenReturn(Future.successful(Some(declaration)))
+
     declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Right(declaration)
 
-    (declarationRepo
-      .findByDeclarationId(_: DeclarationId))
-      .expects(declaration.declarationId)
-      .returns(Future.successful(None))
+    reset(declarationRepo)
+    when(declarationRepo.findByDeclarationId(any())).thenReturn(Future.successful(None))
+
     declarationService.findByDeclarationId(declaration.declarationId).value.futureValue mustBe Left(DeclarationNotFound)
   }
 
@@ -153,7 +148,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
       val declaration = aDeclaration
 
       mockFindBy(Some(declaration), declaration.mibReference, None)
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      when(declarationRepo.upsertDeclaration(any())).thenReturn(Future.successful(declaration))
       mockEmails(declaration)
       mockAudit()
 
@@ -167,7 +162,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
       val declaration = aDeclarationWithAmendment
 
       mockFindBy(Some(declaration), declaration.mibReference, Some(1))
-      (declarationRepo.upsertDeclaration(_: Declaration)).expects(*).returns(Future.successful(declaration))
+      when(declarationRepo.upsertDeclaration(any())).thenReturn(Future.successful(declaration))
       mockEmails(declaration)
       mockAudit()
 
