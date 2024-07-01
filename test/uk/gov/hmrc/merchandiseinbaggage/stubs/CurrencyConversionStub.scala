@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.stubs
 
-import java.time.LocalDate.now
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlMatching}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.http.Status.OK
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.model.api.ConversionRatePeriod
+
+import java.time.LocalDate.now
 
 object CurrencyConversionStub {
 

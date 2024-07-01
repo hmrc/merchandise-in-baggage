@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.service
 
-import java.time.LocalDateTime
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationId
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpec, CoreTestData}
 
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class DeclarationDateOrderingSpec extends BaseSpec with CoreTestData {
