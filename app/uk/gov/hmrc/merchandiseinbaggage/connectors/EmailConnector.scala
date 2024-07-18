@@ -16,21 +16,27 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
+import play.api.libs.json.Json
+
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EmailConnector @Inject() (appConfig: AppConfig, http: HttpClient) {
+class EmailConnector @Inject() (appConfig: AppConfig, http: HttpClientV2) {
 
   def sendEmails(
     emailInformation: DeclarationEmailInfo
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] =
     http
-      .POST[DeclarationEmailInfo, HttpResponse](s"${appConfig.emailUrl}/transactionengine/email", emailInformation)
+      .post(url"${appConfig.emailUrl}/transactionengine/email")
+      .withBody(Json.toJson(emailInformation))
+      .execute[HttpResponse]
       .map(_.status)
+
 }

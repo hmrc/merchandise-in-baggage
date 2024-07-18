@@ -19,7 +19,8 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EoriCheckConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
@@ -28,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriCheckNumberControllerSpec extends BaseSpecWithApplication with CoreTestData {
 
-  private val client = injector.instanceOf[HttpClient]
+  private val client = injector.instanceOf[HttpClientV2]
 
   "handle a EORI check request by making a call to check number API" in {
     val connector      = new EoriCheckConnector(appConfig, client) {

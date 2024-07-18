@@ -1,9 +1,7 @@
-val appName = "merchandise-in-baggage"
-
 ThisBuild / scalaVersion := "2.13.14"
 ThisBuild / majorVersion := 0
 
-lazy val microservice = Project(appName, file("."))
+lazy val microservice = Project("merchandise-in-baggage", file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(CodeCoverageSettings.settings)
@@ -12,8 +10,7 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies(),
     scalacOptions ++= Seq(
       "-feature",
-      "-Wconf:src=routes/.*:s",
-      "-Wconf:cat=unused-imports&src=views/.*:s"
+      "-Wconf:src=routes/.*:s"
     )
   )
   .settings(
@@ -25,4 +22,3 @@ lazy val microservice = Project(appName, file("."))
   )
 
 addCommandAlias("scalafmtAll", "all scalafmtSbt scalafmt Test/scalafmt")
-addCommandAlias("scalastyleAll", "all scalastyle Test/scalastyle")
