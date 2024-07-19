@@ -16,18 +16,22 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.connectors
 
-import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.merchandiseinbaggage.model.api.checkeori.CheckResponse
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EoriCheckConnector @Inject() (appConfig: AppConfig, httpClient: HttpClient) {
+class EoriCheckConnector @Inject() (appConfig: AppConfig, httpClient: HttpClientV2) {
 
   def checkEori(eori: Eori)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[CheckResponse]] =
-    httpClient.GET[List[CheckResponse]](s"${appConfig.eoriCheckUrl}/check-eori-number/check-eori/${eori.toString}")
+    httpClient
+      .get(url"${appConfig.eoriCheckUrl}/check-eori-number/check-eori/${eori.toString}")
+      .execute[List[CheckResponse]]
+
 }

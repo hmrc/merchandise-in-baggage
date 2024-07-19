@@ -55,6 +55,7 @@ object Goods {
       JsSuccess(json.as[ImportGoods])
     case json: JsObject if json.keys.contains("destination")  =>
       JsSuccess(json.as[ExportGoods])
+    case _                                                    => JsError("Invalid Goods Type")
   }
 }
 

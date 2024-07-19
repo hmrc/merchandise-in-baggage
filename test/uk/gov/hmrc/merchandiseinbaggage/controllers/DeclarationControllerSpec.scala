@@ -23,7 +23,7 @@ import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
