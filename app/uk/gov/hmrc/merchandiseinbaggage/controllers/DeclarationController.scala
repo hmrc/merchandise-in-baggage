@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.instances.future._
-import play.api.Logger
+import play.api.Logging
 import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
@@ -31,22 +31,25 @@ import scala.concurrent.ExecutionContext
 
 class DeclarationController @Inject() (declarationService: DeclarationService, mcc: MessagesControllerComponents)(
   implicit val ec: ExecutionContext
-) extends BackendController(mcc) {
+) extends BackendController(mcc)
+    with Logging {
 
   implicit def messages(implicit request: Request[_]): Messages = mcc.messagesApi.preferred(request)
 
-  private val logger = Logger(this.getClass)
-
   def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.persistDeclaration(request.body).map { declaration =>
-      logger.warn(s"new ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}")
+      logger.warn(
+        s"[DeclarationController][onDeclarations] new ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
+      )
       Created(toJson(declaration.declarationId))
     }
   }
 
   def amendDeclaration(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.amendDeclaration(request.body).map { declaration =>
-      logger.warn(s"amend ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}")
+      logger.warn(
+        s"[DeclarationController][amendDeclaration] amend ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
+      )
       Ok(toJson(declaration.declarationId))
     }
   }
@@ -54,14 +57,17 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
   def onRetrieve(declarationId: DeclarationId): Action[AnyContent] = Action.async {
     declarationService
       .findByDeclarationId(declarationId)
-      .fold(handleError(s"$declarationId not found"), foundDeclaration => Ok(toJson(foundDeclaration)))
+      .fold(
+        handleError(s"[DeclarationController][onRetrieve] $declarationId not found"),
+        foundDeclaration => Ok(toJson(foundDeclaration))
+      )
   }
 
   def findBy(mibReference: MibReference, eori: Eori): Action[AnyContent] = Action.async {
     declarationService
       .findBy(mibReference, eori)
       .fold(
-        handleError(s"Declaration not found for params: $mibReference, $eori"),
+        handleError(s"[DeclarationController][findBy] Declaration not found for params: $mibReference, $eori"),
         foundDeclaration => Ok(toJson(foundDeclaration))
       )
   }
@@ -72,7 +78,12 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
       val callbackRequest = request.body
       declarationService
         .processPaymentCallback(callbackRequest)
-        .fold(handleError(s"Declaration with params [$callbackRequest] not found"), _ => Ok)
+        .fold(
+          handleError(
+            s"[DeclarationController][handlePaymentCallback] Declaration with params [$callbackRequest] not found"
+          ),
+          _ => Ok
+        )
   }
 
   private def handleError(message: String): PartialFunction[BusinessError, Result] = {
