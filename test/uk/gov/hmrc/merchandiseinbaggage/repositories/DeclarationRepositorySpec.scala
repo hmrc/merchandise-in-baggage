@@ -120,7 +120,7 @@ class DeclarationRepositorySpec
       findResult mustBe Some(declarationTwo)
     }
 
-    //invalid combinations of (mibRef, eori)
+    // invalid combinations of (mibRef, eori)
     whenReady(repository.findBy(declarationOne.mibReference, declarationTwo.eori)) { findResult =>
       findResult mustBe None
     }
@@ -128,7 +128,7 @@ class DeclarationRepositorySpec
 
   "find a declaration by mibReference & Amendment Reference" in {
     val declaration = aDeclarationWithAmendment
-    //insert first
+    // insert first
     whenReady(repository.insertDeclaration(declaration)) { result =>
       result mustBe declaration
     }

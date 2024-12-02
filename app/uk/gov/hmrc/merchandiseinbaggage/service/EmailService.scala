@@ -105,10 +105,10 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
       case Some(reference) =>
         declaration.amendments.find(_.reference == reference) match {
           case Some(amendment) => amendment.emailsSent
-          case None            => true //no amendment found for given amendmentReference, do not trigger emails
+          case None            => true // no amendment found for given amendmentReference, do not trigger emails
         }
       case None            =>
-        //first check for latest `amend` journey, then fallback to `new` journey
+        // first check for latest `amend` journey, then fallback to `new` journey
         declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
     }
 
@@ -120,7 +120,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
   )(implicit messages: Messages): DeclarationEmailInfo = {
     import declaration._
 
-    val amendmentGoods = {
+    val amendmentGoods =
       declarationType match {
         case Import =>
           amendments
@@ -128,7 +128,6 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
             .flatMap(_.goods.goods)
         case Export => amendments.flatMap(_.goods.goods)
       }
-    }
 
     val allGoods = declarationGoods.goods ++ amendmentGoods
 

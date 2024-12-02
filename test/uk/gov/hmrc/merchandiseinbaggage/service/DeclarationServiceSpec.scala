@@ -41,7 +41,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     val declarationService = new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
     def mockEmails(declaration: Declaration) =
-      when(emailService.sendEmails(any(), any())(any())).thenReturn(EitherT.rightT(declaration))
+      when(emailService.sendEmails(any(), any())(any())).thenReturn(EitherT.rightT[Future, BusinessError](declaration))
 
     def mockAudit() =
       when(

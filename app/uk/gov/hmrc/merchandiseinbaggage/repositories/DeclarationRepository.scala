@@ -78,7 +78,7 @@ class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: E
       .recover {
         case NonFatal(ex)
             if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
-          //conflict - duplicate declaration with same declarationId
+          // conflict - duplicate declaration with same declarationId
           declaration
       }
   }

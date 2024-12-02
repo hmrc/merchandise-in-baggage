@@ -117,7 +117,7 @@ class CryptoDeclarationRepositoryImplSpec
         findResult mustBe Some(declarationTwo)
       }
 
-      //invalid combinations of (mibRef, eori)
+      // invalid combinations of (mibRef, eori)
       whenReady(cryptoRepository.findBy(declarationOne.mibReference, declarationTwo.eori)) { findResult =>
         findResult mustBe None
       }

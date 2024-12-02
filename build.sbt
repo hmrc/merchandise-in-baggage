@@ -8,8 +8,9 @@ lazy val microservice = Project("merchandise-in-baggage", file("."))
   .settings(
     PlayKeys.playDefaultPort := 8280,
     libraryDependencies ++= AppDependencies(),
-    scalacOptions ++= Seq(
+    scalacOptions ++= List(
       "-feature",
+      "-Wconf:msg=unused import&src=conf/.*:s",
       "-Wconf:src=routes/.*:s"
     )
   )

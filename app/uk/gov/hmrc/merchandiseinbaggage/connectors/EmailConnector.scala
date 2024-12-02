@@ -26,6 +26,7 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 @Singleton
 class EmailConnector @Inject() (appConfig: AppConfig, http: HttpClientV2) {
