@@ -16,17 +16,53 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
-import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.BaseSpec
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.ThresholdCheck._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.*
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.ThresholdCheck.format
 
-class ThresholdCheckSpec extends BaseSpec {
+class ThresholdCheckSpec extends AnyWordSpec with Matchers {
 
-  "serialise/de-serialise from/to json" in {
-    Json.toJson[ThresholdCheck](WithinThreshold) mustBe JsString("WithinThreshold")
-    Json.toJson[ThresholdCheck](OverThreshold) mustBe JsString("OverThreshold")
+  "ThresholdCheck" should {
 
-    JsString(WithinThreshold.toString).validate[ThresholdCheck].asOpt mustBe Some(WithinThreshold)
-    JsString(OverThreshold.toString).validate[ThresholdCheck].asOpt mustBe Some(OverThreshold)
+    "serialize to JSON" when {
+      "the value is OverThreshold" in {
+        Json.toJson(OverThreshold: ThresholdCheck) shouldBe JsString("OverThreshold")
+      }
+
+      "the value is WithinThreshold" in {
+        Json.toJson(WithinThreshold: ThresholdCheck) shouldBe JsString("WithinThreshold")
+      }
+    }
+
+    "deserialize from JSON" when {
+      "the value is OverThreshold" in {
+        val json = JsString("OverThreshold")
+        json.validate[ThresholdCheck] shouldBe JsSuccess(OverThreshold)
+      }
+
+      "the value is WithinThreshold" in {
+        val json = JsString("WithinThreshold")
+        json.validate[ThresholdCheck] shouldBe JsSuccess(WithinThreshold)
+      }
+    }
+
+    "fail deserialization" when {
+      "the value is not a recognized string" in {
+        val json = JsString("InvalidThreshold")
+        json.validate[ThresholdCheck] shouldBe a[JsError]
+      }
+
+      "the value is not a string" in {
+        val json = Json.obj("key" -> "value")
+        json.validate[ThresholdCheck] shouldBe a[JsError]
+      }
+    }
+
+    "support round-trip serialization and deserialization" in {
+      val original: ThresholdCheck = OverThreshold
+      val json                     = Json.toJson(original)
+      json.validate[ThresholdCheck] shouldBe JsSuccess(original)
+    }
   }
 }

@@ -17,11 +17,32 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.time.LocalDate
+import play.api.libs.json.*
 
-import play.api.libs.json.{Json, OFormat}
+import java.time.format.DateTimeParseException
 
 case class JourneyDetailsEntry(portCode: String, dateOfTravel: LocalDate)
 
 object JourneyDetailsEntry {
-  implicit val format: OFormat[JourneyDetailsEntry] = Json.format[JourneyDetailsEntry]
+  implicit val format: OFormat[JourneyDetailsEntry] = new OFormat[JourneyDetailsEntry] {
+    override def reads(json: JsValue): JsResult[JourneyDetailsEntry] =
+      for {
+        portCode     <- (json \ "portCode").validate[String].flatMap { pc =>
+                          if (pc.nonEmpty) JsSuccess(pc)
+                          else JsError("portCode cannot be empty")
+                        }
+        dateOfTravel <- (json \ "dateOfTravel").validate[String].flatMap { dateString =>
+                          try
+                            JsSuccess(LocalDate.parse(dateString))
+                          catch {
+                            case _: DateTimeParseException => JsError("Invalid date format")
+                          }
+                        }
+      } yield JourneyDetailsEntry(portCode, dateOfTravel)
+
+    override def writes(o: JourneyDetailsEntry): JsObject = Json.obj(
+      "portCode"     -> o.portCode,
+      "dateOfTravel" -> o.dateOfTravel.toString
+    )
+  }
 }

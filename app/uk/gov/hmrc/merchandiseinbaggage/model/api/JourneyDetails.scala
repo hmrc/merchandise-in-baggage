@@ -57,9 +57,33 @@ object JourneyDetails {
 }
 
 object JourneyOnFoot {
-  implicit val format: OFormat[JourneyOnFoot] = Json.format[JourneyOnFoot]
+  implicit val format: OFormat[JourneyOnFoot] = new OFormat[JourneyOnFoot] {
+    override def reads(json: JsValue): JsResult[JourneyOnFoot] =
+      for {
+        port         <- (json \ "port").validate[Port]
+        dateOfTravel <- (json \ "dateOfTravel").validate[LocalDate]
+      } yield JourneyOnFoot(port, dateOfTravel)
+
+    override def writes(o: JourneyOnFoot): JsObject = Json.obj(
+      "port"         -> Json.toJson(o.port),
+      "dateOfTravel" -> o.dateOfTravel
+    )
+  }
 }
 
 object JourneyInSmallVehicle {
-  implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
+  implicit val format: OFormat[JourneyInSmallVehicle] = new OFormat[JourneyInSmallVehicle] {
+    override def reads(json: JsValue): JsResult[JourneyInSmallVehicle] =
+      for {
+        port               <- (json \ "port").validate[Port]
+        dateOfTravel       <- (json \ "dateOfTravel").validate[LocalDate]
+        registrationNumber <- (json \ "registrationNumber").validate[String]
+      } yield JourneyInSmallVehicle(port, dateOfTravel, registrationNumber)
+
+    override def writes(o: JourneyInSmallVehicle): JsObject = Json.obj(
+      "port"               -> Json.toJson(o.port),
+      "dateOfTravel"       -> o.dateOfTravel,
+      "registrationNumber" -> o.registrationNumber
+    )
+  }
 }

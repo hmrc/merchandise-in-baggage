@@ -16,11 +16,25 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Address
 
 case class CustomsAgent(name: String, address: Address)
 
 object CustomsAgent {
-  implicit val format: OFormat[CustomsAgent] = Json.format[CustomsAgent]
+  implicit val format: OFormat[CustomsAgent] = new OFormat[CustomsAgent] {
+    override def reads(json: JsValue): JsResult[CustomsAgent] =
+      for {
+        name    <- (json \ "name").validate[String].flatMap { n =>
+                     if (n.nonEmpty) JsSuccess(n)
+                     else JsError("name cannot be empty")
+                   }
+        address <- (json \ "address").validate[Address]
+      } yield CustomsAgent(name, address)
+
+    override def writes(agent: CustomsAgent): JsObject = Json.obj(
+      "name"    -> agent.name,
+      "address" -> agent.address
+    )
+  }
 }

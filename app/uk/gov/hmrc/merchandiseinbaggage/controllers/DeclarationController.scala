@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
-import cats.instances.future._
+import cats.instances.future.*
 import play.api.Logging
 import play.api.i18n.Messages
 import play.api.libs.json.Json.toJson
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, DeclarationId, Eori, MibReference}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationService
@@ -34,7 +34,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
 ) extends BackendController(mcc)
     with Logging {
 
-  implicit def messages(implicit request: Request[_]): Messages = mcc.messagesApi.preferred(request)
+  implicit def messages(implicit request: Request[?]): Messages = mcc.messagesApi.preferred(request)
 
   def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.persistDeclaration(request.body).map { declaration =>
