@@ -22,7 +22,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Address
 case class CustomsAgent(name: String, address: Address)
 
 object CustomsAgent {
-  implicit val format: OFormat[CustomsAgent] = new OFormat[CustomsAgent] {
+  given format: OFormat[CustomsAgent] = new OFormat[CustomsAgent] {
     override def reads(json: JsValue): JsResult[CustomsAgent] =
       for {
         name    <- (json \ "name").validate[String].flatMap { n =>

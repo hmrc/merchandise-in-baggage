@@ -26,5 +26,5 @@ case class CalculationAmendRequest(
 )
 
 object CalculationAmendRequest {
-  implicit val format: OFormat[CalculationAmendRequest] = Json.format[CalculationAmendRequest]
+  given format: OFormat[CalculationAmendRequest] = Json.format[CalculationAmendRequest]
 }

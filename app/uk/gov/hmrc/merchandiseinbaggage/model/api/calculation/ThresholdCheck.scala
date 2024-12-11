@@ -23,7 +23,7 @@ case object OverThreshold extends ThresholdCheck
 case object WithinThreshold extends ThresholdCheck
 
 object ThresholdCheck {
-  implicit val format: Format[ThresholdCheck] = new Format[ThresholdCheck] {
+  given format: Format[ThresholdCheck] = new Format[ThresholdCheck] {
     override def reads(json: JsValue): JsResult[ThresholdCheck] =
       json match {
         case JsString("OverThreshold")   => JsSuccess(OverThreshold)

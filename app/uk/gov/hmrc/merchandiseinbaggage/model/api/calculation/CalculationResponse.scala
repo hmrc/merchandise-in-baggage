@@ -21,5 +21,5 @@ import play.api.libs.json.{Json, OFormat}
 case class CalculationResponse(results: CalculationResults, thresholdCheck: ThresholdCheck)
 
 object CalculationResponse {
-  implicit val format: OFormat[CalculationResponse] = Json.format[CalculationResponse]
+  given format: OFormat[CalculationResponse] = Json.format[CalculationResponse]
 }

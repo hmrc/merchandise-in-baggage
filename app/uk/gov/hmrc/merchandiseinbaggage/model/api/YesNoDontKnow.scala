@@ -26,7 +26,7 @@ sealed trait YesNoDontKnow extends EnumEntry {
 }
 
 object YesNoDontKnow extends Enum[YesNoDontKnow] {
-  implicit val format: Format[YesNoDontKnow] = EnumFormat(YesNoDontKnow)
+  given format: Format[YesNoDontKnow] = EnumFormat(YesNoDontKnow)
 
   override val values: immutable.IndexedSeq[YesNoDontKnow] = findValues
 

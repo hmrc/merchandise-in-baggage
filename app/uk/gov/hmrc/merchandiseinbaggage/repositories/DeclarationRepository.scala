@@ -62,7 +62,7 @@ class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: E
     with DeclarationDateOrdering
     with DeclarationRepository {
 
-  implicit val jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
+  given jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
 
   def encryptDeclaration(declaration: Declaration): Declaration = declaration
   def decryptDeclaration(declaration: Declaration): Declaration = declaration

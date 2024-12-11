@@ -31,5 +31,5 @@ case class CalculationResult(
 }
 
 object CalculationResult {
-  implicit val format: OFormat[CalculationResult] = Json.format[CalculationResult]
+  given format: OFormat[CalculationResult] = Json.format[CalculationResult]
 }

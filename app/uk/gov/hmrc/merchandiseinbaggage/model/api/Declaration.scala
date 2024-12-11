@@ -43,7 +43,7 @@ case class Declaration(
 )
 
 object Declaration {
-  val id                                    = "declarationId"
-  val sessionId                             = "sessionId"
-  implicit val format: OFormat[Declaration] = Json.using[Json.WithDefaultValues].format[Declaration]
+  val id                             = "declarationId"
+  val sessionId                      = "sessionId"
+  given format: OFormat[Declaration] = Json.using[Json.WithDefaultValues].format[Declaration]
 }

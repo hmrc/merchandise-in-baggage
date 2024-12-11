@@ -37,7 +37,7 @@ case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrati
 }
 
 object JourneyDetails {
-  implicit val format: OFormat[JourneyDetails] = new OFormat[JourneyDetails] {
+  given format: OFormat[JourneyDetails] = new OFormat[JourneyDetails] {
     override def reads(json: JsValue): JsResult[JourneyDetails] = {
       val port         = (json \ "port").as[Port]
       val dateOfTravel = (json \ "dateOfTravel").as[LocalDate]
@@ -57,7 +57,7 @@ object JourneyDetails {
 }
 
 object JourneyOnFoot {
-  implicit val format: OFormat[JourneyOnFoot] = new OFormat[JourneyOnFoot] {
+  given format: OFormat[JourneyOnFoot] = new OFormat[JourneyOnFoot] {
     override def reads(json: JsValue): JsResult[JourneyOnFoot] =
       for {
         port         <- (json \ "port").validate[Port]
@@ -72,7 +72,7 @@ object JourneyOnFoot {
 }
 
 object JourneyInSmallVehicle {
-  implicit val format: OFormat[JourneyInSmallVehicle] = new OFormat[JourneyInSmallVehicle] {
+  given format: OFormat[JourneyInSmallVehicle] = new OFormat[JourneyInSmallVehicle] {
     override def reads(json: JsValue): JsResult[JourneyInSmallVehicle] =
       for {
         port               <- (json \ "port").validate[Port]

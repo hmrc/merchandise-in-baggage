@@ -24,7 +24,7 @@ import java.time.format.DateTimeParseException
 case class JourneyDetailsEntry(portCode: String, dateOfTravel: LocalDate)
 
 object JourneyDetailsEntry {
-  implicit val format: OFormat[JourneyDetailsEntry] = new OFormat[JourneyDetailsEntry] {
+  given format: OFormat[JourneyDetailsEntry] = new OFormat[JourneyDetailsEntry] {
     override def reads(json: JsValue): JsResult[JourneyDetailsEntry] =
       for {
         portCode     <- (json \ "portCode").validate[String].flatMap { pc =>

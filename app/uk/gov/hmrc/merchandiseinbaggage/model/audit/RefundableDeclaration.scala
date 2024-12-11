@@ -36,5 +36,5 @@ case class RefundableDeclaration(
 )
 
 object RefundableDeclaration {
-  implicit val format: OFormat[RefundableDeclaration] = Json.format[RefundableDeclaration]
+  given format: OFormat[RefundableDeclaration] = Json.format[RefundableDeclaration]
 }

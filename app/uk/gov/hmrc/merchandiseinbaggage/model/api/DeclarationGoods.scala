@@ -31,7 +31,7 @@ final case class ImportGoods(
 ) extends Goods
 
 object ImportGoods {
-  implicit val format: OFormat[ImportGoods] = Json.format[ImportGoods]
+  given format: OFormat[ImportGoods] = Json.format[ImportGoods]
 }
 
 final case class ExportGoods(
@@ -41,16 +41,16 @@ final case class ExportGoods(
 ) extends Goods
 
 object ExportGoods {
-  implicit val format: OFormat[ExportGoods] = Json.format[ExportGoods]
+  given format: OFormat[ExportGoods] = Json.format[ExportGoods]
 }
 
 object Goods {
-  implicit val writes: Writes[Goods] = Writes[Goods] {
+  given writes: Writes[Goods] = Writes[Goods] {
     case ig: ImportGoods => ImportGoods.format.writes(ig)
     case eg: ExportGoods => ExportGoods.format.writes(eg)
   }
 
-  implicit val reads: Reads[Goods] = Reads[Goods] {
+  given reads: Reads[Goods] = Reads[Goods] {
     case json: JsObject if json.keys.contains("producedInEu") =>
       JsSuccess(json.as[ImportGoods])
     case json: JsObject if json.keys.contains("destination")  =>
@@ -62,5 +62,5 @@ object Goods {
 case class DeclarationGoods(goods: Seq[Goods])
 
 object DeclarationGoods {
-  implicit val format: OFormat[DeclarationGoods] = Json.format[DeclarationGoods]
+  given format: OFormat[DeclarationGoods] = Json.format[DeclarationGoods]
 }

@@ -25,5 +25,5 @@ case class PurchaseDetails(amount: String, currency: Currency) {
 }
 
 object PurchaseDetails {
-  implicit val format: OFormat[PurchaseDetails] = Json.format[PurchaseDetails]
+  given format: OFormat[PurchaseDetails] = Json.format[PurchaseDetails]
 }

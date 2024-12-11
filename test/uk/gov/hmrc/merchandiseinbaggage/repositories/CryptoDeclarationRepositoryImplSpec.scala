@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers.+
+import org.scalatest.matchers.should.Matchers.*
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import play.api.test.Helpers.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*

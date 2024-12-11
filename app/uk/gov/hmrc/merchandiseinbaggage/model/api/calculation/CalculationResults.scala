@@ -21,5 +21,5 @@ import play.api.libs.json.*
 case class CalculationResults(calculationResults: Seq[CalculationResult])
 
 object CalculationResults {
-  implicit val format: OFormat[CalculationResults] = Json.format[CalculationResults]
+  given format: OFormat[CalculationResults] = Json.format[CalculationResults]
 }

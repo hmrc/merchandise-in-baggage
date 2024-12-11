@@ -28,5 +28,5 @@ case class AmountInPence(value: Long) {
 }
 
 object AmountInPence {
-  implicit val format: Format[AmountInPence] = implicitly[Format[Long]].inmap(AmountInPence(_), _.value)
+  given format: Format[AmountInPence] = implicitly[Format[Long]].inmap(AmountInPence(_), _.value)
 }

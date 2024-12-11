@@ -49,7 +49,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     hc: HeaderCarrier
   ): EitherT[Future, BusinessError, Declaration] = {
 
-    implicit val messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
+    given messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
 
     EitherT(
       if (emailsSent(declaration, amendmentReference)) {

@@ -32,5 +32,5 @@ case class Amendment(
 )
 
 object Amendment {
-  implicit val format: OFormat[Amendment] = Json.using[Json.WithDefaultValues].format[Amendment]
+  given format: OFormat[Amendment] = Json.using[Json.WithDefaultValues].format[Amendment]
 }

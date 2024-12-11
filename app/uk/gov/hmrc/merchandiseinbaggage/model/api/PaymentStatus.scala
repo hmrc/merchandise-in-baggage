@@ -29,7 +29,7 @@ case object Paid extends PaymentStatus
 case object NotRequired extends PaymentStatus
 
 object PaymentStatus {
-  implicit val format: Format[PaymentStatus] = new Format[PaymentStatus] {
+  given format: Format[PaymentStatus] = new Format[PaymentStatus] {
     override def reads(json: JsValue): JsResult[PaymentStatus] =
       json.as[String] match {
         case "Paid"        => JsSuccess(Paid)

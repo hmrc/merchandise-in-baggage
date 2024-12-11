@@ -24,7 +24,7 @@ import play.api.libs.functional.syntax.*
 case class SessionId(value: String)
 
 object SessionId {
-  implicit val format: Format[SessionId] = implicitly[Format[String]].inmap(SessionId(_), _.value)
+  given format: Format[SessionId] = implicitly[Format[String]].inmap(SessionId(_), _.value)
 
   def apply(): SessionId = SessionId(randomUUID().toString)
 }

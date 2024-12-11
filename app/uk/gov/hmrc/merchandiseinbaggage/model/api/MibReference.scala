@@ -22,5 +22,5 @@ import play.api.libs.functional.syntax.*
 case class MibReference(value: String)
 
 object MibReference {
-  implicit val format: Format[MibReference] = implicitly[Format[String]].inmap(MibReference.apply, _.value)
+  given format: Format[MibReference] = implicitly[Format[String]].inmap(MibReference.apply, _.value)
 }
