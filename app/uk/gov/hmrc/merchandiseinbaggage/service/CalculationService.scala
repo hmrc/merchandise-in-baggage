@@ -20,9 +20,9 @@ import cats.data.OptionT
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
-import uk.gov.hmrc.merchandiseinbaggage.util.DataModelEnriched._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.*
+import uk.gov.hmrc.merchandiseinbaggage.util.DataModelEnriched.*
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
@@ -44,7 +44,7 @@ class CalculationService @Inject() (connector: CurrencyConversionConnector, decl
   def calculateAmendPlusOriginal(
     calculationAmendRequest: CalculationAmendRequest
   )(implicit hc: HeaderCarrier): OptionT[Future, CalculationResponse] = {
-    import calculationAmendRequest._
+    import calculationAmendRequest.*
     for {
       amendments          <- OptionT.fromOption[Future](amend)
       destination         <- OptionT.fromOption[Future](maybeGoodsDestination)
@@ -122,7 +122,7 @@ class CalculationService @Inject() (connector: CurrencyConversionConnector, decl
     rate: BigDecimal,
     conversionRatePeriod: Option[ConversionRatePeriod]
   ): CalculationResult = {
-    import importGoods._
+    import importGoods.*
     val converted: BigDecimal = (BigDecimal(purchaseDetails.amount) / rate).setScale(2, HALF_UP)
     val duty                  = calculateDuty(producedInEu, converted)
     val vatRate               = BigDecimal(goodsVatRate.value / 100.0)

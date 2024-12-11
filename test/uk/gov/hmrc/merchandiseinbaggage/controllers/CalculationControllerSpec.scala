@@ -20,10 +20,10 @@ import cats.data.OptionT
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
-import play.api.test.Helpers._
-import uk.gov.hmrc.merchandiseinbaggage.controllers.routes._
+import play.api.test.Helpers.*
+import uk.gov.hmrc.merchandiseinbaggage.controllers.routes.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, ConversionRatePeriod, DeclarationGoods}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}

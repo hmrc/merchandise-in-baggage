@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait ThresholdCheck
 case object OverThreshold extends ThresholdCheck

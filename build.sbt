@@ -8,7 +8,7 @@ lazy val microservice = Project("merchandise-in-baggage", file("."))
   .settings(
     PlayKeys.playDefaultPort := 8280,
     libraryDependencies ++= AppDependencies(),
-    scalacOptions ++= List(
+    scalacOptions ++= Seq(
       "-feature",
       "-Wconf:msg=unused import&src=conf/.*:s",
       "-Wconf:src=routes/.*:s"
@@ -16,9 +16,9 @@ lazy val microservice = Project("merchandise-in-baggage", file("."))
   )
   .settings(
     routesImport ++= Seq(
-      "uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders._",
-      "uk.gov.hmrc.merchandiseinbaggage.model.core._",
-      "uk.gov.hmrc.merchandiseinbaggage.model.api._"
+      "uk.gov.hmrc.merchandiseinbaggage.binders.PathBinders.*",
+      "uk.gov.hmrc.merchandiseinbaggage.model.core.*",
+      "uk.gov.hmrc.merchandiseinbaggage.model.api.*"
     )
   )
 

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import javax.inject.Inject
 import play.api.Logging
 import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
@@ -27,10 +27,10 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
-import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils._
+import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils.*
 import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 
@@ -118,7 +118,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     emailType: String,
     amendmentReference: Option[Int]
   )(implicit messages: Messages): DeclarationEmailInfo = {
-    import declaration._
+    import declaration.*
 
     val amendmentGoods =
       declarationType match {

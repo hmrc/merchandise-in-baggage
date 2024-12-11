@@ -17,11 +17,11 @@
 package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, Eori}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, DeclarationNotFound, PaymentCallbackRequest}

@@ -17,15 +17,15 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import javax.inject.Inject
 import play.api.Logging
 import play.api.i18n.MessagesApi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.core._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
+import uk.gov.hmrc.merchandiseinbaggage.model.core.*
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 

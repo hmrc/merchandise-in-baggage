@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 /** Exports do not need a paymentStatus to be set, its always None Imports initially have the status None. Once the
   * payment is success then we will update the status to "Paid" Imports with no payment scenario will have the status

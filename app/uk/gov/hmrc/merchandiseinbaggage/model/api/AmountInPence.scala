@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.text.NumberFormat.getCurrencyInstance
 import java.util.Locale.UK
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 
 import play.api.libs.json.Format
 
