@@ -21,7 +21,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsError, JsString, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.CalculationAmendRequest.*
 
 import java.time.LocalDateTime
 

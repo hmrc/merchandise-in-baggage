@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.{JsArray, JsError, JsString, JsSuccess, Json}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Address.*
 
 class AddressSpec extends AnyWordSpecLike with Matchers {
 

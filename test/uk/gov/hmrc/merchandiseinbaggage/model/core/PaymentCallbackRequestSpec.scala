@@ -19,7 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.model.core
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import uk.gov.hmrc.merchandiseinbaggage.model.core.PaymentCallbackRequest.*
 
 class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
 
