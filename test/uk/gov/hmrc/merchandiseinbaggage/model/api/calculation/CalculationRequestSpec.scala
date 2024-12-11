@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api.calculation
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, JsSuccess, JsError}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.CoreTestData
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 
@@ -34,17 +34,17 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
         )
 
         Json.toJson(request) shouldBe Json.obj(
-          "goods" -> Json.obj(
-            "category" -> "test",
-            "goodsVatRate" -> "Five",
-            "producedInEu" -> "Yes",
+          "goods"       -> Json.obj(
+            "category"        -> "test",
+            "goodsVatRate"    -> "Five",
+            "producedInEu"    -> "Yes",
             "purchaseDetails" -> Json.obj(
-              "amount" -> "100",
+              "amount"   -> "100",
               "currency" -> Json.obj(
-                "code" -> "GBP",
-                "displayName" -> "title.euro_eur",
+                "code"               -> "GBP",
+                "displayName"        -> "title.euro_eur",
                 "valueForConversion" -> "GBP",
-                "currencySynonyms" -> Json.arr("Europe", "European")
+                "currencySynonyms"   -> Json.arr("Europe", "European")
               )
             )
           ),
@@ -56,17 +56,17 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
     "deserialize from JSON" when {
       "with all fields defined" in {
         val json = Json.obj(
-          "goods" -> Json.obj(
-            "category" -> "test",
-            "goodsVatRate" -> "Five",
-            "producedInEu" -> "Yes",
+          "goods"       -> Json.obj(
+            "category"        -> "test",
+            "goodsVatRate"    -> "Five",
+            "producedInEu"    -> "Yes",
             "purchaseDetails" -> Json.obj(
-              "amount" -> "100",
+              "amount"   -> "100",
               "currency" -> Json.obj(
-                "code" -> "GBP",
-                "displayName" -> "title.euro_eur",
+                "code"               -> "GBP",
+                "displayName"        -> "title.euro_eur",
                 "valueForConversion" -> "GBP",
-                "currencySynonyms" -> Json.arr("Europe", "European")
+                "currencySynonyms"   -> Json.arr("Europe", "European")
               )
             )
           ),
@@ -84,11 +84,11 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
       "with missing fields" in {
         val json = Json.obj(
           "goods" -> Json.obj(
-            "category" -> "Electronics",
+            "category"        -> "Electronics",
             "purchaseDetails" -> Json.obj(
-              "amount" -> "100",
+              "amount"   -> "100",
               "currency" -> Json.obj(
-                "code" -> "GBP",
+                "code"        -> "GBP",
                 "displayName" -> "Pound Sterling"
               )
             )
@@ -101,12 +101,12 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
 
       "with fields of invalid types" in {
         val json = Json.obj(
-          "goods" -> Json.obj(
-            "category" -> "Electronics",
+          "goods"       -> Json.obj(
+            "category"        -> "Electronics",
             "purchaseDetails" -> Json.obj(
-              "amount" -> 100,
+              "amount"   -> 100,
               "currency" -> Json.obj(
-                "code" -> "GBP",
+                "code"        -> "GBP",
                 "displayName" -> "Pound Sterling"
               )
             )
@@ -145,22 +145,22 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
 
     "with extra fields" in {
       val json = Json.obj(
-        "goods" -> Json.obj(
-          "category" -> "test",
-          "goodsVatRate" -> "Five",
-          "producedInEu" -> "Yes",
+        "goods"       -> Json.obj(
+          "category"        -> "test",
+          "goodsVatRate"    -> "Five",
+          "producedInEu"    -> "Yes",
           "purchaseDetails" -> Json.obj(
-            "amount" -> "100",
+            "amount"   -> "100",
             "currency" -> Json.obj(
-              "code" -> "GBP",
-              "displayName" -> "title.euro_eur",
+              "code"               -> "GBP",
+              "displayName"        -> "title.euro_eur",
               "valueForConversion" -> "GBP",
-              "currencySynonyms" -> Json.arr("Europe", "European")
+              "currencySynonyms"   -> Json.arr("Europe", "European")
             )
           )
         ),
         "destination" -> "GreatBritain",
-        "extraField" -> "unexpected"
+        "extraField"  -> "unexpected"
       )
 
       json.validate[CalculationRequest] shouldBe JsSuccess(
@@ -184,23 +184,21 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
     }
     "with partial JSON with invalid types" in {
       val json = Json.obj(
-        "goods" -> Json.obj(
-          "category" -> "test",
+        "goods"       -> Json.obj(
+          "category"        -> "test",
           "purchaseDetails" -> Json.obj(
-            "amount" -> 100, 
+            "amount"   -> 100,
             "currency" -> Json.obj(
-              "code" -> "GBP",
+              "code"        -> "GBP",
               "displayName" -> "Pound Sterling"
             )
           )
         ),
-        "destination" -> 123 
+        "destination" -> 123
       )
 
       json.validate[CalculationRequest] shouldBe a[JsError]
     }
 
-
   }
 }
-

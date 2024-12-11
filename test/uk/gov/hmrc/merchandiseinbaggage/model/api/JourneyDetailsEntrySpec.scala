@@ -30,7 +30,7 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
         val entry = JourneyDetailsEntry("LHR", LocalDate.parse("2024-12-10"))
 
         Json.toJson(entry) shouldBe Json.obj(
-          "portCode" -> "LHR",
+          "portCode"     -> "LHR",
           "dateOfTravel" -> "2024-12-10"
         )
       }
@@ -39,7 +39,7 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "portCode" -> "LHR",
+          "portCode"     -> "LHR",
           "dateOfTravel" -> "2024-12-10"
         )
 
@@ -59,8 +59,8 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
 
       "fields are of invalid types" in {
         val json = Json.obj(
-          "portCode" -> "LHR",
-          "dateOfTravel" -> 12345 
+          "portCode"     -> "LHR",
+          "dateOfTravel" -> 12345
         )
 
         json.validate[JourneyDetailsEntry] shouldBe a[JsError]
@@ -70,7 +70,7 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
     "fail deserialization" when {
       "dateOfTravel is in an invalid format" in {
         val json = Json.obj(
-          "portCode" -> "LHR",
+          "portCode"     -> "LHR",
           "dateOfTravel" -> "invalid-date"
         )
 
@@ -79,7 +79,7 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
 
       "portCode is an empty string" in {
         val json = Json.obj(
-          "portCode" -> "",
+          "portCode"     -> "",
           "dateOfTravel" -> "2024-12-10"
         )
 
@@ -96,9 +96,9 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
 
     "ignore extra fields during deserialization" in {
       val json = Json.obj(
-        "portCode" -> "LHR",
+        "portCode"     -> "LHR",
         "dateOfTravel" -> "2024-12-10",
-        "extraField" -> "unexpected"
+        "extraField"   -> "unexpected"
       )
 
       json.validate[JourneyDetailsEntry] shouldBe JsSuccess(
@@ -107,4 +107,3 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
     }
   }
 }
-

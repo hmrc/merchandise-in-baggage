@@ -18,8 +18,8 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, JsSuccess, JsError}
-import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{AddressLookupCountry, Address}
+import play.api.libs.json.{JsError, JsSuccess, Json}
+import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 
 class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
@@ -27,16 +27,16 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
     val validCountry = AddressLookupCountry("GB", Some("United Kingdom"))
     val validAddress = Address(Seq("Line 1", "Line 2"), Some("AB1 2CD"), validCountry)
-    val validAgent = CustomsAgent("John Doe", validAddress)
+    val validAgent   = CustomsAgent("John Doe", validAddress)
 
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validAgent) shouldBe Json.obj(
-          "name" -> "John Doe",
+          "name"    -> "John Doe",
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"    -> Json.arr("Line 1", "Line 2"),
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
             )
@@ -48,11 +48,11 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "name" -> "John Doe",
+          "name"    -> "John Doe",
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"    -> Json.arr("Line 1", "Line 2"),
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
             )
@@ -64,9 +64,9 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
       "optional fields are missing in Address" in {
         val json = Json.obj(
-          "name" -> "John Doe",
+          "name"    -> "John Doe",
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"   -> Json.arr("Line 1", "Line 2"),
             "country" -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
@@ -81,11 +81,11 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
       "name field is empty" in {
         val json = Json.obj(
-          "name" -> "",
+          "name"    -> "",
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"    -> Json.arr("Line 1", "Line 2"),
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
             )
@@ -100,9 +100,9 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
       "required fields are missing" in {
         val json = Json.obj(
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"    -> Json.arr("Line 1", "Line 2"),
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
             )
@@ -114,11 +114,11 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "name" -> "John Doe",
+          "name"    -> "John Doe",
           "address" -> Json.obj(
-            "lines" -> "Line 1, Line 2",
+            "lines"    -> "Line 1, Line 2",
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "code" -> "GB",
               "name" -> "United Kingdom"
             )
@@ -130,11 +130,11 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
       "country code is missing in Address" in {
         val json = Json.obj(
-          "name" -> "John Doe",
+          "name"    -> "John Doe",
           "address" -> Json.obj(
-            "lines" -> Json.arr("Line 1", "Line 2"),
+            "lines"    -> Json.arr("Line 1", "Line 2"),
             "postcode" -> "AB1 2CD",
-            "country" -> Json.obj(
+            "country"  -> Json.obj(
               "name" -> "United Kingdom"
             )
           )
@@ -151,11 +151,11 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
 
     "ignore extra fields in JSON" in {
       val json = Json.obj(
-        "name" -> "John Doe",
-        "address" -> Json.obj(
-          "lines" -> Json.arr("Line 1", "Line 2"),
+        "name"       -> "John Doe",
+        "address"    -> Json.obj(
+          "lines"    -> Json.arr("Line 1", "Line 2"),
           "postcode" -> "AB1 2CD",
-          "country" -> Json.obj(
+          "country"  -> Json.obj(
             "code" -> "GB",
             "name" -> "United Kingdom"
           )

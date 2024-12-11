@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.core
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import play.api.libs.json.{JsSuccess, Json, JsError}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.core.PaymentCallbackRequest.*
 
 class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
@@ -29,7 +29,7 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
         val paymentCallbackRequest = PaymentCallbackRequest("mockChargeReference", Some(1))
 
         Json.toJson(paymentCallbackRequest) shouldBe Json.obj(
-          "chargeReference" -> "mockChargeReference",
+          "chargeReference"    -> "mockChargeReference",
           "amendmentReference" -> 1
         )
       }
@@ -49,7 +49,7 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with round-trip serialization/deserialization" in {
         val paymentCallbackRequest = PaymentCallbackRequest("mockChargeReference", Some(1))
-        val json = Json.toJson(paymentCallbackRequest)
+        val json                   = Json.toJson(paymentCallbackRequest)
 
         json.validate[PaymentCallbackRequest] shouldBe JsSuccess(paymentCallbackRequest)
       }
@@ -60,7 +60,7 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
 
         Json
           .obj(
-            "chargeReference" -> "mockChargeReference",
+            "chargeReference"    -> "mockChargeReference",
             "amendmentReference" -> 1
           )
           .validate[PaymentCallbackRequest] shouldBe JsSuccess(paymentCallbackRequest)
@@ -76,9 +76,9 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with empty string for required field" in {
         val paymentCallbackRequest = PaymentCallbackRequest("", Some(1))
-        
+
         val json = Json.obj(
-          "chargeReference" -> "",
+          "chargeReference"    -> "",
           "amendmentReference" -> 1
         )
 
@@ -86,7 +86,7 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with special characters in required field" in {
         val json = Json.obj(
-          "chargeReference" -> "mock@Charge#123",
+          "chargeReference"    -> "mock@Charge#123",
           "amendmentReference" -> 1
         )
 
@@ -96,9 +96,9 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with extra fields" in {
         val json = Json.obj(
-          "chargeReference" -> "mockChargeReference",
+          "chargeReference"    -> "mockChargeReference",
           "amendmentReference" -> 1,
-          "extraField" -> "unexpected"
+          "extraField"         -> "unexpected"
         )
 
         json.validate[PaymentCallbackRequest] shouldBe JsSuccess(
@@ -114,7 +114,7 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with invalid type for optional field" in {
         val json = Json.obj(
-          "chargeReference" -> "mockChargeReference",
+          "chargeReference"    -> "mockChargeReference",
           "amendmentReference" -> Json.arr(1, 2, 3)
         )
 
@@ -127,14 +127,14 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
       "with invalid field types" in {
         val json = Json.obj(
-          "chargeReference" -> 12345,
+          "chargeReference"    -> 12345,
           "amendmentReference" -> Some(true)
         )
         json.validate[PaymentCallbackRequest] shouldBe a[JsError]
       }
       "with null optional field" in {
         val json = Json.obj(
-          "chargeReference" -> "mockChargeReference",
+          "chargeReference"    -> "mockChargeReference",
           "amendmentReference" -> null
         )
 
@@ -149,6 +149,5 @@ class PaymentCallbackRequestSpec extends AnyWordSpecLike with Matchers {
       }
     }
 
-    
   }
 }

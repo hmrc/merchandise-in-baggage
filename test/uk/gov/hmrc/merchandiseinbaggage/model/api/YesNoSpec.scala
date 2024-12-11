@@ -21,7 +21,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsError, JsString, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.*
 
-
 class YesNoSpec extends AnyWordSpec with Matchers {
 
   "YesNo Enum" should {
@@ -75,7 +74,7 @@ class YesNoSpec extends AnyWordSpec with Matchers {
 
     "return correct string representation" in {
       Yes.entryName shouldBe "Yes"
-      No.entryName shouldBe "No"
+      No.entryName  shouldBe "No"
     }
   }
 }

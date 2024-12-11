@@ -54,14 +54,14 @@ class EmailSpec extends AnyWordSpec with Matchers {
     "handle edge cases" when {
       "email contains special characters" in {
         val email = Email("example+123@test.com")
-        val json = Json.toJson(email)
+        val json  = Json.toJson(email)
 
         json.validate[Email] shouldBe JsSuccess(email)
       }
 
       "email is an empty string" in {
         val email = Email("")
-        val json = Json.toJson(email)
+        val json  = Json.toJson(email)
 
         json.validate[Email] shouldBe JsSuccess(email)
       }

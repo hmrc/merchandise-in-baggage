@@ -206,7 +206,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     }
   }
 
-  case class PaymentMade(totalDutyDue: AmountInPence, totalVatDue: AmountInPence, totalTaxDue: AmountInPence)
+  private case class PaymentMade(totalDutyDue: AmountInPence, totalVatDue: AmountInPence, totalTaxDue: AmountInPence)
 
   private def paymentParams(declaration: Declaration) = {
 

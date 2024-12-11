@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, JsSuccess, JsError}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class CountrySpec extends AnyWordSpec with Matchers {
 
@@ -35,10 +35,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validCountry) shouldBe Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
       }
@@ -46,10 +46,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
         val countryWithEmptySynonyms = validCountry.copy(countrySynonyms = List.empty)
 
         Json.toJson(countryWithEmptySynonyms) shouldBe Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr()
         )
       }
@@ -58,10 +58,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
@@ -70,10 +70,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
 
       "countrySynonyms is empty" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr()
         )
 
@@ -84,22 +84,22 @@ class CountrySpec extends AnyWordSpec with Matchers {
 
       "countrySynonyms is missing" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
+          "code"         -> "GBR",
+          "countryName"  -> "United Kingdom",
           "alphaTwoCode" -> "GB",
-          "isEu" -> false
+          "isEu"         -> false
         )
 
         json.validate[Country] shouldBe a[JsError]
       }
       "ignore extra fields in JSON" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England"),
-          "extraField" -> "unexpected"
+          "extraField"      -> "unexpected"
         )
 
         json.validate[Country] shouldBe JsSuccess(
@@ -108,10 +108,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "countrySynonyms array is empty" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr()
         )
 
@@ -121,10 +121,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "countryName is an empty string" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
@@ -134,10 +134,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "alphaTwoCode has special characters" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "G@",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "G@",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
@@ -147,10 +147,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "special characters in countrySynonyms" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Brit@in", "Eng1and", "#Country!")
         )
 
@@ -163,7 +163,7 @@ class CountrySpec extends AnyWordSpec with Matchers {
     "fail deserialization" when {
       "required fields are missing" in {
         val json = Json.obj(
-          "code" -> "GBR",
+          "code"        -> "GBR",
           "countryName" -> "United Kingdom"
           // Missing "alphaTwoCode", "isEu", and "countrySynonyms"
         )
@@ -173,10 +173,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> 123,
-          "isEu" -> "false",
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> 123,
+          "isEu"            -> "false",
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
@@ -184,20 +184,20 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "countrySynonyms is null" in {
         val jsonNull = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> null
         )
         jsonNull.validate[Country] shouldBe a[JsError]
       }
       "countrySynonyms is a string instead of an array" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> "notAnArray"
         )
 
@@ -206,10 +206,10 @@ class CountrySpec extends AnyWordSpec with Matchers {
 
       "isEu is null" in {
         val json = Json.obj(
-          "code" -> "GBR",
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> null,
+          "code"            -> "GBR",
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> null,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
@@ -217,15 +217,14 @@ class CountrySpec extends AnyWordSpec with Matchers {
       }
       "code is empty or missing" in {
         val jsonMissingCode = Json.obj(
-          "countryName" -> "United Kingdom",
-          "alphaTwoCode" -> "GB",
-          "isEu" -> false,
+          "countryName"     -> "United Kingdom",
+          "alphaTwoCode"    -> "GB",
+          "isEu"            -> false,
           "countrySynonyms" -> Json.arr("Britain", "England")
         )
 
         jsonMissingCode.validate[Country] shouldBe a[JsError]
       }
-
 
     }
 

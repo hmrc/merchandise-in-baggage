@@ -33,9 +33,9 @@ class PortSpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validPort) shouldBe Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> true,
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> true,
           "portSynonyms" -> Json.arr("Heathrow", "LHR", "London Airport")
         )
       }
@@ -43,9 +43,9 @@ class PortSpec extends AnyWordSpec with Matchers {
       "portSynonyms is empty" in {
         val port = validPort.copy(portSynonyms = List.empty)
         Json.toJson(port) shouldBe Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> true,
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> true,
           "portSynonyms" -> Json.arr()
         )
       }
@@ -54,9 +54,9 @@ class PortSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> true,
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> true,
           "portSynonyms" -> Json.arr("Heathrow", "LHR", "London Airport")
         )
 
@@ -65,9 +65,9 @@ class PortSpec extends AnyWordSpec with Matchers {
 
       "portSynonyms is empty" in {
         val json = Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> true,
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> true,
           "portSynonyms" -> Json.arr()
         )
 
@@ -80,9 +80,9 @@ class PortSpec extends AnyWordSpec with Matchers {
     "fail deserialization" when {
       "required fields are missing" in {
         val json = Json.obj(
-          "code" -> "LHR",
+          "code"        -> "LHR",
           "displayName" -> "London Heathrow",
-          "isGB" -> true
+          "isGB"        -> true
           // Missing "portSynonyms"
         )
 
@@ -91,9 +91,9 @@ class PortSpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> "true", // Invalid type (should be boolean)
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> "true", // Invalid type (should be boolean)
           "portSynonyms" -> Json.arr("Heathrow", "LHR", "London Airport")
         )
 
@@ -102,9 +102,9 @@ class PortSpec extends AnyWordSpec with Matchers {
 
       "portSynonyms is null" in {
         val json = Json.obj(
-          "code" -> "LHR",
-          "displayName" -> "London Heathrow",
-          "isGB" -> true,
+          "code"         -> "LHR",
+          "displayName"  -> "London Heathrow",
+          "isGB"         -> true,
           "portSynonyms" -> null
         )
 
@@ -126,7 +126,7 @@ class PortSpec extends AnyWordSpec with Matchers {
 
       "portSynonyms contains a large list" in {
         val largeList = List.fill(1000)("Synonym")
-        val port = validPort.copy(portSynonyms = largeList)
+        val port      = validPort.copy(portSynonyms = largeList)
 
         val json = Json.toJson(port)
         json.validate[Port] shouldBe JsSuccess(port)

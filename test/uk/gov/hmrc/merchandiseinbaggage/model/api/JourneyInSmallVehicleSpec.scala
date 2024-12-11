@@ -80,10 +80,10 @@ class JourneyInSmallVehicleSpec extends AnyWordSpec with Matchers {
 
       "dateOfTravel is missing" in {
         val json = Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"               -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
           "registrationNumber" -> "AB123CD"
@@ -94,10 +94,10 @@ class JourneyInSmallVehicleSpec extends AnyWordSpec with Matchers {
 
       "registrationNumber is missing" in {
         val json = Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"         -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
           "dateOfTravel" -> "2024-12-10"
@@ -108,13 +108,13 @@ class JourneyInSmallVehicleSpec extends AnyWordSpec with Matchers {
 
       "dateOfTravel is invalid" in {
         val json = Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"               -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
-          "dateOfTravel" -> "invalid-date",
+          "dateOfTravel"       -> "invalid-date",
           "registrationNumber" -> "AB123CD"
         )
 

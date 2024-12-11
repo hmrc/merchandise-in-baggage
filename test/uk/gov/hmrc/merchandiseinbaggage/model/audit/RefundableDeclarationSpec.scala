@@ -18,12 +18,12 @@ package uk.gov.hmrc.merchandiseinbaggage.model.audit
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{JsError, JsSuccess, Json, JsString, JsNumber}
+import play.api.libs.json.{JsError, JsNumber, JsString, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.MibReference
 
 class RefundableDeclarationSpec extends AnyWordSpec with Matchers {
   val validMibReference = MibReference("REF123")
-  
+
   "RefundableDeclaration" should {
     val validDeclaration = RefundableDeclaration(
       mibReference = validMibReference,
@@ -44,19 +44,19 @@ class RefundableDeclarationSpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validDeclaration) shouldBe Json.obj(
-          "mibReference" -> "REF123",
-          "name" -> "John Doe",
-          "eori" -> "GB123456789000",
-          "goodsCategory" -> "Electronics",
-          "gbpValue" -> "1000",
-          "customsDuty" -> "100",
-          "vat" -> "200",
-          "vatRate" -> "20%",
-          "paymentAmount" -> "1300",
-          "producedInEu" -> "Yes",
+          "mibReference"   -> "REF123",
+          "name"           -> "John Doe",
+          "eori"           -> "GB123456789000",
+          "goodsCategory"  -> "Electronics",
+          "gbpValue"       -> "1000",
+          "customsDuty"    -> "100",
+          "vat"            -> "200",
+          "vatRate"        -> "20%",
+          "paymentAmount"  -> "1300",
+          "producedInEu"   -> "Yes",
           "purchaseAmount" -> "1200",
-          "currencyCode" -> "USD",
-          "exchangeRate" -> "1.25"
+          "currencyCode"   -> "USD",
+          "exchangeRate"   -> "1.25"
         )
       }
     }
@@ -64,19 +64,19 @@ class RefundableDeclarationSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "mibReference" -> "REF123",
-          "name" -> "John Doe",
-          "eori" -> "GB123456789000",
-          "goodsCategory" -> "Electronics",
-          "gbpValue" -> "1000",
-          "customsDuty" -> "100",
-          "vat" -> "200",
-          "vatRate" -> "20%",
-          "paymentAmount" -> "1300",
-          "producedInEu" -> "Yes",
+          "mibReference"   -> "REF123",
+          "name"           -> "John Doe",
+          "eori"           -> "GB123456789000",
+          "goodsCategory"  -> "Electronics",
+          "gbpValue"       -> "1000",
+          "customsDuty"    -> "100",
+          "vat"            -> "200",
+          "vatRate"        -> "20%",
+          "paymentAmount"  -> "1300",
+          "producedInEu"   -> "Yes",
           "purchaseAmount" -> "1200",
-          "currencyCode" -> "USD",
-          "exchangeRate" -> "1.25"
+          "currencyCode"   -> "USD",
+          "exchangeRate"   -> "1.25"
         )
 
         json.validate[RefundableDeclaration] shouldBe JsSuccess(validDeclaration)
@@ -86,8 +86,8 @@ class RefundableDeclarationSpec extends AnyWordSpec with Matchers {
     "fail deserialization" when {
       "required fields are missing" in {
         val json = Json.obj(
-          "name" -> "John Doe",
-          "eori" -> "GB123456789000",
+          "name"          -> "John Doe",
+          "eori"          -> "GB123456789000",
           "goodsCategory" -> "Electronics"
           // Missing other fields
         )
@@ -97,19 +97,19 @@ class RefundableDeclarationSpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "mibReference" -> 123, // Should be a string
-          "name" -> "John Doe",
-          "eori" -> "GB123456789000",
-          "goodsCategory" -> "Electronics",
-          "gbpValue" -> true, // Should be a string
-          "customsDuty" -> "100",
-          "vat" -> "200",
-          "vatRate" -> "20%",
-          "paymentAmount" -> "1300",
-          "producedInEu" -> "Yes",
+          "mibReference"   -> 123, // Should be a string
+          "name"           -> "John Doe",
+          "eori"           -> "GB123456789000",
+          "goodsCategory"  -> "Electronics",
+          "gbpValue"       -> true, // Should be a string
+          "customsDuty"    -> "100",
+          "vat"            -> "200",
+          "vatRate"        -> "20%",
+          "paymentAmount"  -> "1300",
+          "producedInEu"   -> "Yes",
           "purchaseAmount" -> "1200",
-          "currencyCode" -> "USD",
-          "exchangeRate" -> "1.25"
+          "currencyCode"   -> "USD",
+          "exchangeRate"   -> "1.25"
         )
 
         json.validate[RefundableDeclaration] shouldBe a[JsError]

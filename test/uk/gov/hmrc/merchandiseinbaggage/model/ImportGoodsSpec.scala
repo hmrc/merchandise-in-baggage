@@ -22,8 +22,9 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 
 class ImportGoodsSpec extends AnyWordSpec with Matchers {
-  val validPurchaseDetails = PurchaseDetails("100.00", Currency("USD", "United States Dollar", Some("USD"), List("Dollar", "US")))
-  val validImportGoods = ImportGoods(
+  val validPurchaseDetails =
+    PurchaseDetails("100.00", Currency("USD", "United States Dollar", Some("USD"), List("Dollar", "US")))
+  val validImportGoods     = ImportGoods(
     category = "Electronics",
     goodsVatRate = GoodsVatRates.Five,
     producedInEu = YesNoDontKnow.Yes,
@@ -35,16 +36,16 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validImportGoods) shouldBe Json.obj(
-          "category" -> "Electronics",
-          "goodsVatRate" -> "Five",
-          "producedInEu" -> "Yes",
+          "category"        -> "Electronics",
+          "goodsVatRate"    -> "Five",
+          "producedInEu"    -> "Yes",
           "purchaseDetails" -> Json.obj(
-            "amount" -> "100.00",
+            "amount"   -> "100.00",
             "currency" -> Json.obj(
-              "code" -> "USD",
-              "displayName" -> "United States Dollar",
+              "code"               -> "USD",
+              "displayName"        -> "United States Dollar",
               "valueForConversion" -> "USD",
-              "currencySynonyms" -> Json.arr("Dollar", "US")
+              "currencySynonyms"   -> Json.arr("Dollar", "US")
             )
           )
         )
@@ -54,16 +55,16 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "category" -> "Electronics",
-          "goodsVatRate" -> "Five",
-          "producedInEu" -> "Yes",
+          "category"        -> "Electronics",
+          "goodsVatRate"    -> "Five",
+          "producedInEu"    -> "Yes",
           "purchaseDetails" -> Json.obj(
-            "amount" -> "100.00",
+            "amount"   -> "100.00",
             "currency" -> Json.obj(
-              "code" -> "USD",
-              "displayName" -> "United States Dollar",
+              "code"               -> "USD",
+              "displayName"        -> "United States Dollar",
               "valueForConversion" -> "USD",
-              "currencySynonyms" -> Json.arr("Dollar", "US")
+              "currencySynonyms"   -> Json.arr("Dollar", "US")
             )
           )
         )
@@ -75,7 +76,7 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
     "fail deserialization" when {
       "required fields are missing" in {
         val json = Json.obj(
-          "category" -> "Electronics",
+          "category"     -> "Electronics",
           "goodsVatRate" -> "Standard"
           // Missing "producedInEu" and "purchaseDetails"
         )
@@ -85,16 +86,16 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "category" -> "Electronics",
-          "goodsVatRate" -> 123, // Invalid type
-          "producedInEu" -> "Yes",
+          "category"        -> "Electronics",
+          "goodsVatRate"    -> 123, // Invalid type
+          "producedInEu"    -> "Yes",
           "purchaseDetails" -> Json.obj(
-            "amount" -> "100.00",
+            "amount"   -> "100.00",
             "currency" -> Json.obj(
-              "code" -> "USD",
-              "displayName" -> "United States Dollar",
+              "code"               -> "USD",
+              "displayName"        -> "United States Dollar",
               "valueForConversion" -> "USD",
-              "currencySynonyms" -> Json.arr("Dollar", "US")
+              "currencySynonyms"   -> Json.arr("Dollar", "US")
             )
           )
         )
@@ -106,22 +107,22 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
     "handle edge cases" when {
       "category contains special characters" in {
         val goods = validImportGoods.copy(category = "Electronics!@#$%^&*")
-        val json = Json.toJson(goods)
+        val json  = Json.toJson(goods)
 
         json.validate[ImportGoods] shouldBe JsSuccess(goods)
       }
 
       "producedInEu has different values" in {
         val goods = validImportGoods.copy(producedInEu = YesNoDontKnow.No)
-        val json = Json.toJson(goods)
+        val json  = Json.toJson(goods)
 
         json.validate[ImportGoods] shouldBe JsSuccess(goods)
       }
 
       "purchaseDetails contains a very large amount" in {
         val largePurchaseDetails = validPurchaseDetails.copy(amount = "1000000000.00")
-        val goods = validImportGoods.copy(purchaseDetails = largePurchaseDetails)
-        val json = Json.toJson(goods)
+        val goods                = validImportGoods.copy(purchaseDetails = largePurchaseDetails)
+        val json                 = Json.toJson(goods)
 
         json.validate[ImportGoods] shouldBe JsSuccess(goods)
       }

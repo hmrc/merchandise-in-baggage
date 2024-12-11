@@ -67,8 +67,8 @@ class EoriSpec extends AnyWordSpec with Matchers {
 
       "value is an unusually long string" in {
         val longValue = "G" * 1000
-        val eori = Eori(longValue)
-        val json = Json.toJson(eori)
+        val eori      = Eori(longValue)
+        val json      = Json.toJson(eori)
 
         json.validate[Eori] shouldBe JsSuccess(eori)
       }

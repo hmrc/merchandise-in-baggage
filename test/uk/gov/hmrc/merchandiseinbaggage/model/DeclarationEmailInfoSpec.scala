@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, JsSuccess, JsError}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
   "DeclarationEmailInfo" should {
@@ -35,12 +35,12 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validEmailInfo) shouldBe Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> true,
-          "eventUrl" -> "https://event.url",
-          "onSendUrl" -> "https://onsend.url"
+          "force"      -> true,
+          "eventUrl"   -> "https://event.url",
+          "onSendUrl"  -> "https://onsend.url"
         )
       }
 
@@ -48,10 +48,10 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
         val emailInfo = validEmailInfo.copy(eventUrl = None, onSendUrl = None)
 
         Json.toJson(emailInfo) shouldBe Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> true
+          "force"      -> true
         )
       }
 
@@ -59,12 +59,12 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
         val emailInfo = validEmailInfo.copy(force = false)
 
         Json.toJson(emailInfo) shouldBe Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> false,
-          "eventUrl" -> "https://event.url",
-          "onSendUrl" -> "https://onsend.url"
+          "force"      -> false,
+          "eventUrl"   -> "https://event.url",
+          "onSendUrl"  -> "https://onsend.url"
         )
       }
     }
@@ -72,12 +72,12 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> true,
-          "eventUrl" -> "https://event.url",
-          "onSendUrl" -> "https://onsend.url"
+          "force"      -> true,
+          "eventUrl"   -> "https://event.url",
+          "onSendUrl"  -> "https://onsend.url"
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(validEmailInfo)
@@ -85,10 +85,10 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
 
       "optional fields are missing" in {
         val json = Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> true
+          "force"      -> true
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(
@@ -98,11 +98,11 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
 
       "force is missing and defaults to false" in {
         val json = Json.obj(
-          "to" -> Json.arr("example@test.com", "user@example.com"),
+          "to"         -> Json.arr("example@test.com", "user@example.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "eventUrl" -> "https://event.url",
-          "onSendUrl" -> "https://onsend.url"
+          "eventUrl"   -> "https://event.url",
+          "onSendUrl"  -> "https://onsend.url"
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(validEmailInfo.copy(force = false))
@@ -121,12 +121,12 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
 
       "field types are invalid" in {
         val json = Json.obj(
-          "to" -> "invalidType", // Should be an array
+          "to"         -> "invalidType", // Should be an array
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1", "param2" -> "value2"),
-          "force" -> "true", // Should be boolean
-          "eventUrl" -> "https://event.url",
-          "onSendUrl" -> "https://onsend.url"
+          "force"      -> "true", // Should be boolean
+          "eventUrl"   -> "https://event.url",
+          "onSendUrl"  -> "https://onsend.url"
         )
 
         json.validate[DeclarationEmailInfo] shouldBe a[JsError]
@@ -136,10 +136,10 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
     "handle edge cases" when {
       "to is empty" in {
         val json = Json.obj(
-          "to" -> Json.arr(),
+          "to"         -> Json.arr(),
           "templateId" -> "template123",
           "parameters" -> Json.obj("param1" -> "value1"),
-          "force" -> false
+          "force"      -> false
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(
@@ -149,10 +149,10 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
 
       "parameters are empty" in {
         val json = Json.obj(
-          "to" -> Json.arr("example@test.com"),
+          "to"         -> Json.arr("example@test.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj(),
-          "force" -> false
+          "force"      -> false
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(
@@ -162,10 +162,10 @@ class DeclarationEmailInfoSpec extends AnyWordSpec with Matchers {
 
       "parameters contain special characters" in {
         val json = Json.obj(
-          "to" -> Json.arr("example@test.com"),
+          "to"         -> Json.arr("example@test.com"),
           "templateId" -> "template123",
           "parameters" -> Json.obj("key" -> "!@#$%^&*()_+=|<>"),
-          "force" -> false
+          "force"      -> false
         )
 
         json.validate[DeclarationEmailInfo] shouldBe JsSuccess(

@@ -30,59 +30,59 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
   lazy val timestamp = LocalDateTime.parse("2024-12-09T16:38:37.598")
 
   lazy val allFieldsDefinedJson = Json.obj(
-    "declarationId" -> "decl1",
-    "amend" -> Json.obj(
-      "reference" -> 1,
-      "source" -> "Digital",
-      "emailsSent" -> false,
-      "dateOfAmendment" -> "2024-12-09T16:38:37.598",
-      "goods" -> Json.obj(
+    "declarationId"         -> "decl1",
+    "amend"                 -> Json.obj(
+      "reference"                   -> 1,
+      "source"                      -> "Digital",
+      "emailsSent"                  -> false,
+      "dateOfAmendment"             -> "2024-12-09T16:38:37.598",
+      "goods"                       -> Json.obj(
         "goods" -> Json.arr(
           Json.obj(
-            "category" -> "test",
-            "goodsVatRate" -> "Five",
-            "producedInEu" -> "Yes",
+            "category"        -> "test",
+            "goodsVatRate"    -> "Five",
+            "producedInEu"    -> "Yes",
             "purchaseDetails" -> Json.obj(
-              "amount" -> "100",
+              "amount"   -> "100",
               "currency" -> Json.obj(
-                "code" -> "GBP",
-                "displayName" -> "title.euro_eur",
-                "currencySynonyms" -> Json.arr("Europe", "European"),
+                "code"               -> "GBP",
+                "displayName"        -> "title.euro_eur",
+                "currencySynonyms"   -> Json.arr("Europe", "European"),
                 "valueForConversion" -> "GBP"
               )
             )
           )
         )
       ),
-      "lang" -> "en",
+      "lang"                        -> "en",
       "maybeTotalCalculationResult" -> Json.obj(
-        "totalVatDue" -> 100,
+        "totalVatDue"        -> 100,
         "calculationResults" -> Json.obj(
           "calculationResults" -> Json.arr(
             Json.obj(
-              "goods" -> Json.obj(
-                "category" -> "test",
-                "goodsVatRate" -> "Five",
-                "producedInEu" -> "Yes",
+              "goods"     -> Json.obj(
+                "category"        -> "test",
+                "goodsVatRate"    -> "Five",
+                "producedInEu"    -> "Yes",
                 "purchaseDetails" -> Json.obj(
-                  "amount" -> "100",
+                  "amount"   -> "100",
                   "currency" -> Json.obj(
-                    "code" -> "GBP",
-                    "displayName" -> "title.euro_eur",
-                    "currencySynonyms" -> Json.arr("Europe", "European"),
+                    "code"               -> "GBP",
+                    "displayName"        -> "title.euro_eur",
+                    "currencySynonyms"   -> Json.arr("Europe", "European"),
                     "valueForConversion" -> "GBP"
                   )
                 )
               ),
               "gbpAmount" -> 100,
-              "duty" -> 100,
-              "vat" -> 100
+              "duty"      -> 100,
+              "vat"       -> 100
             )
           )
         ),
-        "totalDutyDue" -> 100,
-        "totalGbpValue" -> 100,
-        "totalTaxDue" -> 100
+        "totalDutyDue"       -> 100,
+        "totalGbpValue"      -> 100,
+        "totalTaxDue"        -> 100
       )
     ),
     "maybeGoodsDestination" -> "GreatBritain"
@@ -109,7 +109,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
         )
 
         Json.toJson(request) shouldBe Json.obj(
-          "declarationId" ->"decl1"
+          "declarationId" -> "decl1"
         )
       }
     }
@@ -143,9 +143,9 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
 
       "some fields are null" in {
         val json = Json.obj(
-          "amend" -> null,
+          "amend"                 -> null,
           "maybeGoodsDestination" -> null,
-          "declarationId" -> "decl1"
+          "declarationId"         -> "decl1"
         )
 
         json.validate[CalculationAmendRequest] shouldBe JsSuccess(
@@ -167,9 +167,9 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
 
       "fields are of invalid types" in {
         val json = Json.obj(
-          "amend" -> "invalidType",
+          "amend"                 -> "invalidType",
           "maybeGoodsDestination" -> 12345,
-          "declarationId" -> Json.obj("value" -> true)
+          "declarationId"         -> Json.obj("value" -> true)
         )
 
         json.validate[CalculationAmendRequest] shouldBe a[JsError]
@@ -200,8 +200,8 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
       }
       "fail to deserialize partial JSON with invalid types" in {
         val json = Json.obj(
-          "declarationId" -> "decl1",
-          "amend" -> Json.obj("reference" -> "invalidType"),
+          "declarationId"         -> "decl1",
+          "amend"                 -> Json.obj("reference" -> "invalidType"),
           "maybeGoodsDestination" -> "GreatBritain"
         )
 
@@ -209,9 +209,9 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
       }
       "fail to deserialize with missing nested fields" in {
         val json = Json.obj(
-          "declarationId" -> "decl1",
-          "amend" -> Json.obj(
-            "source" -> "Digital",
+          "declarationId"         -> "decl1",
+          "amend"                 -> Json.obj(
+            "source"     -> "Digital",
             "emailsSent" -> false
             // Missing nested fields like "reference" and "dateOfAmendment"
           ),
@@ -222,32 +222,34 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
       }
       "null nested optional fields" in {
         val json = Json.obj(
-          "declarationId" -> "decl1",
-          "amend" -> Json.obj(
-            "reference" -> 1,
-            "source" -> "Digital",
-            "emailsSent" -> false,
-            "dateOfAmendment" -> "2024-12-09T16:38:37.598",
-            "goods" -> Json.obj("goods" -> Json.arr()),
-            "lang" -> "en",
+          "declarationId"         -> "decl1",
+          "amend"                 -> Json.obj(
+            "reference"                   -> 1,
+            "source"                      -> "Digital",
+            "emailsSent"                  -> false,
+            "dateOfAmendment"             -> "2024-12-09T16:38:37.598",
+            "goods"                       -> Json.obj("goods" -> Json.arr()),
+            "lang"                        -> "en",
             "maybeTotalCalculationResult" -> null,
-            "paymentStatus" -> null
+            "paymentStatus"               -> null
           ),
           "maybeGoodsDestination" -> "GreatBritain"
         )
 
         json.validate[CalculationAmendRequest] shouldBe JsSuccess(
           CalculationAmendRequest(
-            amend = Some(Amendment(
-              reference = 1,
-              dateOfAmendment = LocalDateTime.parse("2024-12-09T16:38:37.598"),
-              goods = DeclarationGoods(List()),
-              maybeTotalCalculationResult = None,
-              paymentStatus = None,
-              source = Some("Digital"),
-              emailsSent = false,
-              lang = "en"
-            )),
+            amend = Some(
+              Amendment(
+                reference = 1,
+                dateOfAmendment = LocalDateTime.parse("2024-12-09T16:38:37.598"),
+                goods = DeclarationGoods(List()),
+                maybeTotalCalculationResult = None,
+                paymentStatus = None,
+                source = Some("Digital"),
+                emailsSent = false,
+                lang = "en"
+              )
+            ),
             maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
             declarationId = DeclarationId("decl1")
           )

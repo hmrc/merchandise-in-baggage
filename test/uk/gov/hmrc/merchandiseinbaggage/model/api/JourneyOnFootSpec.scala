@@ -22,7 +22,7 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 import java.time.LocalDate
 
 class JourneyOnFootSpec extends AnyWordSpec with Matchers {
-  val validPort = Port("LHR", "London Heathrow", isGB = true, portSynonyms = List("Heathrow", "LHR"))
+  val validPort          = Port("LHR", "London Heathrow", isGB = true, portSynonyms = List("Heathrow", "LHR"))
   val validJourneyOnFoot = JourneyOnFoot(
     port = validPort,
     dateOfTravel = LocalDate.parse("2024-12-10")
@@ -33,10 +33,10 @@ class JourneyOnFootSpec extends AnyWordSpec with Matchers {
     "serialize to JSON" when {
       "all fields are valid" in {
         Json.toJson(validJourneyOnFoot) shouldBe Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"         -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
           "dateOfTravel" -> "2024-12-10"
@@ -47,10 +47,10 @@ class JourneyOnFootSpec extends AnyWordSpec with Matchers {
     "deserialize from JSON" when {
       "all fields are valid" in {
         val json = Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"         -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
           "dateOfTravel" -> "2024-12-10"
@@ -73,9 +73,9 @@ class JourneyOnFootSpec extends AnyWordSpec with Matchers {
       "dateOfTravel is missing" in {
         val json = Json.obj(
           "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           )
         )
@@ -85,13 +85,13 @@ class JourneyOnFootSpec extends AnyWordSpec with Matchers {
 
       "dateOfTravel is invalid" in {
         val json = Json.obj(
-          "port" -> Json.obj(
-            "code" -> "LHR",
-            "displayName" -> "London Heathrow",
-            "isGB" -> true,
+          "port"               -> Json.obj(
+            "code"         -> "LHR",
+            "displayName"  -> "London Heathrow",
+            "isGB"         -> true,
             "portSynonyms" -> Json.arr("Heathrow", "LHR")
           ),
-          "dateOfTravel" -> "invalid-date",
+          "dateOfTravel"       -> "invalid-date",
           "registrationNumber" -> "AB123CD"
         )
 
@@ -102,14 +102,14 @@ class JourneyOnFootSpec extends AnyWordSpec with Matchers {
     "handle edge cases" when {
       "dateOfTravel is an extreme date" in {
         val journey = validJourneyOnFoot.copy(dateOfTravel = LocalDate.of(1900, 1, 1))
-        val json = Json.toJson(journey)
+        val json    = Json.toJson(journey)
 
         json.validate[JourneyOnFoot] shouldBe JsSuccess(journey)
       }
 
       "port contains special characters" in {
         val journey = validJourneyOnFoot.copy(port = validPort.copy(code = "LHR@123"))
-        val json = Json.toJson(journey)
+        val json    = Json.toJson(journey)
 
         json.validate[JourneyOnFoot] shouldBe JsSuccess(journey)
       }
