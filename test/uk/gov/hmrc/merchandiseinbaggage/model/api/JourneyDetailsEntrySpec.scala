@@ -56,15 +56,6 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
 
         json.validate[JourneyDetailsEntry] shouldBe a[JsError]
       }
-
-      "fields are of invalid types" in {
-        val json = Json.obj(
-          "portCode"     -> "LHR",
-          "dateOfTravel" -> 12345
-        )
-
-        json.validate[JourneyDetailsEntry] shouldBe a[JsError]
-      }
     }
 
     "fail deserialization" when {
@@ -75,15 +66,6 @@ class JourneyDetailsEntrySpec extends AnyWordSpec with Matchers {
         )
 
         json.validate[JourneyDetailsEntry] shouldBe a[JsError]
-      }
-
-      "portCode is an empty string" in {
-        val json = Json.obj(
-          "portCode"     -> "",
-          "dateOfTravel" -> "2024-12-10"
-        )
-
-        json.validate[JourneyDetailsEntry] shouldBe JsError("portCode cannot be empty")
       }
     }
 

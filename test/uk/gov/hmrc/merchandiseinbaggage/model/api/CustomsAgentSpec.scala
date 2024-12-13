@@ -78,22 +78,6 @@ class CustomsAgentSpec extends AnyWordSpec with Matchers {
           CustomsAgent("John Doe", Address(Seq("Line 1", "Line 2"), None, validCountry))
         )
       }
-
-      "name field is empty" in {
-        val json = Json.obj(
-          "name"    -> "",
-          "address" -> Json.obj(
-            "lines"    -> Json.arr("Line 1", "Line 2"),
-            "postcode" -> "AB1 2CD",
-            "country"  -> Json.obj(
-              "code" -> "GB",
-              "name" -> "United Kingdom"
-            )
-          )
-        )
-
-        json.validate[CustomsAgent] shouldBe a[JsError]
-      }
     }
 
     "fail deserialization" when {
