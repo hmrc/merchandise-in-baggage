@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 case class Port(code: String, displayName: String, isGB: Boolean, portSynonyms: List[String])
 
 object Port {
-  implicit val format: OFormat[Port] = Json.format[Port]
+  given format: OFormat[Port] = Json.format[Port]
 }

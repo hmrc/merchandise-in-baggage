@@ -21,5 +21,5 @@ import play.api.libs.json.{Json, OFormat}
 case class Email(email: String)
 
 object Email {
-  implicit val format: OFormat[Email] = Json.format[Email]
+  given format: OFormat[Email] = Json.format[Email]
 }

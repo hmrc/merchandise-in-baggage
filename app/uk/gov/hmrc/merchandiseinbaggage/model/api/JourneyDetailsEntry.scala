@@ -17,11 +17,10 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.time.LocalDate
-
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.*
 
 case class JourneyDetailsEntry(portCode: String, dateOfTravel: LocalDate)
 
 object JourneyDetailsEntry {
-  implicit val format: OFormat[JourneyDetailsEntry] = Json.format[JourneyDetailsEntry]
+  given format: OFormat[JourneyDetailsEntry] = Json.format[JourneyDetailsEntry]
 }

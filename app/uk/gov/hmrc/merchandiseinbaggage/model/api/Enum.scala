@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import enumeratum.{EnumEntry, PlayEnum}
-import play.api.libs.json._
+import play.api.libs.json.*
 
 trait Enum[A <: EnumEntry] extends PlayEnum[A]
 

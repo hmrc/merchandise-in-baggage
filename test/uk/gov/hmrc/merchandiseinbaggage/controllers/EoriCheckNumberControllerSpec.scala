@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EoriCheckConnector

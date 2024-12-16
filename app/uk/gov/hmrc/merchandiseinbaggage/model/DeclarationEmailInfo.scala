@@ -28,5 +28,5 @@ case class DeclarationEmailInfo(
 )
 
 object DeclarationEmailInfo {
-  implicit val formats: OFormat[DeclarationEmailInfo] = Json.format[DeclarationEmailInfo]
+  given formats: OFormat[DeclarationEmailInfo] = Json.format[DeclarationEmailInfo]
 }

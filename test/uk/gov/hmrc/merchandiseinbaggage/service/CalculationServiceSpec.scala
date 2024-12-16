@@ -22,8 +22,9 @@ import org.mockito.Mockito.{mock, reset, times, verify, when}
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
-import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
+import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.*
+import uk.gov.hmrc.merchandiseinbaggage.model.core.BusinessError
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import java.time.LocalDate.now
@@ -292,7 +293,7 @@ class CalculationServiceSpec extends BaseSpecWithApplication with ScalaFutures w
     val declaration   =
       aDeclaration.copy(declarationGoods = aDeclaration.declarationGoods.copy(goods = Seq(originalGoods)))
 
-    when(mockDeclarationService.findByDeclarationId(any())).thenReturn(EitherT.pure(declaration))
+    when(mockDeclarationService.findByDeclarationId(any())).thenReturn(EitherT.pure[Future, BusinessError](declaration))
     when(connector.getConversionRate(anyString(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(conversionRatePeriod)))
 

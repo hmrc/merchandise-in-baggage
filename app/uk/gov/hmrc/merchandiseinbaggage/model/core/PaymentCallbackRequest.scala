@@ -21,5 +21,5 @@ import play.api.libs.json.{Format, Json}
 case class PaymentCallbackRequest(chargeReference: String, amendmentReference: Option[Int] = None)
 
 object PaymentCallbackRequest {
-  implicit val format: Format[PaymentCallbackRequest] = Json.format[PaymentCallbackRequest]
+  given format: Format[PaymentCallbackRequest] = Json.format[PaymentCallbackRequest]
 }

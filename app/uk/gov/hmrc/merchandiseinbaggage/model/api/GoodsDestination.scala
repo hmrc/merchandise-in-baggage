@@ -26,7 +26,7 @@ sealed trait GoodsDestination extends EnumEntry {
 }
 
 object GoodsDestination {
-  implicit val format: Format[GoodsDestination] = EnumFormat(GoodsDestinations)
+  given format: Format[GoodsDestination] = EnumFormat(GoodsDestinations)
 }
 
 object GoodsDestinations extends Enum[GoodsDestination] {

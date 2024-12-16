@@ -23,5 +23,5 @@ import play.api.libs.json.{Json, OFormat}
 case class ConversionRatePeriod(startDate: LocalDate, endDate: LocalDate, currencyCode: String, rate: BigDecimal)
 
 object ConversionRatePeriod {
-  implicit val format: OFormat[ConversionRatePeriod] = Json.format[ConversionRatePeriod]
+  given format: OFormat[ConversionRatePeriod] = Json.format[ConversionRatePeriod]
 }

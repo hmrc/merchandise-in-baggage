@@ -19,8 +19,8 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Milliseconds, Seconds, Span}
-import play.api.test.Helpers._
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import play.api.test.Helpers.*
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
 
 import scala.concurrent.Future
@@ -120,7 +120,7 @@ class DeclarationRepositorySpec
       findResult mustBe Some(declarationTwo)
     }
 
-    //invalid combinations of (mibRef, eori)
+    // invalid combinations of (mibRef, eori)
     whenReady(repository.findBy(declarationOne.mibReference, declarationTwo.eori)) { findResult =>
       findResult mustBe None
     }
@@ -128,7 +128,7 @@ class DeclarationRepositorySpec
 
   "find a declaration by mibReference & Amendment Reference" in {
     val declaration = aDeclarationWithAmendment
-    //insert first
+    // insert first
     whenReady(repository.insertDeclaration(declaration)) { result =>
       result mustBe declaration
     }

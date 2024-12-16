@@ -26,5 +26,5 @@ case class Currency(
 )
 
 object Currency {
-  implicit val formats: OFormat[Currency] = Json.format[Currency]
+  given formats: OFormat[Currency] = Json.format[Currency]
 }

@@ -18,13 +18,13 @@ package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters.{and, elemMatch, empty, equal, in}
+import org.mongodb.scala.*
+import org.mongodb.scala.model.Filters.{and, elemMatch, empty, equal}
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
-import play.api.libs.json.Json._
-import play.api.libs.json._
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import play.api.libs.json.Json.*
+import play.api.libs.json.*
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -62,7 +62,7 @@ class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: E
     with DeclarationDateOrdering
     with DeclarationRepository {
 
-  implicit val jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
+  given jsObjectWriter: OWrites[JsObject] = (o: JsObject) => o
 
   def encryptDeclaration(declaration: Declaration): Declaration = declaration
   def decryptDeclaration(declaration: Declaration): Declaration = declaration
@@ -78,7 +78,7 @@ class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: E
       .recover {
         case NonFatal(ex)
             if ex.getMessage.contains("E11000") && ex.getMessage.contains(declaration.declarationId.value) =>
-          //conflict - duplicate declaration with same declarationId
+          // conflict - duplicate declaration with same declarationId
           declaration
       }
   }

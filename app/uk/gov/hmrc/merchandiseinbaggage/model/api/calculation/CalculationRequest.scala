@@ -22,5 +22,5 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.{Goods, GoodsDestination}
 case class CalculationRequest(goods: Goods, destination: GoodsDestination)
 
 object CalculationRequest {
-  implicit val format: OFormat[CalculationRequest] = Json.format[CalculationRequest]
+  given format: OFormat[CalculationRequest] = Json.format[CalculationRequest]
 }

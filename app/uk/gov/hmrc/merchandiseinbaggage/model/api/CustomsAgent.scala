@@ -22,5 +22,5 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.Address
 case class CustomsAgent(name: String, address: Address)
 
 object CustomsAgent {
-  implicit val format: OFormat[CustomsAgent] = Json.format[CustomsAgent]
+  given format: OFormat[CustomsAgent] = Json.format[CustomsAgent]
 }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.controllers
 
 import javax.inject.Inject
 import play.api.libs.json.Json
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EoriCheckConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.api.Eori
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController

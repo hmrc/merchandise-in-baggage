@@ -23,7 +23,7 @@ import org.mockito.Mockito.{mock, reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Declaration, MibReference}
-import uk.gov.hmrc.merchandiseinbaggage.model.core._
+import uk.gov.hmrc.merchandiseinbaggage.model.core.*
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 import uk.gov.hmrc.merchandiseinbaggage.{BaseSpecWithApplication, CoreTestData}
@@ -41,7 +41,7 @@ class DeclarationServiceSpec extends BaseSpecWithApplication with CoreTestData w
     val declarationService = new DeclarationService(declarationRepo, emailService, auditConnector, messagesApi)
 
     def mockEmails(declaration: Declaration) =
-      when(emailService.sendEmails(any(), any())(any())).thenReturn(EitherT.rightT(declaration))
+      when(emailService.sendEmails(any(), any())(any())).thenReturn(EitherT.rightT[Future, BusinessError](declaration))
 
     def mockAudit() =
       when(

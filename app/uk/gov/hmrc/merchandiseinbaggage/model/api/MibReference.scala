@@ -17,10 +17,10 @@
 package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import play.api.libs.json.Format
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 
 case class MibReference(value: String)
 
 object MibReference {
-  implicit val format: Format[MibReference] = implicitly[Format[String]].inmap(MibReference.apply, _.value)
+  given format: Format[MibReference] = implicitly[Format[String]].inmap(MibReference.apply, _.value)
 }

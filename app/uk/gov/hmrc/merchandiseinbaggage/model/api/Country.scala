@@ -30,5 +30,5 @@ case class Country(
 }
 
 object Country {
-  implicit val formats: OFormat[Country] = Json.format[Country]
+  given formats: OFormat[Country] = Json.format[Country]
 }

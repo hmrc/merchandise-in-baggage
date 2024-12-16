@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import uk.gov.hmrc.crypto.SymmetricCryptoFactory.aesCryptoFromConfig
 import uk.gov.hmrc.crypto.{Crypted, PlainText}
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.ExecutionContext

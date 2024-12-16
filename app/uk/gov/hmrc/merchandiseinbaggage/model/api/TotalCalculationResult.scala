@@ -28,5 +28,5 @@ case class TotalCalculationResult(
 )
 
 object TotalCalculationResult {
-  implicit val format: OFormat[TotalCalculationResult] = Json.format[TotalCalculationResult]
+  given format: OFormat[TotalCalculationResult] = Json.format[TotalCalculationResult]
 }

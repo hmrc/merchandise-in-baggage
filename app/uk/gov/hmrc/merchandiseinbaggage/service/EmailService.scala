@@ -17,7 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.service
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import javax.inject.Inject
 import play.api.Logging
 import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
@@ -27,10 +27,10 @@ import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.connectors.EmailConnector
 import uk.gov.hmrc.merchandiseinbaggage.model.DeclarationEmailInfo
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.{Export, Import}
-import uk.gov.hmrc.merchandiseinbaggage.model.api._
+import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.model.core.{BusinessError, EmailSentError}
 import uk.gov.hmrc.merchandiseinbaggage.repositories.DeclarationRepository
-import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils._
+import uk.gov.hmrc.merchandiseinbaggage.util.DateUtils.*
 import uk.gov.hmrc.merchandiseinbaggage.util.PagerDutyHelper
 import uk.gov.hmrc.merchandiseinbaggage.util.Utils.FutureOps
 
@@ -49,7 +49,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     hc: HeaderCarrier
   ): EitherT[Future, BusinessError, Declaration] = {
 
-    implicit val messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
+    given messages: Messages = if (declaration.lang == "en") messagesEN else messagesCY
 
     EitherT(
       if (emailsSent(declaration, amendmentReference)) {
@@ -105,10 +105,10 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
       case Some(reference) =>
         declaration.amendments.find(_.reference == reference) match {
           case Some(amendment) => amendment.emailsSent
-          case None            => true //no amendment found for given amendmentReference, do not trigger emails
+          case None            => true // no amendment found for given amendmentReference, do not trigger emails
         }
       case None            =>
-        //first check for latest `amend` journey, then fallback to `new` journey
+        // first check for latest `amend` journey, then fallback to `new` journey
         declaration.amendments.lastOption.map(_.emailsSent).getOrElse(declaration.emailsSent)
     }
 
@@ -118,9 +118,9 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     emailType: String,
     amendmentReference: Option[Int]
   )(implicit messages: Messages): DeclarationEmailInfo = {
-    import declaration._
+    import declaration.*
 
-    val amendmentGoods = {
+    val amendmentGoods =
       declarationType match {
         case Import =>
           amendments
@@ -128,7 +128,6 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
             .flatMap(_.goods.goods)
         case Export => amendments.flatMap(_.goods.goods)
       }
-    }
 
     val allGoods = declarationGoods.goods ++ amendmentGoods
 
@@ -207,7 +206,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     }
   }
 
-  case class PaymentMade(totalDutyDue: AmountInPence, totalVatDue: AmountInPence, totalTaxDue: AmountInPence)
+  private case class PaymentMade(totalDutyDue: AmountInPence, totalVatDue: AmountInPence, totalTaxDue: AmountInPence)
 
   private def paymentParams(declaration: Declaration) = {
 

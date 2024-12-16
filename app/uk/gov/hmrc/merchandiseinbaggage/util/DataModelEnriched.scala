@@ -22,7 +22,7 @@ import uk.gov.hmrc.merchandiseinbaggage.model.api.{Goods, GoodsDestination, Purc
 object DataModelEnriched {
 
   implicit class PurchaseDetailsEnriched(details: PurchaseDetails) {
-    import details._
+    import details.*
 
     val numericAmount: BigDecimal = BigDecimal(amount)
   }

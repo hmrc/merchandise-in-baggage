@@ -23,5 +23,5 @@ case class Eori(value: String) {
 }
 
 object Eori {
-  implicit val format: OFormat[Eori] = Json.format[Eori]
+  given format: OFormat[Eori] = Json.format[Eori]
 }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 
 import java.time.LocalDate
 
-import play.api.libs.json._
+import play.api.libs.json.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.YesNo.{No, Yes}
 
 sealed trait JourneyDetails {
@@ -37,7 +37,7 @@ case class JourneyInSmallVehicle(port: Port, dateOfTravel: LocalDate, registrati
 }
 
 object JourneyDetails {
-  implicit val format: OFormat[JourneyDetails] = new OFormat[JourneyDetails] {
+  given format: OFormat[JourneyDetails] = new OFormat[JourneyDetails] {
     override def reads(json: JsValue): JsResult[JourneyDetails] = {
       val port         = (json \ "port").as[Port]
       val dateOfTravel = (json \ "dateOfTravel").as[LocalDate]
@@ -57,9 +57,9 @@ object JourneyDetails {
 }
 
 object JourneyOnFoot {
-  implicit val format: OFormat[JourneyOnFoot] = Json.format[JourneyOnFoot]
+  given format: OFormat[JourneyOnFoot] = Json.format[JourneyOnFoot]
 }
 
 object JourneyInSmallVehicle {
-  implicit val format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
+  given format: OFormat[JourneyInSmallVehicle] = Json.format[JourneyInSmallVehicle]
 }
