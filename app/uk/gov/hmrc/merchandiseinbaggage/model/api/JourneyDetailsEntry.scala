@@ -19,8 +19,6 @@ package uk.gov.hmrc.merchandiseinbaggage.model.api
 import java.time.LocalDate
 import play.api.libs.json.*
 
-import java.time.format.DateTimeParseException
-
 case class JourneyDetailsEntry(portCode: String, dateOfTravel: LocalDate)
 
 object JourneyDetailsEntry {
