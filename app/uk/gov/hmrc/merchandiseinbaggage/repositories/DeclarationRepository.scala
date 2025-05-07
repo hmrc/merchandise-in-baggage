@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package uk.gov.hmrc.merchandiseinbaggage.repositories
 
 import com.google.inject.ImplementedBy
+
 import javax.inject.{Inject, Singleton}
 import org.mongodb.scala.*
 import org.mongodb.scala.model.Filters.{and, elemMatch, empty, equal}
@@ -24,6 +25,7 @@ import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
 import play.api.libs.json.Json.*
 import play.api.libs.json.*
+import uk.gov.hmrc.merchandiseinbaggage.config.AppConfig
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.service.DeclarationDateOrdering
 import uk.gov.hmrc.mongo.MongoComponent
@@ -51,13 +53,27 @@ trait DeclarationRepository {
 }
 
 @Singleton
-class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
+class DeclarationRepositoryImpl @Inject() (mongo: MongoComponent, appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[Declaration](
       collectionName = "declaration",
       mongoComponent = mongo,
       domainFormat = Declaration.format,
-      indexes = Seq(IndexModel(ascending(s"${Declaration.id}"), IndexOptions().name("primaryKey").unique(true))),
-      replaceIndexes = false
+      indexes = Seq(
+        IndexModel(ascending(s"${Declaration.id}"), IndexOptions().name("primaryKey").unique(true)),
+        IndexModel(
+          ascending("mibReference"),
+          IndexOptions().name("mibReference").unique(false)
+        ),
+        IndexModel(
+          ascending("mibReference", "eori.value"),
+          IndexOptions().name("mibReference_eori").unique(false)
+        ),
+        IndexModel(
+          ascending("mibReference", "amendments"),
+          IndexOptions().name("mibReference_amendments").unique(false)
+        )
+      ),
+      replaceIndexes = appConfig.replaceMongoIndexes
     )
     with DeclarationDateOrdering
     with DeclarationRepository {

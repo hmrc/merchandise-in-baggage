@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.5.1"
+ThisBuild / scalaVersion := "3.5.2"
 ThisBuild / majorVersion := 0
 
 lazy val microservice = Project("merchandise-in-baggage", file("."))
