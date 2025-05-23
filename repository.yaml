@@ -1,4 +1,8 @@
+digital-service: MODS / Merchandising Online Declaration Service
+description: This backend service supports two frontends (public facing and internally for administration through stride). The MODS service allows traders to make an online declaration for both import and export merchandise.
 repoVisibility: public_0C3F0CE3E6E6448FAD341E7BFA50FCD333E06A20CFF05FCACE61154DDBBADF71
+type: Service
+service-type: Backend
 test-repositories:
   - merchandise-in-baggage-ui-tests
   - merchandise-in-baggage-performance-tests
