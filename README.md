@@ -1,7 +1,6 @@
 # merchandise-in-baggage
 
-This backend service supports supports two frontends (public facing and internally for administration through
-stride).
+This backend service supports two frontends (public facing and internally for administration through stride). The MODS service allows traders to make an online declaration for both import and export merchandise.
 
 ## Start service locally
 
