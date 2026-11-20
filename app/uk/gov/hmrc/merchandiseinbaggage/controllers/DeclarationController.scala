@@ -39,7 +39,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
   def onDeclarations(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.persistDeclaration(request.body).map { declaration =>
       logger.warn(
-        s"[DeclarationController][onDeclarations] new ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
+        s"New ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
       )
       Created(toJson(declaration.declarationId))
     }
@@ -48,7 +48,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
   def amendDeclaration(): Action[Declaration] = Action(parse.json[Declaration]).async { implicit request =>
     declarationService.amendDeclaration(request.body).map { declaration =>
       logger.warn(
-        s"[DeclarationController][amendDeclaration] amend ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
+        s"Amend ${declaration.declarationType} declaration with Ref: ${declaration.mibReference}"
       )
       Ok(toJson(declaration.declarationId))
     }
@@ -58,7 +58,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
     declarationService
       .findByDeclarationId(declarationId)
       .fold(
-        handleError(s"[DeclarationController][onRetrieve] $declarationId not found"),
+        handleError(s"Declaration $declarationId not found"),
         foundDeclaration => Ok(toJson(foundDeclaration))
       )
   }
@@ -67,7 +67,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
     declarationService
       .findBy(mibReference, eori)
       .fold(
-        handleError(s"[DeclarationController][findBy] Declaration not found for params: $mibReference, $eori"),
+        handleError(s"Declaration not found for params: $mibReference, $eori"),
         foundDeclaration => Ok(toJson(foundDeclaration))
       )
   }
@@ -80,7 +80,7 @@ class DeclarationController @Inject() (declarationService: DeclarationService, m
         .processPaymentCallback(callbackRequest)
         .fold(
           handleError(
-            s"[DeclarationController][handlePaymentCallback] Declaration with params [$callbackRequest] not found"
+            s"Declaration with params [$callbackRequest] not found"
           ),
           _ => Ok
         )

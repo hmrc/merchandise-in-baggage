@@ -54,7 +54,7 @@ class EmailService @Inject() (emailConnector: EmailConnector, declarationReposit
     EitherT(
       if (emailsSent(declaration, amendmentReference)) {
         logger.warn(
-          s"[EmailService][sendEmails] emails are already sent for declaration: ${declaration.mibReference.value}"
+          s"Emails are already sent for declaration: ${declaration.mibReference.value}"
         )
         declaration.asRight.asFuture
       } else {

@@ -48,15 +48,15 @@ trait Auditor extends Logging {
         status match {
           case Success             =>
             logger.info(
-              s"[Auditor][auditDeclaration] Successful audit of declaration with id [${declaration.declarationId}]"
+              s"Successful audit of declaration with id [${declaration.declarationId}]"
             )
           case Disabled            =>
             logger.warn(
-              s"[Auditor][auditDeclaration] Audit of declaration with id [${declaration.declarationId}] returned Disabled"
+              s"Audit of declaration with id [${declaration.declarationId}] returned Disabled"
             )
           case Failure(message, _) =>
             logger.error(
-              s"[Auditor][auditDeclaration] Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
+              s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
             )
         }
         ()
@@ -110,15 +110,15 @@ trait Auditor extends Logging {
           .map {
             case Success             =>
               logger.info(
-                s"[Auditor][auditRefundableDeclaration] Successful audit of declaration with id [${declaration.declarationId}]"
+                s"Successful audit of declaration with id [${declaration.declarationId}]"
               )
             case Disabled            =>
               logger.warn(
-                s"[Auditor][auditRefundableDeclaration] Audit of declaration with id [${declaration.declarationId}] returned Disabled"
+                s"Audit of declaration with id [${declaration.declarationId}] returned Disabled"
               )
             case Failure(message, _) =>
               logger.error(
-                s"[Auditor][auditRefundableDeclaration] Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
+                s"Audit of declaration with id [${declaration.declarationId}] returned Failure with message [$message]"
               )
           }
       }
