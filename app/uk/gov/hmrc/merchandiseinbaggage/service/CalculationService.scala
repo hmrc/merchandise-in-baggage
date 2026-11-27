@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage.service
 import cats.data.OptionT
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.merchandiseinbaggage.connectors.CurrencyConversionConnector
-import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestination.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.*
 import uk.gov.hmrc.merchandiseinbaggage.util.DataModelEnriched.*

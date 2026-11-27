@@ -15,20 +15,22 @@
  */
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
+import play.api.libs.json.*
 
-import enumeratum.EnumEntry
+enum YesNo {
+  case Yes, No
+}
 
-import scala.collection.immutable
+object YesNo {
+  given format: Format[YesNo] = new Format[YesNo] {
+    def reads(json: JsValue): JsResult[YesNo] = json match {
+      case JsString("Yes") => JsSuccess(Yes)
+      case JsString("No")  => JsSuccess(No)
+      case _               => JsError("Invalid Yes No")
+    }
 
-sealed trait YesNo extends EnumEntry
-
-object YesNo extends Enum[YesNo] {
-  override val values: immutable.IndexedSeq[YesNo] = findValues
+    def writes(yesNo: YesNo): JsValue = JsString(yesNo.toString)
+  }
 
   def from(bool: Boolean): YesNo = if (bool) Yes else No
-
-  case object Yes extends YesNo
-
-  case object No extends YesNo
-
 }

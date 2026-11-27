@@ -73,8 +73,8 @@ class YesNoSpec extends AnyWordSpec with Matchers {
     }
 
     "return correct string representation" in {
-      Yes.entryName shouldBe "Yes"
-      No.entryName  shouldBe "No"
+      Yes.toString shouldBe "Yes"
+      No.toString  shouldBe "No"
     }
   }
 }

@@ -85,7 +85,7 @@ trait Auditor extends Logging {
             calculationResult.vat.formattedInPounds,
             s"${calculationResult.goods.goodsVatRate.value}%",
             calculationResult.taxDue.formattedInPounds,
-            calculationResult.goods.producedInEu.entryName,
+            calculationResult.goods.producedInEu.toString,
             calculationResult.goods.purchaseDetails.amount,
             calculationResult.goods.purchaseDetails.currency.code,
             calculationResult.conversionRatePeriod.fold("1.00")(_.rate.toString)

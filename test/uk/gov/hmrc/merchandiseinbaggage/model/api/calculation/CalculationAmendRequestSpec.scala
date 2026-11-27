@@ -93,7 +93,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
       "all fields are defined" in {
         val request = CalculationAmendRequest(
           amend = Some(aAmendment.copy(dateOfAmendment = timestamp)),
-          maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
+          maybeGoodsDestination = Some(GoodsDestination.GreatBritain),
           declarationId = DeclarationId("decl1")
         )
 
@@ -120,7 +120,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
         json.validate[CalculationAmendRequest] shouldBe JsSuccess(
           CalculationAmendRequest(
             amend = Some(aAmendment.copy(dateOfAmendment = timestamp)),
-            maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
+            maybeGoodsDestination = Some(GoodsDestination.GreatBritain),
             declarationId = DeclarationId("decl1")
           )
         )
@@ -180,7 +180,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
         json.validate[CalculationAmendRequest] shouldBe JsSuccess(
           CalculationAmendRequest(
             amend = Some(aAmendment.copy(dateOfAmendment = timestamp)),
-            maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
+            maybeGoodsDestination = Some(GoodsDestination.GreatBritain),
             declarationId = DeclarationId("decl1")
           )
         )
@@ -249,7 +249,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
                 lang = "en"
               )
             ),
-            maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
+            maybeGoodsDestination = Some(GoodsDestination.GreatBritain),
             declarationId = DeclarationId("decl1")
           )
         )
@@ -260,7 +260,7 @@ class CalculationAmendRequestSpec extends AnyWordSpec with Matchers with CoreTes
     "support round-trip serialization/deserialization" in {
       val request = CalculationAmendRequest(
         amend = Some(aAmendment.copy(dateOfAmendment = timestamp)),
-        maybeGoodsDestination = Some(GoodsDestinations.GreatBritain),
+        maybeGoodsDestination = Some(GoodsDestination.GreatBritain),
         declarationId = DeclarationId("decl1")
       )
 

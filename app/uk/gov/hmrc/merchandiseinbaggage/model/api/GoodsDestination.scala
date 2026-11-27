@@ -15,28 +15,21 @@
  */
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
+import play.api.libs.json.*
 
-import enumeratum.EnumEntry
-import play.api.libs.json.Format
-
-import scala.collection.immutable
-
-sealed trait GoodsDestination extends EnumEntry {
-  def threshold: AmountInPence
+enum GoodsDestination(val threshold: AmountInPence) {
+  case NorthernIreland extends GoodsDestination(AmountInPence(87300))
+  case GreatBritain extends GoodsDestination(AmountInPence(250000))
 }
 
 object GoodsDestination {
-  given format: Format[GoodsDestination] = EnumFormat(GoodsDestinations)
-}
+  given format: Format[GoodsDestination] = new Format[GoodsDestination] {
+    def reads(json: JsValue): JsResult[GoodsDestination] = json match {
+      case JsString("NorthernIreland") => JsSuccess(NorthernIreland)
+      case JsString("GreatBritain")    => JsSuccess(GreatBritain)
+      case _                           => JsError("Invalid Goods Destination")
+    }
 
-object GoodsDestinations extends Enum[GoodsDestination] {
-  override val values: immutable.IndexedSeq[GoodsDestination] = findValues
-
-  case object NorthernIreland extends GoodsDestination {
-    override val threshold: AmountInPence = AmountInPence(87300)
-  }
-
-  case object GreatBritain extends GoodsDestination {
-    override val threshold: AmountInPence = AmountInPence(250000)
+    def writes(goodsDestination: GoodsDestination): JsValue = JsString(goodsDestination.toString)
   }
 }

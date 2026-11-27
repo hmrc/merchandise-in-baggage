@@ -19,7 +19,7 @@ package uk.gov.hmrc.merchandiseinbaggage
 import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID.randomUUID
 import uk.gov.hmrc.merchandiseinbaggage.model.api.DeclarationType.Import
-import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestination.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.addresslookup.{Address, AddressLookupCountry}
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.{CalculationResult, CalculationResults}
@@ -35,7 +35,7 @@ trait CoreTestData {
   private val aGoodDestination  = GreatBritain
   val aImportGoods: ImportGoods = ImportGoods(
     "test",
-    GoodsVatRates.Five,
+    GoodsVatRate.Five,
     YesNoDontKnow.Yes,
     PurchaseDetails("100", Currency("GBP", "title.euro_eur", Some("GBP"), List("Europe", "European")))
   )

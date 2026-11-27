@@ -30,7 +30,7 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
       " with all fields defined" in {
         val request = CalculationRequest(
           goods = aImportGoods,
-          destination = GoodsDestinations.GreatBritain
+          destination = GoodsDestination.GreatBritain
         )
 
         Json.toJson(request) shouldBe Json.obj(
@@ -76,7 +76,7 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
         json.validate[CalculationRequest] shouldBe JsSuccess(
           CalculationRequest(
             goods = aImportGoods,
-            destination = GoodsDestinations.GreatBritain
+            destination = GoodsDestination.GreatBritain
           )
         )
       }
@@ -121,7 +121,7 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
     "with support round-trip serialization/deserialization" in {
       val request = CalculationRequest(
         goods = aImportGoods,
-        destination = GoodsDestinations.NorthernIreland
+        destination = GoodsDestination.NorthernIreland
       )
 
       val json = Json.toJson(request)
@@ -132,11 +132,11 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
       val request = CalculationRequest(
         goods = ImportGoods(
           category = "test",
-          goodsVatRate = GoodsVatRates.Five,
+          goodsVatRate = GoodsVatRate.Five,
           producedInEu = YesNoDontKnow.Yes,
           purchaseDetails = aPurchaseDetails.copy(amount = "")
         ),
-        destination = GoodsDestinations.GreatBritain
+        destination = GoodsDestination.GreatBritain
       )
 
       val json = Json.toJson(request)
@@ -166,7 +166,7 @@ class CalculationRequestSpec extends AnyWordSpec with Matchers with CoreTestData
       json.validate[CalculationRequest] shouldBe JsSuccess(
         CalculationRequest(
           goods = aImportGoods,
-          destination = GoodsDestinations.GreatBritain
+          destination = GoodsDestination.GreatBritain
         )
       )
     }
