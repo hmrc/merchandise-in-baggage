@@ -56,10 +56,9 @@ class DeclarationTypeSpec extends AnyWordSpec with Matchers {
       }
     }
 
-    "round-trip serialization/deserialization" in {
+    "round-trip serialization/deserialization" in
       DeclarationType.values.foreach { value =>
         Json.toJson(value).validate[DeclarationType] shouldBe JsSuccess(value)
       }
-    }
   }
 }

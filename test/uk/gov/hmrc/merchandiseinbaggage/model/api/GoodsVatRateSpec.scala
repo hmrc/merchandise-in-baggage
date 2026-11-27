@@ -70,10 +70,9 @@ class GoodsVatRateSpec extends AnyWordSpec with Matchers {
       }
     }
 
-    "round-trip serialization/deserialization" in {
+    "round-trip serialization/deserialization" in
       GoodsVatRate.values.foreach { value =>
         Json.toJson(value).validate[GoodsVatRate] shouldBe JsSuccess(value)
       }
-    }
   }
 }

@@ -66,10 +66,9 @@ class GoodsDestinationSpec extends AnyWordSpec with Matchers {
       }
     }
 
-    "round-trip serialization/deserialization" in {
+    "round-trip serialization/deserialization" in
       GoodsDestination.values.foreach { value =>
         Json.toJson(value).validate[GoodsDestination] shouldBe JsSuccess(value)
       }
-    }
   }
 }

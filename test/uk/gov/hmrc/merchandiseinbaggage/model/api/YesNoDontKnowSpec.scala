@@ -70,10 +70,9 @@ class YesNoDontKnowSpec extends AnyWordSpec with Matchers {
       }
     }
 
-    "round-trip serialization/deserialization" in {
+    "round-trip serialization/deserialization" in
       YesNoDontKnow.values.foreach { value =>
         Json.toJson(value).validate[YesNoDontKnow] shouldBe JsSuccess(value)
       }
-    }
   }
 }
