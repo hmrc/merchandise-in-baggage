@@ -15,24 +15,23 @@
  */
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
+import play.api.libs.json.*
 
-import enumeratum.EnumEntry
-import play.api.libs.json.Format
-
-import scala.collection.immutable
-
-sealed trait GoodsVatRate extends EnumEntry {
-  val value: Int
+enum GoodsVatRate(val value: Int) {
+  case Zero extends GoodsVatRate(0)
+  case Five extends GoodsVatRate(5)
+  case Twenty extends GoodsVatRate(20)
 }
 
 object GoodsVatRate {
-  given format: Format[GoodsVatRate] = EnumFormat(GoodsVatRates)
-}
+  given format: Format[GoodsVatRate] = new Format[GoodsVatRate] {
+    def reads(json: JsValue): JsResult[GoodsVatRate] = json match {
+      case JsString("Zero")   => JsSuccess(Zero)
+      case JsString("Five")   => JsSuccess(Five)
+      case JsString("Twenty") => JsSuccess(Twenty)
+      case _                  => JsError("Invalid Goods Vat Rate")
+    }
 
-object GoodsVatRates extends Enum[GoodsVatRate] {
-  override val values: immutable.IndexedSeq[GoodsVatRate] = findValues
-
-  case object Zero extends GoodsVatRate { override val value: Int = 0 }
-  case object Five extends GoodsVatRate { override val value: Int = 5 }
-  case object Twenty extends GoodsVatRate { override val value: Int = 20 }
+    def writes(goodsVatRate: GoodsVatRate): JsValue = JsString(goodsVatRate.toString)
+  }
 }

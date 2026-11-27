@@ -15,23 +15,23 @@
  */
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
+import play.api.libs.json.*
 
-import enumeratum.EnumEntry
-import play.api.libs.json.Format
+enum YesNoDontKnow {
+  case Yes, No, DontKnow
 
-import scala.collection.immutable
-
-sealed trait YesNoDontKnow extends EnumEntry {
-  val messageKey = s"yndk.$entryName"
+  val messageKey: String = s"yndk.$this"
 }
 
-object YesNoDontKnow extends Enum[YesNoDontKnow] {
-  given format: Format[YesNoDontKnow] = EnumFormat(YesNoDontKnow)
+object YesNoDontKnow {
+  given format: Format[YesNoDontKnow] = new Format[YesNoDontKnow] {
+    def reads(json: JsValue): JsResult[YesNoDontKnow] = json match {
+      case JsString("Yes")      => JsSuccess(Yes)
+      case JsString("No")       => JsSuccess(No)
+      case JsString("DontKnow") => JsSuccess(DontKnow)
+      case _                    => JsError("Invalid Yes No Dont Know")
+    }
 
-  override val values: immutable.IndexedSeq[YesNoDontKnow] = findValues
-
-  case object Yes extends YesNoDontKnow
-  case object No extends YesNoDontKnow
-  case object DontKnow extends YesNoDontKnow
-
+    def writes(yesNoDontKnow: YesNoDontKnow): JsValue = JsString(yesNoDontKnow.toString)
+  }
 }

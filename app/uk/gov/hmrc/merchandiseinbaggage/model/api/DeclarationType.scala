@@ -15,16 +15,20 @@
  */
 
 package uk.gov.hmrc.merchandiseinbaggage.model.api
+import play.api.libs.json.*
 
-import enumeratum.EnumEntry
+enum DeclarationType {
+  case Import, Export
+}
 
-import scala.collection.immutable
+object DeclarationType {
+  given format: Format[DeclarationType] = new Format[DeclarationType] {
+    def reads(json: JsValue): JsResult[DeclarationType] = json match {
+      case JsString("Import") => JsSuccess(Import)
+      case JsString("Export") => JsSuccess(Export)
+      case _                  => JsError("Invalid Declaration Type")
+    }
 
-sealed trait DeclarationType extends EnumEntry
-
-object DeclarationType extends Enum[DeclarationType] {
-  override val values: immutable.IndexedSeq[DeclarationType] = findValues
-
-  case object Import extends DeclarationType
-  case object Export extends DeclarationType
+    def writes(declarationType: DeclarationType): JsValue = JsString(declarationType.toString)
+  }
 }

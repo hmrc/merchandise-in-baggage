@@ -22,7 +22,7 @@ import org.mockito.Mockito.{mock, reset, when}
 import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import uk.gov.hmrc.merchandiseinbaggage.controllers.routes.*
-import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestinations.GreatBritain
+import uk.gov.hmrc.merchandiseinbaggage.model.api.GoodsDestination.GreatBritain
 import uk.gov.hmrc.merchandiseinbaggage.model.api.calculation.*
 import uk.gov.hmrc.merchandiseinbaggage.model.api.{Amendment, ConversionRatePeriod, DeclarationGoods}
 import uk.gov.hmrc.merchandiseinbaggage.service.CalculationService

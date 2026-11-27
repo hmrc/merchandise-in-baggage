@@ -26,7 +26,7 @@ class ImportGoodsSpec extends AnyWordSpec with Matchers {
     PurchaseDetails("100.00", Currency("USD", "United States Dollar", Some("USD"), List("Dollar", "US")))
   val validImportGoods     = ImportGoods(
     category = "Electronics",
-    goodsVatRate = GoodsVatRates.Five,
+    goodsVatRate = GoodsVatRate.Five,
     producedInEu = YesNoDontKnow.Yes,
     purchaseDetails = validPurchaseDetails
   )
